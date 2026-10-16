@@ -4,6 +4,7 @@ import AppLayout from './components/layout/AppLayout'
 import LockScreen from './components/auth/LockScreen'
 import FallbackLoader from './components/FallbackLoader'
 import AutoBackupProvider from './components/providers/AutoBackupProvider'
+import GlobalErrorBoundary from './components/common/GlobalErrorBoundary'
 
 // Lazy loaded pages
 const Dashboard = lazy(() => import('./pages/Dashboard'))
@@ -24,9 +25,10 @@ const SettingsPage = lazy(() => import('./pages/SettingsPage'))
 
 export default function App() {
   return (
-    <AutoBackupProvider intervalMinutes={30}>
-      <LockScreen>
-      <AppLayout>
+    <GlobalErrorBoundary>
+      <AutoBackupProvider intervalMinutes={30}>
+        <LockScreen>
+          <AppLayout>
         <Suspense fallback={<FallbackLoader />}>
           <Routes>
             <Route path="/" element={<Dashboard />} />
@@ -51,5 +53,7 @@ export default function App() {
       </AppLayout>
     </LockScreen>
     </AutoBackupProvider>
+    </GlobalErrorBoundary>
   )
 }
+
