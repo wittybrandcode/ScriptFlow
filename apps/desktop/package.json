@@ -17,6 +17,8 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@scriptflow/core": "*",
     "@scriptflow/database": "*",
+    "@scriptflow/application": "*",
+    "@scriptflow/export": "*",
     "@tanstack/react-query": "^5.100.14",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-dialog": "^2.7.1",

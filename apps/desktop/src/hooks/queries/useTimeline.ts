@@ -80,8 +80,8 @@ export function useDeleteShootDayMutation() {
 export function useAssignSceneMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ scenarioId, sceneId, destDayId }: { scenarioId: string; sceneId: string; destDayId: string | null }) => {
-      await manageTimeline.assignScene(sceneId, destDayId);
+    mutationFn: async ({ scenarioId, sceneId, destDayId, shootOrder }: { scenarioId: string; sceneId: string; destDayId: string | null; shootOrder?: number }) => {
+      await manageTimeline.assignScene(sceneId, destDayId, shootOrder);
       return { scenarioId };
     },
     onSuccess: ({ scenarioId }) => {

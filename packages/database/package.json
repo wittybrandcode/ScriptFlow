@@ -2,8 +2,23 @@
   "name": "@scriptflow/database",
   "version": "1.0.0",
   "type": "module",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./test": {
+      "types": "./src/test/setup.ts",
+      "import": "./src/test/setup.ts",
+      "default": "./src/test/setup.ts"
+    }
+  },
   "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
     "lint": "eslint .",
     "test": "vitest run"
   },

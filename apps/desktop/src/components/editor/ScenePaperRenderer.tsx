@@ -1,6 +1,6 @@
-import React, { useMemo, memo, useState, useEffect } from 'react';
+import { memo, useState, useEffect } from 'react';
 import { TIME_MAP } from '../../constants/sceneConstants';
-import { groupBlocksByPage, expandBlocksToLayoutNodes, GRID } from './TextMeasurementEngine';
+import { GRID } from './TextMeasurementEngine';
 import { useUIStore } from '../../store/useUIStore';
 import PageFooter from '../pdf/PageFooter';
 import { useExportWorker } from '../../hooks/useExportWorker';
@@ -26,7 +26,7 @@ const ScenePaperRendererComponent = ({
   paperZoom = 1,
   isReference = false,
   isPrintMode = false,
-  onCloseReference = null,
+  onCloseReference: _onCloseReference = null,
   startPageNumber = 1,
   scenarioName = 'مشروع بدون عنوان',
   episodes = []
@@ -35,7 +35,7 @@ const ScenePaperRendererComponent = ({
   const currentEpisode = episodes?.find(e => e.id === scene?.episode_id);
 
   const { paginateSingleScene } = useExportWorker();
-  const [pagesState, setPagesState] = useState({ pages: [], totalPages: 0 });
+  const [pagesState, setPagesState] = useState<{ pages: any[], totalPages: number }>({ pages: [], totalPages: 0 });
 
   // === المحرك الموحد: توسيع الكتل البرمجية وتجميعها حسب الصفحة (عبر الـ Worker) ===
   useEffect(() => {
@@ -43,7 +43,7 @@ const ScenePaperRendererComponent = ({
     
     let isMounted = true;
     
-    paginateSingleScene(blocks, characters).then(result => {
+    paginateSingleScene(blocks, characters).then((result: any) => {
       if (isMounted && result && result.success) {
         setPagesState({ pages: result.pages, totalPages: result.totalPages });
       }
@@ -135,7 +135,7 @@ const ScenePaperRendererComponent = ({
   const totalHeight = totalPages * GRID.PAGE_HEIGHT + (totalPages - 1) * PAGE_GAP;
 
   const renderPagesList = () => (
-    pages.map((page, pageIndex) => (
+    pages.map((page: any, pageIndex: number) => (
       <div
         key={pageIndex}
         className={`bg-white text-black font-sans relative rounded-[2px] overflow-hidden ${isPrintMode ? 'print-page-individual' : ''}`}
@@ -215,7 +215,7 @@ const ScenePaperRendererComponent = ({
               {scene.location_type === 'INT' ? 'داخلي' : scene.location_type === 'EXT' ? 'خارجي' : scene.location_type} / {scene.location_name || '...'}
             </span>
             <span className="text-right">
-              {TIME_MAP[scene.time_of_day] || scene.time_of_day}
+              {(TIME_MAP as any)[scene.time_of_day] || scene.time_of_day}
             </span>
           </div>
         </div>
@@ -225,10 +225,10 @@ const ScenePaperRendererComponent = ({
 
         {/* Page Content area */}
         <div className="paper-content">
-          {page.blocks.map(b => renderBlock(b))}
+          {page.blocks?.map((b: any) => renderBlock(b))}
 
           {/* Empty state for first page with no blocks */}
-          {pageIndex === 0 && !isReference && page.blocks.length === 0 && (
+          {pageIndex === 0 && !isReference && page.blocks?.length === 0 && (
             <div className="py-20 text-center text-gray-200 uppercase tracking-[1em] select-none pointer-events-none font-bold">
               Cinematic Void
             </div>

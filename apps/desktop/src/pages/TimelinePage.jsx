@@ -42,7 +42,7 @@ export default function TimelinePage() {
   const createDayMutation = useCreateShootDayMutation();
   const deleteDayMutation = useDeleteShootDayMutation();
   const updateDayMutation = useUpdateShootDayMutation();
-  const assignScene = (scenId, scnId, destDayId, newOrder) => assignMutation.mutate({ scenarioId: scenId, sceneId: scnId, destDayId });
+  const assignScene = (scenId, scnId, destDayId, newOrder) => assignMutation.mutate({ scenarioId: scenId, sceneId: scnId, destDayId, shootOrder: newOrder });
   const createShootDay = (scenId, data) => createDayMutation.mutate({ scenarioId: scenId, data });
   const deleteShootDay = (scenId, dayId) => deleteDayMutation.mutate({ scenarioId: scenId, dayId });
   const updateShootDay = (scenId, dayId, data) => updateDayMutation.mutate({ scenarioId: scenId, dayId, data });

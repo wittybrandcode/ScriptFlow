@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderToString } from 'react-dom/server';
 import ScenePaperRenderer from '../components/editor/ScenePaperRenderer';
 import SceneCoverPage from '../components/pdf/SceneCoverPage';

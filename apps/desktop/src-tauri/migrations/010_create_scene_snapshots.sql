@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS scene_snapshots (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    scene_id INTEGER NOT NULL,
+    id TEXT PRIMARY KEY,
+    scene_id TEXT NOT NULL,
     snapshot_json TEXT NOT NULL,
     trigger TEXT NOT NULL DEFAULT 'auto',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

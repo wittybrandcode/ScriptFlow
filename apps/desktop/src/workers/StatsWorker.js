@@ -1,3 +1,5 @@
+import * as Comlink from 'comlink';
+
 export const StatsWorker = {
   /**
    * معالجة إحصائيات ضخمة (Map/Reduce) للسيناريو
@@ -57,3 +59,8 @@ export const StatsWorker = {
     };
   }
 };
+
+if (typeof self !== 'undefined' && typeof window === 'undefined') {
+  Comlink.expose(StatsWorker);
+}
+

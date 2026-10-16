@@ -75,7 +75,7 @@ export class FosterEngine {
   private static findNurseChildren(
     nurseId: string,
     husbandId: string | undefined,
-    people: Person[],
+    _people: Person[],
     existingRelations: Relation[],
     records: FosterRecord[]
   ): string[] {

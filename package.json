@@ -12,8 +12,8 @@
   "scripts": {
     "dev": "npm run dev --workspace=@scriptflow/desktop",
     "tauri": "npm run tauri --workspace=@scriptflow/desktop --",
-    "build": "npm run build --workspaces",
-    "test": "vitest run",
+    "build": "npm run build --workspace=@scriptflow/core && npm run build --workspace=@scriptflow/database && npm run build --workspace=@scriptflow/application && npm run build --workspace=@scriptflow/export && npm run build --workspace=nasab && npm run build --workspace=@scriptflow/desktop",
+    "test": "npm run test --workspaces --if-present",
     "build-tree": "node tooling/generate-tree.js"
   },
   "devDependencies": {

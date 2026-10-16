@@ -33,7 +33,7 @@ const SceneEditorHeader = ({
 }) => {
   const navigate = useNavigate();
   const [showSnapshots, setShowSnapshots] = React.useState(false);
-  const { data: snapshots = [] } = useSceneSnapshotsQuery(id ? Number(id) : null);
+  const { data: snapshots = [] } = useSceneSnapshotsQuery(id ? String(id) : null);
 
   return (
     <div className="shrink-0 bg-card flex flex-col z-20 pt-2 px-2 pb-1.5 border-b border-border shadow-[0_4px_10px_-4px_rgba(0,0,0,0.05)] gap-1.5">

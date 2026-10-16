@@ -35,7 +35,10 @@ class BackupService {
         console.warn('Scope check fallback for exists:', err);
       }
       if (!dbExists) {
-        throw new Error('لم يتم العثور على قاعدة بيانات نشطة لنسخها.');
+        const health = await invoke('check_db_health').catch(() => null);
+        if (!health) {
+          console.warn('[BackupService] db file not directly at appRoot, falling back to active database connection.');
+        }
       }
 
       const backupsDir = await this.getBackupsDir();

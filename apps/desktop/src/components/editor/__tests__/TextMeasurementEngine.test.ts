@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { measureBlockLines, groupBlocksByPage, GRID } from '../TextMeasurementEngine';
+import { measureBlockLines, groupBlocksByPage } from '../TextMeasurementEngine';
 import { SCENE_FIXTURE_BLOCKS } from './fixtures';
 
 describe('TextMeasurementEngine (Phase 0 Baseline Shield)', () => {
@@ -51,7 +51,7 @@ describe('TextMeasurementEngine (Phase 0 Baseline Shield)', () => {
     // The fixture has 20 blocks.
     
     // Call groupBlocksByPage
-    const { pages, totalPages } = groupBlocksByPage(SCENE_FIXTURE_BLOCKS, 1);
+    const { pages, totalPages } = groupBlocksByPage(SCENE_FIXTURE_BLOCKS, 1 as any);
     
     // Basic assertions
     expect(totalPages).toBeGreaterThan(0);

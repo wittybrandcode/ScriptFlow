@@ -3,10 +3,10 @@ import { sceneSnapshotRepository } from '@scriptflow/database';
 
 export const snapshotApi = sceneSnapshotRepository;
 
-export function useSceneSnapshotsQuery(sceneId: number) {
+export function useSceneSnapshotsQuery(sceneId: string | number | null | undefined) {
   return useQuery({
     queryKey: ['scene_snapshots', sceneId],
-    queryFn: () => snapshotApi.getBySceneId(sceneId),
+    queryFn: () => snapshotApi.getBySceneId(sceneId!),
     enabled: !!sceneId,
   });
 }
@@ -15,7 +15,7 @@ export function useCreateSnapshotMutation() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async ({ sceneId, blocks, trigger }: { sceneId: number, blocks: any[], trigger?: string }) => {
+    mutationFn: async ({ sceneId, blocks, trigger }: { sceneId: string | number, blocks: any[], trigger?: string }) => {
       return await snapshotApi.createSnapshot(sceneId, blocks, trigger);
     },
     onSuccess: (_, variables) => {

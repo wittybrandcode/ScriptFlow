@@ -4,33 +4,40 @@ import { backupService } from '../../services/BackupService';
 /**
  * هذا المكون يعمل في الخلفية كـ Provider غير مرئي 
  * يقوم بتشغيل دورة النسخ الاحتياطي التلقائي (Auto-Backup)
+ * مع قفل ضد التداخل (Re-entrancy Lock)
  */
 export default function AutoBackupProvider({ children, intervalMinutes = 30 }) {
   const intervalRef = useRef(null);
+  const isBackingUpRef = useRef(false);
 
   useEffect(() => {
-    // تشغيل الدورة
     const intervalMs = intervalMinutes * 60 * 1000;
-    
-    intervalRef.current = setInterval(async () => {
+
+    const performBackup = async (reason) => {
+      if (isBackingUpRef.current) {
+        console.warn(`[AutoBackup] Backup already in progress. Skipping trigger (${reason}).`);
+        return;
+      }
+      isBackingUpRef.current = true;
       try {
-        console.log(`[AutoBackup] Starting automated backup (Every ${intervalMinutes}m)...`);
-        await backupService.createBackup('auto');
+        console.log(`[AutoBackup] Starting backup (Reason: ${reason})...`);
+        await backupService.createBackup(reason);
         console.log('[AutoBackup] Backup completed and rotated successfully.');
       } catch (err) {
         console.error('[AutoBackup] Backup failed:', err);
+      } finally {
+        isBackingUpRef.current = false;
       }
+    };
+    
+    intervalRef.current = setInterval(() => {
+      performBackup('auto');
     }, intervalMs);
 
     // Event-driven manual backup trigger
-    const handleManualTrigger = async (e) => {
-      try {
-        const reason = e.detail?.reason || 'manual';
-        console.log(`[AutoBackup] Event triggered backup. Reason: ${reason}`);
-        await backupService.createBackup(reason);
-      } catch (err) {
-        console.error('[AutoBackup] Event-driven backup failed:', err);
-      }
+    const handleManualTrigger = (e) => {
+      const reason = e.detail?.reason || 'manual';
+      performBackup(reason);
     };
 
     window.addEventListener('scriptflow:trigger-backup', handleManualTrigger);

@@ -48,7 +48,7 @@ export class AutosaveQueue {
    * مسح الطابور بالكامل وإلغاء أي مؤقتات معلقة.
    * يُستدعى عند تبديل السيناريو النشط (حدود TTL).
    */
-  flush() {
+  async flush() {
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
@@ -59,12 +59,13 @@ export class AutosaveQueue {
     
     if (pendingItems.length > 0) {
       console.warn(`⚠️ AutosaveQueue: جاري إنقاذ وحفظ ${pendingItems.length} عنصر(عناصر) معلقة بسبب تبديل السيناريو`);
-      // إجبار الحفظ فوراً لتجنب ضياع البيانات
-      pendingItems.forEach(item => {
-        try {
-          this.saveAction(item.id, item.body);
-        } catch (err) {
-          console.error('Flush save error:', err);
+      // إجبار الحفظ فوراً وانتظار كافة الوعود بالتوازي
+      const results = await Promise.allSettled(
+        pendingItems.map(item => Promise.resolve(this.saveAction(item.id, item.body)))
+      );
+      results.forEach((res, idx) => {
+        if (res.status === 'rejected') {
+          console.error(`Flush save error for item ${pendingItems[idx]?.id}:`, res.reason);
         }
       });
     }

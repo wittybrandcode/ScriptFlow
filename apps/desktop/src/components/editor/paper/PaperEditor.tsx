@@ -139,7 +139,7 @@ export default function PaperEditor({
     // Fast check: length mismatch or different structure
     if (currentJson.content?.length !== newJson.content?.length || JSON.stringify(currentJson) !== JSON.stringify(newJson)) {
       isUpdatingFromProps.current = true;
-      editor.commands.setContent(newJson, false);
+      editor.commands.setContent(newJson, false as any);
       lastSyncHash.current = blocksHash;
       isUpdatingFromProps.current = false;
     }
@@ -160,7 +160,7 @@ export default function PaperEditor({
       {tabMenuState.isOpen && (
         <TabMenu 
           editor={editor}
-          state={tabMenuState}
+          position={(tabMenuState as any).position || tabMenuState}
           onClose={() => setTabMenuState({ isOpen: false })}
         />
       )}

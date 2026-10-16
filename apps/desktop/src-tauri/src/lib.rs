@@ -98,6 +98,12 @@ pub fn run() {
             sql: include_str!("../migrations/010_create_scene_snapshots.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 11,
+            description: "create_scene_reminders",
+            sql: include_str!("../migrations/011_create_scene_reminders.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     let connection_string = "sqlite:scriptflow.db".to_string();

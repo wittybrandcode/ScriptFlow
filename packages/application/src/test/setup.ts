@@ -1,4 +1,4 @@
-import { setupTestDatabase as dbSetup, teardownTestDatabase as dbTeardown } from '../../../database/src/test/setup.js';
+import { setupTestDatabase as dbSetup, teardownTestDatabase as dbTeardown } from '@scriptflow/database/test';
 
 export async function setupTestDatabase() {
   return await dbSetup();

@@ -5,6 +5,10 @@
   "type": "module",
   "main": "./src/index.js",
   "description": "Export & import engine — PDF generation, JSON serialization, SFLOW package management (ZIP).",
+  "scripts": {
+    "build": "node -e \"process.exit(0)\"",
+    "test": "vitest run --passWithNoTests"
+  },
   "dependencies": {
     "jszip": "^3.10.1"
   },

@@ -1,4 +1,4 @@
-
+import * as Comlink from 'comlink';
 import { groupBlocksByPage, expandBlocksToLayoutNodes } from '../components/editor/TextMeasurementEngine';
 
 // نسخة خفيفة ومستقلة من TextMeasurementEngine تعمل في الـ Worker
@@ -185,4 +185,9 @@ export const ExportWorker = {
     }
   }
 };
+
+if (typeof self !== 'undefined' && typeof window === 'undefined') {
+  Comlink.expose(ExportWorker);
+}
+
 

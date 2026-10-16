@@ -17,10 +17,12 @@ export default defineConfig({
       fileName: (format) => `nasab.${format}.js`
     },
     rollupOptions: {
-      external: ['fraction.js'],
+      external: ['fraction.js', 'fs', 'path', 'node:fs', 'node:path'],
       output: {
         globals: {
-          'fraction.js': 'Fraction'
+          'fraction.js': 'Fraction',
+          'fs': 'fs',
+          'path': 'path'
         }
       }
     },

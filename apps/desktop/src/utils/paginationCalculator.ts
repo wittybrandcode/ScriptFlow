@@ -214,7 +214,7 @@ export async function updateScenarioPageNumbering(scenarioId: string): Promise<v
 /**
  * Pure helper function to calculate page numbers array from scene list.
  */
-export function calculatePageNumbers(scenes: any[] = [], episodes: any[] = []): any[] {
+export function calculatePageNumbers(scenes: any[] = [], _episodes: any[] = []): any[] {
   if (!scenes || scenes.length === 0) return [];
   let currentPage = 1;
   return scenes.map((s, idx) => {
@@ -235,7 +235,7 @@ export function calculatePageNumbers(scenes: any[] = [], episodes: any[] = []): 
 /**
  * Pure helper function to calculate total page count from scene list.
  */
-export function calculateTotalPages(scenes: any[] = [], episodes: any[] = []): number {
+export function calculateTotalPages(scenes: any[] = [], _episodes: any[] = []): number {
   if (!scenes || scenes.length === 0) return 0;
   return scenes.reduce((sum, s) => sum + (s.page_count || 1), 0);
 }

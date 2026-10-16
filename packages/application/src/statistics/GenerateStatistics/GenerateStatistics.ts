@@ -7,14 +7,22 @@ export class GenerateStatistics {
   public async execute(scenarioId: string, episodeId?: string): Promise<any> {
     try {
       // 1. Basic counts
+      const hasEpisode = episodeId && episodeId !== 'ALL';
+      const statsQueryParams: any[] = [scenarioId];
+      let sceneCountClause = `WHERE scenario_id = $1 AND deleted_at IS NULL`;
+      if (hasEpisode) {
+        sceneCountClause += ` AND episode_id = $2`;
+        statsQueryParams.push(episodeId);
+      }
+
       const statsQuery = `
         SELECT 
-          (SELECT COUNT(*) FROM scenes WHERE scenario_id = $1 AND deleted_at IS NULL ${episodeId && episodeId !== 'ALL' ? `AND episode_id = '${episodeId}'` : ''}) as sceneCount,
+          (SELECT COUNT(*) FROM scenes ${sceneCountClause}) as sceneCount,
           (SELECT COUNT(*) FROM characters WHERE scenario_id = $1 AND deleted_at IS NULL) as characterCount,
           (SELECT COUNT(*) FROM locations WHERE scenario_id = $1 AND deleted_at IS NULL) as locationCount,
           (SELECT COUNT(*) FROM crew WHERE scenario_id = $1 AND deleted_at IS NULL) as crewCount
       `;
-      const results = await dbSelect<any>(statsQuery, [scenarioId]);
+      const results = await dbSelect<any>(statsQuery, statsQueryParams);
       const row = results[0] || { sceneCount: 0, characterCount: 0, locationCount: 0, crewCount: 0 };
 
       // 2. Fetch all active scenes
@@ -33,7 +41,7 @@ export class GenerateStatistics {
 
       // 3. Fetch all script blocks associated with active scenes
       let blocksQuery = `
-        SELECT sb.scene_id, sb.type, sb.content, sb.character_id, sb.metadata 
+        SELECT sb.scene_id, sb.type, sb.content, sb.character_id 
         FROM script_blocks sb
         JOIN scenes s ON sb.scene_id = s.id
         WHERE s.scenario_id = $1 AND s.deleted_at IS NULL

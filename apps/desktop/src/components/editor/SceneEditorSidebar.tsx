@@ -1,14 +1,14 @@
 import React from 'react';
-import { Film, Users2, MapPin, StickyNote, CheckSquare } from 'lucide-react';
+import { Film, CheckSquare } from 'lucide-react';
 import SceneMetadataForm from './SceneMetadataForm';
 import SceneTasksBoard from './SceneTasksBoard';
 
 export interface SceneEditorSidebarProps {
   scene: any;
-  setScene: React.Dispatch<React.SetStateAction<any>>;
-  characters: any[];
-  locations: any[];
-  episodes: any[];
+  setScene: any;
+  characters?: any;
+  locations?: any;
+  episodes?: any;
   onOpenCharModal: () => void;
   onOpenLocationModal: () => void;
 }
@@ -19,7 +19,7 @@ export const SceneEditorSidebar: React.FC<SceneEditorSidebarProps> = ({
   characters,
   locations,
   episodes,
-  onOpenCharModal,
+  onOpenCharModal: _onOpenCharModal,
   onOpenLocationModal,
 }) => {
   const [activeTab, setActiveTab] = React.useState<'metadata' | 'tasks'>('metadata');
@@ -53,12 +53,12 @@ export const SceneEditorSidebar: React.FC<SceneEditorSidebarProps> = ({
         {activeTab === 'metadata' ? (
           <SceneMetadataForm
             scene={scene}
-            setScene={setScene}
+            onSceneChange={(updated: any) => setScene((prev: any) => ({ ...prev, ...updated }))}
             characters={characters}
             locations={locations}
             episodes={episodes}
-            onOpenCharModal={onOpenCharModal}
-            onOpenLocationModal={onOpenLocationModal}
+            onEditLocation={onOpenLocationModal}
+            onAddLocation={onOpenLocationModal}
           />
         ) : (
           <SceneTasksBoard sceneId={scene.id} />

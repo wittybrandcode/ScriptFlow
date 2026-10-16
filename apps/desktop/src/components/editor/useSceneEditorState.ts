@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUIStore } from '../../store/useUIStore';
 import { useScenarioQuery } from '../../hooks/queries/useScenarios';
@@ -56,7 +56,7 @@ export function useSceneEditorState({ id, showToast }: UseSceneEditorStateOption
   const fetchScene = async () => {
     if (!id) return;
     try {
-      const data = await sceneRepo.getById(id);
+      const data = await sceneRepo.findById(id);
       if (data) {
         if (data.scenario_id && data.scenario_id !== activeScenarioId) {
           setActiveScenarioId(data.scenario_id);

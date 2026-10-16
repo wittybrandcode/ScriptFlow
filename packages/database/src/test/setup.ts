@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
-import { IDatabaseClient, initDb } from '../client';
+import { IDatabaseClient, initDb } from '../client.js';
 
 class MockDatabaseClient implements IDatabaseClient {
   private db: Database.Database;

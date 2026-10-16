@@ -11,7 +11,7 @@ export class ManageTimeline {
     );
 
     const allScenes = await dbSelect<any>(
-      'SELECT * FROM scenes WHERE scenario_id = $1 AND deleted_at IS NULL ORDER BY scene_number ASC',
+      'SELECT * FROM scenes WHERE scenario_id = $1 AND deleted_at IS NULL ORDER BY COALESCE(shoot_order, scene_number) ASC, scene_number ASC',
       [scenarioId]
     );
 
@@ -38,11 +38,15 @@ export class ManageTimeline {
   /**
    * Assigns a scene to a shoot day
    */
-  public async assignScene(sceneId: string, destDayId: string | null): Promise<void> {
+  public async assignScene(sceneId: string, destDayId: string | null, shootOrder?: number | null): Promise<void> {
     if (destDayId) {
-      await dbExecute('UPDATE scenes SET shoot_day_id = $1 WHERE id = $2', [destDayId, sceneId]);
+      if (shootOrder !== undefined && shootOrder !== null) {
+        await dbExecute('UPDATE scenes SET shoot_day_id = $1, shoot_order = $2 WHERE id = $3', [destDayId, shootOrder, sceneId]);
+      } else {
+        await dbExecute('UPDATE scenes SET shoot_day_id = $1 WHERE id = $2', [destDayId, sceneId]);
+      }
     } else {
-      await dbExecute('UPDATE scenes SET shoot_day_id = NULL WHERE id = $1', [sceneId]);
+      await dbExecute('UPDATE scenes SET shoot_day_id = NULL, shoot_order = NULL WHERE id = $1', [sceneId]);
     }
   }
 

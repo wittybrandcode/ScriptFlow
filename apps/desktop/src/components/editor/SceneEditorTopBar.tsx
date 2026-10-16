@@ -1,5 +1,5 @@
 import React from 'react';
-import { Undo2, FileDown, Eye, Layers } from 'lucide-react';
+import { Undo2, FileDown } from 'lucide-react';
 import { TIME_MAP } from '../../constants/sceneConstants';
 
 export interface SceneEditorTopBarProps {
@@ -35,7 +35,7 @@ export const SceneEditorTopBar: React.FC<SceneEditorTopBarProps> = ({
             </span>
           </h1>
           <p className="text-[11px] text-muted-foreground font-medium">
-            {scene.location_type === 'INT' ? 'داخلي' : 'خارجي'} / {scene.location_name || '...'} • {TIME_MAP[scene.time_of_day] || scene.time_of_day}
+            {scene.location_type === 'INT' ? 'داخلي' : 'خارجي'} / {scene.location_name || '...'} • {(TIME_MAP as any)[scene.time_of_day] || scene.time_of_day}
           </p>
         </div>
       </div>

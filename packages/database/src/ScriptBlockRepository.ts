@@ -1,6 +1,6 @@
 import { BaseRepository } from './BaseRepository.js';
 import type { IScriptBlock } from '@scriptflow/core';
-import { dbSelect, dbExecute, withTransaction } from './client.js';
+import { dbSelect, withTransaction } from './client.js';
 
 export class ScriptBlockRepository extends BaseRepository<IScriptBlock> {
   protected readonly tableName = 'script_blocks';
