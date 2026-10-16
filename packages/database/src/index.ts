@@ -17,3 +17,4 @@ export * from './LocationImageRepository.js';
 export * from './SceneCharacterRepository.js';
 export * from './CrewAssignmentRepository.js';
 export * from './PageNumberingRepository.js';
+export * from './AppSettingsRepository.js';

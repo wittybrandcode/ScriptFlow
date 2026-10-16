@@ -197,3 +197,12 @@ export async function withTransaction<T>(fn: (tx: TransactionContext) => Promise
     processQueue();
   });
 }
+
+/**
+ * Safely vacuum database into a destination file.
+ */
+export async function vacuumDatabase(destPath: string): Promise<void> {
+  const normalized = destPath.replace(/\\/g, '/');
+  const safePath = normalized.replace(/'/g, "''");
+  await dbExecute(`VACUUM INTO '${safePath}'`);
+}

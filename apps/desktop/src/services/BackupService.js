@@ -50,9 +50,8 @@ class BackupService {
 
       // استخدم VACUUM INTO للنسخ الآمن والمستقر (Defragmented) دون قفل القاعدة
       try {
-        const safeBackupPath = backupPath.replace(/\\/g, '/'); // SQLite string safety
-        const { dbExecute } = await import('@scriptflow/database');
-        await dbExecute(`VACUUM INTO '${safeBackupPath}'`);
+        const { vacuumDatabase } = await import('@scriptflow/database');
+        await vacuumDatabase(backupPath);
       } catch (err) {
         console.error('VACUUM INTO failed! Backup aborted to prevent corruption:', err);
         throw new Error('فشل النسخ الاحتياطي: ' + err.message);

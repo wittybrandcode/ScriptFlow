@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useUIStore } from '../../store/useUIStore';
 import { useScenarioQuery, useScenarioStatsQuery } from '../../hooks/queries/useScenarios';
-import { initDb, dbSelect, dbExecute } from '@scriptflow/database';
+import { initDb, appSettingsRepository } from '@scriptflow/database';
 import { initMediaStorage } from '../../services/mediaStorage';
 import { invoke } from '@tauri-apps/api/core';
 import { 
@@ -31,11 +31,11 @@ async function sha256(message) {
 
 async function seedDefaultAuth() {
   try {
-    const existingEmail = await dbSelect("SELECT value FROM app_settings WHERE key = 'auth_email'");
-    if (existingEmail.length === 0) {
+    const existingEmail = await appSettingsRepository.get('auth_email');
+    if (!existingEmail) {
       const defaultHash = await sha256('12345678');
-      await dbExecute("INSERT INTO app_settings (key, value) VALUES ('auth_email', 'admin@scriptflow.com')");
-      await dbExecute(`INSERT INTO app_settings (key, value) VALUES ('auth_password_hash', '${defaultHash}')`);
+      await appSettingsRepository.set('auth_email', 'admin@scriptflow.com');
+      await appSettingsRepository.set('auth_password_hash', defaultHash);
     }
   } catch (err) {
     console.error("Failed to seed default credentials:", err);
@@ -129,11 +129,8 @@ export default function LockScreen({ children }) {
     setIsUnlocking(true);
 
     try {
-      const emailRows = await dbSelect("SELECT value FROM app_settings WHERE key = 'auth_email'");
-      const hashRows = await dbSelect("SELECT value FROM app_settings WHERE key = 'auth_password_hash'");
-
-      const storedEmail = emailRows[0]?.value;
-      const storedHash = hashRows[0]?.value;
+      const storedEmail = await appSettingsRepository.get('auth_email');
+      const storedHash = await appSettingsRepository.get('auth_password_hash');
 
       const enteredHash = await sha256(password);
 
