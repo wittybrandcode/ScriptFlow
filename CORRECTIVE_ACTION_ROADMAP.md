@@ -131,9 +131,9 @@ npm run build # => All workspaces (@scriptflow/desktop, application, core, datab
 - [x] في [`SceneRepository.ts`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/packages/database/src/SceneRepository.ts#L46):
   - استبدال `Math.random().toString(36).substr(2, 9)` بالدالة القياسية `generateId('rem')`.
 
-### 📌 المهمة 3.4: تصحيح عدم تطابق أنواع الهجرة 010
+### 📌 المهمة 3.4: الحفاظ على سلامة الـ Checksum للهجرة 010 وتوافق الأنواع
 - [x] فحص [`apps/desktop/src-tauri/migrations/010_create_scene_snapshots.sql`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src-tauri/migrations/010_create_scene_snapshots.sql):
-  - تعديل `scene_id INTEGER` إلى `scene_id TEXT` و `id TEXT PRIMARY KEY` ليتوافق مع المفاتيح الموحدة في معمارية النظام.
+  - الحفاظ على النص الأصلي بدقة لضمان مطابقة تجزئة الـ Checksum (SHA-384) في محرك `sqlx` لقواعد البيانات القائمة، مع ضبط الأنواع بمرونة في طبقة البيانات TypeScript لتتوافق مع معمارية النظام.
 
 ### 📌 المهمة 3.5: تحسين استعلام كتل المشاهد في حساب الإحصائيات
 - [x] في [`GenerateStatistics.ts`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/packages/application/src/statistics/GenerateStatistics/GenerateStatistics.ts#L35-L45):
