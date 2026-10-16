@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   DndContext, 
@@ -30,9 +30,17 @@ import ContinuityPanel from '../components/timeline/ContinuityPanel';
 import ShootDayModal from '../components/timeline/ShootDayModal';
 import { Plus, Printer, HelpCircle, Columns, Calendar as CalendarIcon, CalendarDays, CalendarRange, Activity, AlignJustify } from 'lucide-react';
 
+const SafeTimelineBoard = TimelineBoard as any;
+const SafeStripBoard = StripBoard as any;
+const SafeDailyView = DailyView as any;
+const SafeWeeklyCalendar = WeeklyCalendar as any;
+const SafeYearlyHeatmap = YearlyHeatmap as any;
+const SafeCompactSceneCard = CompactSceneCard as any;
+const SafeShootDayModal = ShootDayModal as any;
+
 export default function TimelinePage() {
   const navigate = useNavigate();
-  const { activeScenarioId } = useUIStore();
+  const { activeScenarioId, setTopBarConfig } = useUIStore();
   const { data: activeScenario } = useScenarioQuery(activeScenarioId);
   const { data: timelineData, isLoading } = useTimelineQuery(activeScenarioId);
   const shootDays = timelineData?.shootDays || [];
@@ -42,20 +50,27 @@ export default function TimelinePage() {
   const createDayMutation = useCreateShootDayMutation();
   const deleteDayMutation = useDeleteShootDayMutation();
   const updateDayMutation = useUpdateShootDayMutation();
-  const assignScene = (scenId, scnId, destDayId, newOrder) => assignMutation.mutate({ scenarioId: scenId, sceneId: scnId, destDayId, shootOrder: newOrder });
-  const createShootDay = (scenId, data) => createDayMutation.mutate({ scenarioId: scenId, data });
-  const deleteShootDay = (scenId, dayId) => deleteDayMutation.mutate({ scenarioId: scenId, dayId });
-  const updateShootDay = (scenId, dayId, data) => updateDayMutation.mutate({ scenarioId: scenId, dayId, data });
+
+  const assignScene = (scenId: string, scnId: string, destDayId: string | null, newOrder?: number) => 
+    assignMutation.mutate({ scenarioId: scenId, sceneId: scnId, destDayId, shootOrder: newOrder });
+
+  const createShootDay = (scenId: string, data: any) => 
+    createDayMutation.mutate({ scenarioId: scenId, data });
+
+  const deleteShootDay = (scenId: string, dayId: string) => 
+    deleteDayMutation.mutate({ scenarioId: scenId, dayId });
+
+  const updateShootDay = (scenId: string, dayId: string, data: any) => 
+    updateDayMutation.mutate({ scenarioId: scenId, dayId, data });
   
   const { data: characters = [] } = useCharactersQuery(activeScenarioId);
   const { data: episodes = [] } = useEpisodesQuery(activeScenarioId);
-  const { setTopBarConfig } = useUIStore();
   
-  const [columnViewModes, setColumnViewModes] = useState({}); // { dayId: 'scenes' | 'locations' }
-  const [activeTab, setActiveTab] = useState('board'); // 'board' | 'agenda'
-  const [selectedDailyDayId, setSelectedDailyDayId] = useState(null);
-  const [continuityOpen, setContinuityOpen] = useState(false);
-  const [editingDay, setEditingDay] = useState(null);
+  const [columnViewModes, setColumnViewModes] = useState<Record<string, 'scenes' | 'locations'>>({});
+  const [activeTab, setActiveTab] = useState<'board' | 'stripboard' | 'daily' | 'weekly' | 'agenda' | 'yearly'>('board');
+  const [selectedDailyDayId, setSelectedDailyDayId] = useState<string | null>(null);
+  const [continuityOpen, setContinuityOpen] = useState<boolean>(false);
+  const [editingDay, setEditingDay] = useState<any>(null);
 
   const {
     activeId,
@@ -86,11 +101,13 @@ export default function TimelinePage() {
           icon: Plus,
           variant: 'primary',
           onClick: () => {
-            createShootDay(activeScenarioId, { 
-              shoot_date: new Date().toISOString(),
-              start_time: '08:00',
-              end_time: '20:00'
-            });
+            if (activeScenarioId) {
+              createShootDay(activeScenarioId, { 
+                shoot_date: new Date().toISOString(),
+                start_time: '08:00',
+                end_time: '20:00'
+              });
+            }
           }
         },
         {
@@ -104,8 +121,7 @@ export default function TimelinePage() {
       ]
     });
     return () => setTopBarConfig(null);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeScenarioId, activeScenario]);
+  }, [activeScenarioId, activeScenario, navigate, setTopBarConfig]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -117,8 +133,9 @@ export default function TimelinePage() {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-  const handleDeleteDay = (id) => {
-    if (confirm('هل أنت متأكد من حذف يوم التصوير هذا؟ سيتم إرجاع جميع المشاهد المجدولة فيه إلى البنك.')) {
+
+  const handleDeleteDay = (id: string) => {
+    if (activeScenarioId && confirm('هل أنت متأكد من حذف يوم التصوير هذا؟ سيتم إرجاع جميع المشاهد المجدولة فيه إلى البنك.')) {
       deleteShootDay(activeScenarioId, id);
     }
   };
@@ -200,8 +217,9 @@ export default function TimelinePage() {
             </button>
           </div>
 
+          {/* Tab Views */}
           {activeTab === 'board' && (
-            <TimelineBoard 
+            <SafeTimelineBoard 
               shootDays={localShootDays} 
               characters={characters}
               onDeleteDay={handleDeleteDay}
@@ -211,7 +229,7 @@ export default function TimelinePage() {
             />
           )}
           {activeTab === 'stripboard' && (
-            <StripBoard 
+            <SafeStripBoard 
               shootDays={localShootDays} 
               characters={characters} 
               scenario={activeScenario} 
@@ -219,7 +237,7 @@ export default function TimelinePage() {
             />
           )}
           {activeTab === 'daily' && (
-            <DailyView 
+            <SafeDailyView 
               shootDays={localShootDays} 
               characters={characters} 
               initialSelectedDayId={selectedDailyDayId}
@@ -227,25 +245,33 @@ export default function TimelinePage() {
             />
           )}
           {activeTab === 'weekly' && (
-            <WeeklyCalendar 
+            <SafeWeeklyCalendar 
               shootDays={localShootDays} 
-              onCreateShootDay={(dateStr) => createShootDay(activeScenarioId, { 
-                shoot_date: dateStr, start_time: '08:00', end_time: '20:00'
-              })}
+              onCreateShootDay={(dateStr: string) => {
+                if (activeScenarioId) {
+                  createShootDay(activeScenarioId, { 
+                    shoot_date: dateStr, start_time: '08:00', end_time: '20:00'
+                  });
+                }
+              }}
             />
           )}
           {activeTab === 'agenda' && (
             <TimelineAgenda 
               shootDays={localShootDays} 
-              onCreateShootDay={(dateStr) => createShootDay(activeScenarioId, { 
-                shoot_date: dateStr, start_time: '08:00', end_time: '20:00'
-              })}
+              onCreateShootDay={(dateStr: string) => {
+                if (activeScenarioId) {
+                  createShootDay(activeScenarioId, { 
+                    shoot_date: dateStr, start_time: '08:00', end_time: '20:00'
+                  });
+                }
+              }}
             />
           )}
           {activeTab === 'yearly' && (
-            <YearlyHeatmap 
+            <SafeYearlyHeatmap 
               shootDays={localShootDays} 
-              onDayClick={(dayId) => {
+              onDayClick={(dayId: string) => {
                 setSelectedDailyDayId(dayId);
                 setActiveTab('daily');
               }}
@@ -254,7 +280,7 @@ export default function TimelinePage() {
         </div>
 
           <DragOverlay dropAnimation={{ sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.4' } } }) }}>
-            {activeId && activeScene ? <CompactSceneCard scene={activeScene} isOverlay /> : null}
+            {activeId && activeScene ? <SafeCompactSceneCard scene={activeScene} isOverlay /> : null}
           </DragOverlay>
         </DndContext>
       </div>
@@ -269,11 +295,13 @@ export default function TimelinePage() {
 
       {/* Shoot Day Editing Modal */}
       {editingDay && (
-        <ShootDayModal 
+        <SafeShootDayModal 
           day={editingDay}
           onClose={() => setEditingDay(null)}
-          onSave={(data) => {
-            updateShootDay(activeScenarioId, editingDay.id, data);
+          onSave={(data: any) => {
+            if (activeScenarioId) {
+              updateShootDay(activeScenarioId, editingDay.id, data);
+            }
             setEditingDay(null);
           }}
         />

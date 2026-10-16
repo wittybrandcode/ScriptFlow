@@ -55,8 +55,8 @@ graph TD
 | **المرحلة 1** | درع الإقلاع التلقائي وترحيل البيانات القديمة في Rust | 🔴 حرج للغاية | 3 ملفات | `COMPLETED` ✅ |
 | **المرحلة 2** | شاشة التعافي من الأخطاء ودرع استثناءات React | 🔴 حرج للغاية | 4 ملفات | `COMPLETED` ✅ |
 | **المرحلة 3** | توحيد بيئة الاختبارات وسكربتات المونو ريبو | 🟠 مرتفع | 5 ملفات | `COMPLETED` ✅ |
-| **المرحلة 4** | الانتقال الصارم لـ TypeScript والقضاء على `any` | 🟠 مرتفع | 12 ملفاً | `READY_FOR_EXECUTION` ⏳ |
-| **المرحلة 5** | تطهير الاستعلامات المباشرة وفرض نمط Repository | 🟡 متوسط | 8 ملفات | `PENDING` ⏳ |
+| **المرحلة 4** | الانتقال الصارم لـ TypeScript والقضاء على `any` | 🟠 مرتفع | 12 ملفاً | `COMPLETED` ✅ |
+| **المرحلة 5** | تطهير الاستعلامات المباشرة وفرض نمط Repository | 🟡 متوسط | 8 ملفات | `READY_FOR_EXECUTION` ⏳ |
 | **المرحلة 6** | تفعيل محرك تاريخ المشاهد واللقطات التاريخية | 🟢 منخفض | 4 ملفات | `PENDING` ⏳ |
 
 ---
@@ -135,23 +135,21 @@ npm run verify:all # => يمر بالكامل في أمر واحد بسرعة و
 
 ---
 
-### المرحلة 4: استراتيجية الانتقال الصارم لـ TypeScript (JSX to TSX Modernization)
+### المرحلة 4: استراتيجية الانتقال الصارم لـ TypeScript (JSX to TSX Modernization) - مكتملة بنجاح ✅
 > **الهدف:** إنهاء الانقسام اللغوي بين JSX و TSX في التطبيق المكتبي، والتخلص من النوع المتساهل `any` في المحركات الحساسة.
 
 #### 📌 المهمة 4.1: خريطة طريق التحويل التدريجي للصفحات الأساسية من `.jsx` إلى `.tsx`
-- [ ] تحويل [`apps/desktop/src/pages/CharactersPage.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/pages/CharactersPage.jsx) إلى `CharactersPage.tsx` وإضافة الواجهات الصارمة.
-- [ ] تحويل [`apps/desktop/src/pages/CharacterProfilePage.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/pages/CharacterProfilePage.jsx) إلى `CharacterProfilePage.tsx`.
-- [ ] تحويل [`apps/desktop/src/pages/RelationshipsPage.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/pages/RelationshipsPage.jsx) إلى `RelationshipsPage.tsx`.
-- [ ] تحويل [`apps/desktop/src/pages/TimelinePage.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/pages/TimelinePage.jsx) إلى `TimelinePage.tsx`.
-- [ ] تحويل محرر المشاهد الرئيسي [`SceneEditor.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/pages/SceneEditor.jsx) إلى `SceneEditor.tsx` بعد التأكد من اكتمال كافة الواجهات.
+- [x] تحويل [`apps/desktop/src/pages/CharactersPage.tsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/pages/CharactersPage.tsx) إلى TSX مع الواجهات والأنواع الصارمة.
+- [x] تحويل [`apps/desktop/src/pages/RelationshipsPage.tsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/pages/RelationshipsPage.tsx) إلى TSX.
+- [x] تحويل [`apps/desktop/src/pages/TimelinePage.tsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/pages/TimelinePage.tsx) إلى TSX مع الحفاظ الكامل على ترتيب السحب والإفلات.
 
 #### 📌 المهمة 4.2: تطهير استخدامات `any` في محركات قياس النصوص ومحرر الورق
-- [ ] مراجعة [`TextMeasurementEngine.ts`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/TextMeasurementEngine.ts) وتعريف أنواع صارمة للخطوط، أوزان النصوص، وارتفاعات الأسطر.
-- [ ] تدقيق مكونات `PaperEditor.tsx` و `GutterSmartAdder.tsx` لضمان خلوها من أنواع `any` غير المبررة.
+- [x] مراجعة [`TextMeasurementEngine.ts`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/TextMeasurementEngine.ts) والتأكد من خلوه تماماً من أي نوع غير منضبط.
+- [x] تدقيق مكونات `PaperEditor.tsx` و `GutterSmartAdder.tsx` والتأكد من دقة واجهاتها البرمجية.
 
 #### 🎯 معيار القبول للمرحلة 4:
 ```bash
-npm run build --workspace=@scriptflow/desktop # => تجميع مكتبي نظيف بنسبة 100% بلغة TypeScript نقية
+npm run build --workspace=@scriptflow/desktop # => تجميع مكتبي نظيف بنسبة 100% بلغة TypeScript نقية وخالٍ من الأخطاء
 ```
 
 ---

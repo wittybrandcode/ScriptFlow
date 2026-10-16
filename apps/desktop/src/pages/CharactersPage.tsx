@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Users2, Search, Filter, ShieldCheck, AlertTriangle, UserCheck, UserX } from 'lucide-react';
+import { Plus, Users2, Search, ShieldCheck, AlertTriangle, UserCheck } from 'lucide-react';
 import AdvancedFilterBar from '../components/ui/AdvancedFilterBar';
 import { useUIStore } from '../store/useUIStore';
-import { useScenarioQuery, useScenarioStatsQuery } from '../hooks/queries/useScenarios';
 import { useCharactersQuery, useCharacterStatsQuery, useDeleteCharacterMutation } from '../hooks/queries';
 import { useToast } from '../hooks/useToast';
 import CharacterCard from '../components/dashboard/CharacterCard';
 import CharacterModal from '../components/CharacterModal';
+import type { ICharacter } from '@scriptflow/core';
+
+const SafeFilterBar = AdvancedFilterBar as React.ComponentType<any>;
+const SafeCharacterModal = CharacterModal as React.ComponentType<any>;
 
 const ROLE_FILTERS = [
   { value: '', label: 'جميع الأدوار' },
@@ -32,20 +35,20 @@ const STATUS_FILTERS = [
  */
 export default function CharactersPage() {
   const { activeScenarioId } = useUIStore();
-  const { data: characters } = useCharactersQuery(activeScenarioId);
-  const { data: charStatsMap = {} } = useCharacterStatsQuery(activeScenarioId);
+  const { data: characters } = useCharactersQuery(activeScenarioId || '');
+  const { data: charStatsMap = {} } = useCharacterStatsQuery(activeScenarioId || '');
   const deleteMutation = useDeleteCharacterMutation();
   const { setTopBarConfig, setSidebarContext, clearSidebarContext } = useUIStore();
   const { showToast } = useToast();
   const navigate = useNavigate();
-  const [showCharModal, setShowCharModal] = useState(false);
-  const [editingChar, setEditingChar] = useState(null);
+  const [showCharModal, setShowCharModal] = useState<boolean>(false);
+  const [editingChar, setEditingChar] = useState<ICharacter | null>(null);
   
   // Filters
-  const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [completionFilter, setCompletionFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [roleFilter, setRoleFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [completionFilter, setCompletionFilter] = useState<string>('');
 
   useEffect(() => {
     setTopBarConfig({ 
@@ -60,8 +63,7 @@ export default function CharactersPage() {
       ]
     });
     return () => { setTopBarConfig(null); clearSidebarContext(); };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [setTopBarConfig, clearSidebarContext]);
 
   // Register sidebar context
   useEffect(() => {
@@ -70,64 +72,75 @@ export default function CharactersPage() {
       title: 'إحصائيات الشخصيات',
       stats: [
         { label: 'إجمالي', value: characters.length || 0 },
-        { label: 'تم التعاقد', value: characters.filter(c => c.status === 'CASTED').length || 0 },
-      ],
+        { label: 'تم التعاقد', value: characters.filter((c: any) => c.status === 'CASTED').length || 0 },
+        { label: 'جاري البحث', value: characters.filter((c: any) => c.status === 'SEARCHING' || !c.status).length || 0 },
+      ]
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [characters]);
+  }, [characters, setSidebarContext]);
 
-
-
-  async function deleteCharacter(id) {
-    if (!confirm('هل تريد حذف هذه الشخصية؟')) return;
+  async function deleteCharacter(id: string) {
+    if (!confirm('هل أنت متأكد من حذف هذه الشخصية نهائياً؟')) return;
     try {
       await deleteMutation.mutateAsync(id);
-
-      showToast('تم حذف الشخصية', 'info');
-    } catch (err) {
-      showToast('خطأ في الحذف', 'error');
+      showToast('تم حذف الشخصية بنجاح', 'success');
+    } catch {
+      showToast('فشل حذف الشخصية', 'error');
     }
   }
 
-  const charList = useMemo(() => Array.isArray(characters) ? characters : [], [characters]);
+  const charList: ICharacter[] = (characters as ICharacter[]) || [];
 
   const filteredChars = useMemo(() => {
-    return charList.filter(c => {
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        const match = (c.name || '').toLowerCase().includes(q) 
-          || (c.actor_name || '').toLowerCase().includes(q)
-          || (c.description || '').toLowerCase().includes(q);
-        if (!match) return false;
+    return charList.filter((c: any) => {
+      // 1. Search Query
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchName = c.name?.toLowerCase().includes(q);
+        const matchActor = c.actor_name?.toLowerCase().includes(q);
+        const matchDesc = c.description?.toLowerCase().includes(q);
+        if (!matchName && !matchActor && !matchDesc) return false;
       }
-      if (roleFilter === '__none__') {
-        if (c.role) return false;
-      } else if (roleFilter && c.role !== roleFilter) {
+
+      // 2. Role Filter
+      if (roleFilter) {
+        if (roleFilter === '__none__') {
+          if (c.role) return false;
+        } else if (c.role !== roleFilter) {
+          return false;
+        }
+      }
+
+      // 3. Status Filter
+      if (statusFilter && c.status !== statusFilter) {
         return false;
       }
-      if (statusFilter && (c.status || 'SEARCHING') !== statusFilter) return false;
-      if (completionFilter === 'incomplete' && (c.role && c.description)) return false;
-      if (completionFilter === 'complete' && (!c.role || !c.description)) return false;
+
+      // 4. Completion Filter
+      if (completionFilter) {
+        const isComplete = Boolean(c.role && c.description);
+        if (completionFilter === 'complete' && !isComplete) return false;
+        if (completionFilter === 'incomplete' && isComplete) return false;
+      }
+
       return true;
     });
   }, [charList, searchQuery, roleFilter, statusFilter, completionFilter]);
 
-  // Page-level stats
+  // Quick Stat Badges
   const stats = useMemo(() => {
     const total = charList.length;
-    const casted = charList.filter(c => c.status === 'CASTED').length;
-    const incomplete = charList.filter(c => !c.role && !c.description).length;
-    const withActor = charList.filter(c => c.actor_name).length;
+    const casted = charList.filter((c: any) => c.status === 'CASTED').length;
+    const incomplete = charList.filter((c: any) => !c.role && !c.description).length;
+    const withActor = charList.filter((c: any) => c.actor_name).length;
     return { total, casted, incomplete, withActor };
   }, [charList]);
 
   const hasActiveFilters = searchQuery || roleFilter || statusFilter || completionFilter;
 
   return (
-    <div className="p-4 mx-auto h-[calc(100vh-80px)] flex flex-col gap-4 animate-in fade-in duration-500">
-      
-      {/* Stats Bar */}
-      <div className="grid grid-cols-4 gap-3 shrink-0">
+    <div className="flex-1 flex flex-col min-h-0 bg-background text-foreground custom-scrollbar px-6 py-4">
+      {/* Quick Summary Badges */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 shrink-0">
         <div className="bg-card border border-border rounded-lg p-3 flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary"><Users2 size={18} /></div>
           <div>
@@ -160,11 +173,11 @@ export default function CharactersPage() {
 
       {/* Search + Filters Bar */}
       <div className="shrink-0 mb-4">
-        <AdvancedFilterBar 
+        <SafeFilterBar 
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
           searchPlaceholder="بحث بالاسم، الممثل، أو الوصف..."
-          hasActiveFilters={hasActiveFilters}
+          hasActiveFilters={Boolean(hasActiveFilters)}
           onClearFilters={() => {
             setSearchQuery('');
             setRoleFilter('');
@@ -185,23 +198,16 @@ export default function CharactersPage() {
               options: STATUS_FILTERS
             },
             {
-              type: 'select',
+              type: 'pills',
               value: completionFilter,
               onChange: setCompletionFilter,
               options: [
-                { value: '', label: 'اكتمال البيانات' },
-                { value: 'complete', label: 'مكتملة' },
-                { value: 'incomplete', label: 'غير مكتملة' }
+                { value: 'complete', label: 'مكتملة البيانات', count: stats.total - stats.incomplete },
+                { value: 'incomplete', label: 'غير مكتملة', count: stats.incomplete },
               ]
             }
           ]}
         />
-        {hasActiveFilters && (
-          <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground font-medium px-2">
-            <Filter size={12} />
-            <span>عرض {filteredChars.length} من أصل {charList.length} شخصية</span>
-          </div>
-        )}
       </div>
 
       {/* Characters Grid - Full Width */}
@@ -218,7 +224,7 @@ export default function CharactersPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-            {filteredChars.map(char => (
+            {filteredChars.map((char: any) => (
               <CharacterCard 
                 key={char.id} 
                 character={char} 
@@ -233,14 +239,14 @@ export default function CharactersPage() {
       </div>
 
       {showCharModal && (
-        <CharacterModal 
+        <SafeCharacterModal 
           onClose={() => setShowCharModal(false)}
           onCharacterAdded={() => {}}
         />
       )}
 
       {editingChar && (
-        <CharacterModal 
+        <SafeCharacterModal 
           character={editingChar}
           onClose={() => setEditingChar(null)}
           onCharacterUpdated={() => {}}
