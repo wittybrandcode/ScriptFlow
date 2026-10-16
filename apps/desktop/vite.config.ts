@@ -8,6 +8,14 @@ const host = process.env.TAURI_DEV_HOST;
 // https://vite.dev/config/
 export default defineConfig(async () => ({
   plugins: [react()],
+  optimizeDeps: {
+    exclude: [
+      "@scriptflow/core",
+      "@scriptflow/database",
+      "@scriptflow/application",
+      "@scriptflow/export",
+    ],
+  },
   test: {
     environment: "jsdom",
   },
