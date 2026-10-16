@@ -1,0 +1,40 @@
+rule_group: WIFE_INHERITANCE
+target_node: "SPOUSE_FEMALE"
+domain: "MAWARITH"
+
+rules:
+  - rule_id: "WIFE_GETS_ONE_QUARTER"
+    name_ar: "نصيب الزوجة - الربع"
+    description: "ترث الزوجة (أو الزوجات) الربع عند عدم وجود الفرع الوارث للزوج."
+    priority: 100
+    conditions:
+      - operator: "AND"
+        criteria:
+          - not_exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+              state: "ALIVE"
+    effect:
+      type: "ASSIGN_FRACTIONAL_SHARE"
+      value: "1/4"
+      label: "فرض الربع"
+    evidence: 
+      - source: "QURAN_4_12"
+        text: "وَلَهُنَّ الرُّبُعُ مِمَّا تَرَكْتُمْ إِن لَّمْ يَكُن لَّكُمْ وَلَدٌ"
+
+  - rule_id: "WIFE_GETS_ONE_EIGHTH"
+    name_ar: "نصيب الزوجة - الثمن"
+    description: "ترث الزوجة (أو الزوجات) الثمن عند وجود الفرع الوارث للزوج."
+    priority: 90
+    conditions:
+      - operator: "AND"
+        criteria:
+          - exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+              state: "ALIVE"
+    effect:
+      type: "ASSIGN_FRACTIONAL_SHARE"
+      value: "1/8"
+      label: "فرض الثمن"
+    evidence:
+      - source: "QURAN_4_12"
+        text: "فَإِن كَانَ لَكُمْ وَلَدٌ فَلَهُنَّ الثُّمُنُ مِمَّا تَرَكْتُم"

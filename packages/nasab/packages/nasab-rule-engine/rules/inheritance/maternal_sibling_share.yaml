@@ -1,0 +1,48 @@
+rule_group: MATERNAL_SIBLING_INHERITANCE
+target_node: "SIBLING_MATERNAL"
+domain: "MAWARITH"
+
+rules:
+  - rule_id: "MATERNAL_SIBLING_GETS_ONE_SIXTH"
+    name_ar: "نصيب ولد الأم (الأخ/الأخت لأم) - السدس"
+    description: "يرث الأخ لأم أو الأخت لأم (المنفرد) السدس عند عدم الفرع الوارث وعدم الأصل الوارث الذكر."
+    priority: 100
+    conditions:
+      - operator: "AND"
+        criteria:
+          - count_equals:
+              relation: ["SIBLING_MATERNAL"]
+              count: 1
+          - not_exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+          - not_exists:
+              relation: ["FATHER", "GRANDFATHER_PATERNAL"]
+    effect:
+      type: "ASSIGN_FRACTIONAL_SHARE"
+      value: "1/6"
+      label: "فرض السدس"
+    evidence:
+      - source: "QURAN_4_12"
+        text: "وَإِن كَانَ رَجُلٌ يُورَثُ كَلَالَةً أَوِ امْرَأَةٌ وَلَهُ أَخٌ أَوْ أُخْتٌ فَلِكُلِّ وَاحِدٍ مِّنْهُمَا السُّدُسُ"
+
+  - rule_id: "MATERNAL_SIBLINGS_GET_ONE_THIRD"
+    name_ar: "نصيب الإخوة لأم - الثلث شركاء"
+    description: "يرث الإخوة لأم (اثنان فأكثر) الثلث شركاء فيه بالتساوي (لا فضل للذكر على الأنثى) عند عدم الفرع الوارث والأصل الوارث الذكر."
+    priority: 90
+    conditions:
+      - operator: "AND"
+        criteria:
+          - count_greater_or_equal:
+              relation: ["SIBLING_MATERNAL"]
+              count: 2
+          - not_exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+          - not_exists:
+              relation: ["FATHER", "GRANDFATHER_PATERNAL"]
+    effect:
+      type: "ASSIGN_FRACTIONAL_SHARE_EQUAL_PARTICIPATION"
+      value: "1/3"
+      label: "فرض الثلث (شركاء)"
+    evidence:
+      - source: "QURAN_4_12"
+        text: "فَإِن كَانُوا أَكْثَرَ مِن ذَٰلِكَ فَهُمْ شُرَكَاءُ فِي الثُّلُثِ"

@@ -1,0 +1,22 @@
+rule_group: SON_INHERITANCE
+target_node: "CHILD"
+domain: "MAWARITH"
+
+rules:
+  - rule_id: "SON_IS_ASABAH"
+    name_ar: "نصيب الابن - التعصيب بالنفس"
+    description: "يرث الابن (أو الأبناء) تعصيباً بالنفس، ويأخذون الباقي بعد أصحاب الفروض، أو التركة كلها إذا انفردوا."
+    priority: 100
+    conditions:
+      - operator: "AND"
+        criteria:
+          - node_has:
+              gender: "MALE"
+    effect:
+      type: "ASSIGN_RESIDUARY"
+      label: "تعصيب بالنفس"
+    evidence:
+      - source: "QURAN_4_11"
+        text: "يُوصِيكُمُ اللَّهُ فِي أَوْلَادِكُمْ ۖ لِلذَّكَرِ مِثْلُ حَظِّ الْأُنثَيَيْنِ"
+      - source: "HADITH_IBN_ABBAS"
+        text: "ألحقوا الفرائض بأهلها، فما بقي فهو لأولى رجل ذكر"

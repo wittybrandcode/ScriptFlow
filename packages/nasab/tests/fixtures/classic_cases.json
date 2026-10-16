@@ -1,0 +1,62 @@
+[
+  {
+    "id": "CASE_AKDARIYA",
+    "name": "المسألة الأكدرية",
+    "description": "زوج وأم وجد وأخت شقيقة. عالت إلى 9 وتمت المقاسمة بين الجد والأخت.",
+    "heirs": [
+      { "id": "h1", "type": "SPOUSE_MALE", "gender": "MALE" },
+      { "id": "h2", "type": "MOTHER", "gender": "FEMALE" },
+      { "id": "h3", "type": "GRANDFATHER", "gender": "MALE" },
+      { "id": "h4", "type": "FULL_SISTER", "gender": "FEMALE" }
+    ],
+    "expected": {
+      "baseOrigin": 6,
+      "awlOrigin": 9,
+      "tashihOrigin": 27,
+      "shares": {
+        "h1": { "fraction": "9/27", "type": "FARD" },
+        "h2": { "fraction": "6/27", "type": "FARD" },
+        "h3": { "fraction": "8/27", "type": "FARD_ASABA" },
+        "h4": { "fraction": "4/27", "type": "FARD_ASABA" }
+      }
+    }
+  },
+  {
+    "id": "CASE_MUSHARRAKA",
+    "name": "المسألة المشركة (الحمارية)",
+    "description": "زوج وأم وإخوة لأم وأخ شقيق. الشافعية يُشركون الأخ الشقيق.",
+    "heirs": [
+      { "id": "h1", "type": "SPOUSE_MALE", "gender": "MALE" },
+      { "id": "h2", "type": "MOTHER", "gender": "FEMALE" },
+      { "id": "h3", "type": "UTERINE_BROTHER", "gender": "MALE" },
+      { "id": "h4", "type": "UTERINE_BROTHER", "gender": "MALE" },
+      { "id": "h5", "type": "FULL_BROTHER", "gender": "MALE" }
+    ],
+    "madhabOptions": {
+      "SHAFII": {
+        "expected": {
+          "baseOrigin": 6,
+          "shares": {
+            "h1": { "fraction": "3/6", "type": "FARD" },
+            "h2": { "fraction": "1/6", "type": "FARD" },
+            "h3": { "fraction": "2/18", "type": "FARD" },
+            "h4": { "fraction": "2/18", "type": "FARD" },
+            "h5": { "fraction": "2/18", "type": "FARD" }
+          }
+        }
+      },
+      "HANAFI": {
+        "expected": {
+          "baseOrigin": 6,
+          "shares": {
+            "h1": { "fraction": "3/6", "type": "FARD" },
+            "h2": { "fraction": "1/6", "type": "FARD" },
+            "h3": { "fraction": "1/6", "type": "FARD" },
+            "h4": { "fraction": "1/6", "type": "FARD" },
+            "h5": { "fraction": "0/6", "type": "BLOCKED" }
+          }
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "module": "ESNext",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "paths": {
+      "@nasab/model": [
+        "./packages/nasab-model/src/index.ts"
+      ],
+      "@nasab/graph": [
+        "./packages/nasab-graph/src/index.ts"
+      ],
+      "@nasab/rule-engine": [
+        "./packages/nasab-rule-engine/src/index.ts"
+      ],
+      "@nasab/validator": [
+        "./packages/nasab-validator/src/index.ts"
+      ],
+      "@/*": [
+        "./*"
+      ]
+    },
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "strict": true
+  },
+  "include": [
+    "src/**/*.ts",
+    "tests/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "lib",
+    "dist"
+  ]
+}

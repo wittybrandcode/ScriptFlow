@@ -1,0 +1,25 @@
+rule_group: MATERNAL_SIBLING_BLOCKING
+target_node: "SIBLING_MATERNAL"
+domain: "MAWARITH"
+
+rules:
+  - rule_id: "MATERNAL_SIBLINGS_BLOCKED_BY_CHILD_OR_GRANDCHILD_OR_FATHER_OR_GRANDFATHER"
+    name_ar: "حجب أولاد الأم بالفرع والأصل"
+    description: "الإخوة لأم (أولاد الأم) يحجبهم الفرع الوارث مطلقاً (ذكراً كان أو أنثى) والأصل الوارث الذكر (الأب والجد)."
+    priority: 100
+    conditions:
+      - operator: "OR"
+        criteria:
+          - exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+              state: "ALIVE"
+          - exists:
+              relation: ["FATHER", "GRANDFATHER_PATERNAL"]
+              state: "ALIVE"
+    effect:
+      type: "TOTAL_BLOCK"
+      blocked_by: ["CHILD", "GRANDCHILD_MALE_LINE", "FATHER", "GRANDFATHER_PATERNAL"]
+      label: "حجب حرمان"
+    evidence:
+      - source: "QURAN_4_12"
+        text: "يُورَثُ كَلَالَةً (الكلالة من لا ولد له ولا والد الذكر)"

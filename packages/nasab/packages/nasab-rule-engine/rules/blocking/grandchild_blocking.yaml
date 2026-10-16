@@ -1,0 +1,49 @@
+rule_group: GRANDCHILD_BLOCKING
+target_node: "GRANDCHILD_MALE_LINE" # Include grandsons and granddaughters
+domain: "MAWARITH"
+
+rules:
+  - rule_id: "GRANDCHILD_BLOCKED_BY_SON"
+    name_ar: "حجب أولاد الابن (الأحفاد) بالابن"
+    description: "الابن المباشر للميت يحجب جمیع أولاد الابن (ذكوراً وإناثاً) حجب حرمان تام."
+    priority: 100
+    conditions:
+      - operator: "AND"
+        criteria:
+          - exists:
+              relation: ["CHILD"]
+              gender: "MALE"
+              state: "ALIVE"
+    effect:
+      type: "TOTAL_BLOCK"
+      blocked_by: ["CHILD_MALE"]
+      label: "حجب حرمان"
+    evidence:
+      - source: "FIQH"
+        text: "كل من أدلى إلى الميت بواسطة حجبته تلك الواسطة، والابن أقرب من ابن الابن."
+
+  - rule_id: "GRANDDAUGHTERS_BLOCKED_BY_TWO_OR_MORE_DAUGHTERS"
+    name_ar: "حجب بنات الابن باستغراق البنات"
+    description: "بنات الابن يُحجبن إذا استغرقت البنات الصلبيات فرض الثلثين (يعني إذا وجد بنتان صلبيتان فأكثر)، إلا إذا وجد مع بنات الابن من يعصبهن (كأخيهن أو ابن عمهن)."
+    priority: 90
+    conditions:
+      - operator: "AND"
+        criteria:
+          - node_has:
+              gender: "FEMALE" # نطبق هذا على بنات الابن فقط
+          - count_greater_or_equal:
+              relation: ["CHILD"]
+              gender: "FEMALE"
+              count: 2
+              state: "ALIVE"
+          - not_exists:
+              relation: ["GRANDCHILD_MALE_LINE"]
+              gender: "MALE"
+              state: "ALIVE" # لا يوجد ابن ابن يعصبها
+    effect:
+      type: "TOTAL_BLOCK"
+      blocked_by: ["MULTI_DAUGHTERS_WITHOUT_ASABAH"]
+      label: "استغراق الثلثين"
+    evidence:
+      - source: "HADITH"
+        text: "لا فرض لبنات الابن مع البنتين الصلبيتين لاستغراق الثلثين، إلا أن يعصبهن ذكر في درجتهن أو أسفل منهن."

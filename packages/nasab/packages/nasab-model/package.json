@@ -1,0 +1,14 @@
+{
+  "name": "@nasab/model",
+  "version": "1.0.0",
+  "description": "Nasab structural logic and core types",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

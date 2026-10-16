@@ -1,0 +1,40 @@
+rule_group: PATERNAL_SIBLING_BLOCKING
+target_node: "SIBLING_PATERNAL"
+domain: "MAWARITH"
+
+rules:
+  - rule_id: "PATERNAL_SIBLINGS_BLOCKED_BY_FULL_SIBLINGS_AND_OTHERS"
+    name_ar: "حجب الإخوة لأب"
+    description: "الإخوة لأب يحجبون بالفرع الوارث المذكر، وبالأب، وبالأخ الشقيق، وبالأخت الشقيقة إذا صارت عصبة مع الغير."
+    priority: 100
+    conditions:
+      - operator: "OR"
+        criteria:
+          - exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+              gender: "MALE"
+              state: "ALIVE"
+          - exists:
+              relation: ["FATHER"]
+              state: "ALIVE"
+          - exists:
+              relation: ["SIBLING_FULL"]
+              gender: "MALE"
+              state: "ALIVE"
+          - operator: "AND"
+            criteria:
+              - exists:
+                  relation: ["SIBLING_FULL"]
+                  gender: "FEMALE"
+                  state: "ALIVE"
+              - exists:
+                  relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+                  gender: "FEMALE"
+                  state: "ALIVE"
+    effect:
+      type: "TOTAL_BLOCK"
+      blocked_by: ["CHILD_MALE", "FATHER", "SIBLING_FULL_MALE", "SIBLING_FULL_FEMALE_ASABAH"]
+      label: "حجب حرمان"
+    evidence:
+      - source: "FIQH"
+        text: "يقدم الأخ الشقيق على الأخ لأب بقوة القرابة، والأخت الشقيقة تصير عصبة مع البنت كالأخ الشقيق فتحجب الأخ لأب."

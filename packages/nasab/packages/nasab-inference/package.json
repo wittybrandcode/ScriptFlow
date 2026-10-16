@@ -1,0 +1,10 @@
+{
+  "name": "nasab-inference",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "dependencies": {
+    "nasab-model": "workspace:*",
+    "nasab-graph": "workspace:*",
+    "nasab-rule-engine": "workspace:*"
+  }
+}

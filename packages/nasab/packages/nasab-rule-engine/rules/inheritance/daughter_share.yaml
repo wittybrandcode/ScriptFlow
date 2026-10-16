@@ -1,0 +1,77 @@
+rule_group: DAUGHTER_INHERITANCE
+target_node: "CHILD"
+domain: "MAWARITH"
+
+rules:
+  - rule_id: "DAUGHTER_IS_ASABAH"
+    name_ar: "نصيب البنت - التعصيب بالغير"
+    description: "ترث البنت بالتعصيب بالغير مع الابن (للذكر مثل حظ الأنثيين)."
+    priority: 100
+    conditions:
+      - operator: "AND"
+        criteria:
+          - node_has:
+              gender: "FEMALE"
+          - exists:
+              relation: ["CHILD"]
+              gender: "MALE"
+              state: "ALIVE"
+    effect:
+      type: "ASSIGN_RESIDUARY_WITH_ANOTHER"
+      value: "1" # حصة واحدة للأنثى مقابل اثنتين للذكر
+      label: "تعصيب بالغير"
+    evidence:
+      - source: "QURAN_4_11"
+        text: "يُوصِيكُمُ اللَّهُ فِي أَوْلَادِكُمْ ۖ لِلذَّكَرِ مِثْلُ حَظِّ الْأُنثَيَيْنِ"
+
+  - rule_id: "DAUGHTER_GETS_ONE_HALF"
+    name_ar: "نصيب البنت - النصف"
+    description: "ترث البنت النصف إذا كانت واحدة ولم يكن هناك ابن."
+    priority: 90
+    conditions:
+      - operator: "AND"
+        criteria:
+          - node_has:
+              gender: "FEMALE"
+          - count_equals:
+              relation: ["CHILD"]
+              gender: "FEMALE"
+              count: 1
+              state: "ALIVE"
+          - not_exists:
+              relation: ["CHILD"]
+              gender: "MALE"
+              state: "ALIVE"
+    effect:
+      type: "ASSIGN_FRACTIONAL_SHARE"
+      value: "1/2"
+      label: "فرض النصف"
+    evidence: 
+      - source: "QURAN_4_11"
+        text: "وَإِن كَانَتْ وَاحِدَةً فَلَهَا النِّصْفُ"
+
+  - rule_id: "DAUGHTERS_GET_TWO_THIRDS"
+    name_ar: "نصيب البنات - الثلثان"
+    description: "ترث البنات الثلثين إذا كن اثنتين فأكثر ولم يكن هناك ابن."
+    priority: 80
+    conditions:
+      - operator: "AND"
+        criteria:
+          - node_has:
+              gender: "FEMALE"
+          - count_greater_or_equal:
+              relation: ["CHILD"]
+              gender: "FEMALE"
+              count: 2
+              state: "ALIVE"
+          - not_exists:
+              relation: ["CHILD"]
+              gender: "MALE"
+              state: "ALIVE"
+    effect:
+      type: "ASSIGN_FRACTIONAL_SHARE"
+      value: "2/3"
+      label: "فرض الثلثين"
+    evidence:
+      - source: "QURAN_4_11"
+        text: "فَإِن كُنَّ نِسَاءً فَوْقَ اثْنَتَيْنِ فَلَهُنَّ ثُلُثَا مَا تَرَكَ"

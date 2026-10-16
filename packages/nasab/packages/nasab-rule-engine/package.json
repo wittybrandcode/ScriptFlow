@@ -1,0 +1,19 @@
+{
+  "name": "@nasab/rule-engine",
+  "version": "1.0.0",
+  "description": "Nasab Data-Driven Rule Engine",
+  "main": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@nasab/model": "^1.0.0",
+    "@nasab/graph": "^1.0.0",
+    "ajv": "^8.13.0",
+    "yaml": "^2.4.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

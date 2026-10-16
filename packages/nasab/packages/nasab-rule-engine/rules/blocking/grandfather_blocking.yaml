@@ -1,0 +1,22 @@
+rule_group: GRANDFATHER_BLOCKING
+target_node: "GRANDFATHER_PATERNAL"
+domain: "MAWARITH"
+
+rules:
+  - rule_id: "GRANDFATHER_BLOCKED_BY_FATHER"
+    name_ar: "حجب الجد بالأب"
+    description: "الأب يحجب الجد حجب حرمان (كل من أدلى إلى الميت بواسطة حجبته تلك الواسطة عند وجودها)."
+    priority: 100
+    conditions:
+      - operator: "AND"
+        criteria:
+          - exists:
+              relation: ["FATHER"]
+              state: "ALIVE"
+    effect:
+      type: "TOTAL_BLOCK"
+      blocked_by: ["FATHER"]
+      label: "حجب حرمان"
+    evidence:
+      - source: "FIQH_MAXIM"
+        text: "كل من أدلى إلى الميت بواسطة حجبته تلك الواسطة عند وجودها إلا أولاد الأم."

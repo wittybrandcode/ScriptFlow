@@ -1,0 +1,301 @@
+/* 
+ * Paper Editor Styles — Unified 794×1123px Grid System
+ * A4 at 96 DPI | 33 lines per page | Grid Unit = 28px
+ */
+
+:root {
+  --paper-unit: 28px;
+  /* Grid Baseline Height */
+  --paper-width: 794px;
+  /* A4 Width at 96 DPI */
+  --paper-height: 1123px;
+  /* A4 Height at 96 DPI */
+
+  --paper-margin-top: 96px;
+  --paper-margin-bottom: 103px;
+  /* 96px + 7px absorbed from grid remainder */
+  --paper-margin-left: 96px;
+  --paper-margin-right: 96px;
+
+  --paper-font-size: 16px;
+  /* 12pt equivalent */
+  --paper-line-height: var(--paper-unit);
+  /* 28px */
+  --paper-line-count: 33;
+  /* Lines in content area (924px / 28px) */
+}
+
+.paper-editor-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: transparent;
+  padding: 40px 20px;
+  min-height: 100vh;
+}
+
+.paper-page {
+  position: relative;
+  width: var(--paper-width);
+  min-height: var(--paper-height);
+  /* Make this transparent so we can draw physical pages behind it */
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.paper-content {
+  width: 100%;
+  min-height: auto;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 10;
+  direction: rtl;
+  font-family: 'IBM Plex Sans Arabic', sans-serif !important;
+  font-size: var(--paper-font-size);
+  line-height: var(--paper-line-height);
+  color: #111;
+
+  /* Removed padding-top so math aligns perfectly from Y=0 */
+  padding-top: 0;
+  padding-left: var(--paper-margin-left);
+  padding-right: var(--paper-margin-right);
+  padding-bottom: var(--paper-margin-bottom);
+}
+
+/* Visual Page Break Widget injected by PaginationExtension */
+.visual-page-break {
+  margin-left: calc(var(--paper-margin-left) * -1);
+  margin-right: calc(var(--paper-margin-right) * -1);
+  width: var(--paper-width);
+  background-color: var(--bg-main, #2a2a2e);
+  position: relative;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  user-select: none;
+  cursor: default;
+}
+
+.visual-page-break::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), transparent);
+}
+
+.visual-page-break::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.1), transparent);
+}
+
+/* Force page break widgets and their wrappers to be block-level to align math perfectly */
+.paper-page-break-widget,
+.ProseMirror-widget:has(.paper-page-break-widget) {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+}
+
+/* Visual Page Break Mode Toggles */
+.paper-editor-container.gap-mode-line .gap-mode-large-view {
+  display: none !important;
+}
+
+.paper-editor-container.gap-mode-large .gap-mode-line-view {
+  display: none !important;
+}
+
+/* Tiptap overrides for paper */
+.paper-content .ProseMirror {
+  outline: none;
+  min-height: var(--paper-content-height);
+}
+
+.paper-content .ProseMirror>* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  min-height: var(--paper-line-height);
+}
+
+/* Shared block rules */
+.paper-block {
+  display: block;
+  min-height: var(--paper-line-height);
+  position: relative;
+  text-align: right;
+  /* Default text alignment for Arabic */
+  box-sizing: border-box;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Action Node */
+.paper-node-action {
+  font-weight: 400;
+  width: 100%;
+  text-align: right;
+}
+
+/* Character Node */
+.paper-node-character {
+  font-weight: 700;
+  font-size: 18px;
+  /* ~1.1x base */
+  text-align: right;
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 48px;
+  letter-spacing: 1px;
+  margin-top: var(--paper-line-height) !important;
+  /* Exactly 1 Grid Unit spacing */
+}
+
+
+/* Parenthetical Node */
+.paper-node-parenthetical {
+  font-weight: 500;
+  font-size: 14px;
+  /* ~0.9x base */
+  text-align: center;
+  width: 100%;
+  color: #555;
+  font-style: italic;
+}
+
+/* Dialogue Node */
+.paper-node-dialogue {
+  font-weight: 500;
+  text-align: right;
+  width: 60%;
+  margin-right: 48px !important;
+  margin-left: auto !important;
+}
+
+/* Transition Node */
+.paper-node-transition {
+  font-weight: 800;
+  font-size: 14px;
+  text-align: left;
+  width: 100%;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-top: var(--paper-line-height) !important;
+}
+
+/* Shot Node */
+.paper-node-shot {
+  font-weight: 800;
+  font-size: 14px;
+  text-align: right;
+  width: 100%;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #15803d;
+  border-bottom: 1px dashed rgba(21, 128, 61, 0.15);
+  margin-top: var(--paper-line-height) !important;
+}
+
+/* Audio Node */
+.paper-node-audio {
+  font-weight: 700;
+  font-size: 14px;
+  text-align: center;
+  width: 100%;
+  text-transform: uppercase;
+  font-style: italic;
+  color: #1d4ed8;
+  margin-top: var(--paper-line-height) !important;
+}
+
+/* Director Note Node */
+.paper-node-director-note {
+  font-weight: 500;
+  font-size: 14px;
+  text-align: center;
+  width: 100%;
+  color: #888;
+  font-style: italic;
+  margin-top: var(--paper-line-height) !important;
+}
+
+/* Text Node */
+.paper-node-text {
+  font-weight: 700;
+  font-size: 14px;
+  text-align: center;
+  width: 70%;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  padding: 0 6px;
+  font-family: 'IBM Plex Sans Arabic', sans-serif !important;
+  letter-spacing: 1px;
+  margin-top: var(--paper-line-height) !important;
+}
+
+/* Placeholder styling for empty nodes */
+.ProseMirror p.is-editor-empty:first-child::before,
+.paper-node-action.is-empty::before,
+.paper-node-character.is-empty::before,
+.paper-node-dialogue.is-empty::before,
+.paper-node-parenthetical.is-empty::before,
+.paper-node-transition.is-empty::before,
+.paper-node-shot.is-empty::before,
+.paper-node-audio.is-empty::before,
+.paper-node-director-note.is-empty::before,
+.paper-node-text.is-empty::before {
+  content: attr(data-placeholder);
+  float: right;
+  color: #adb5bd;
+  pointer-events: none;
+  height: 0;
+}
+
+/* Prevent double spacing at the top of any page (first child, sibling of page break widget, or inside them) */
+.paper-content .ProseMirror>*:first-child,
+.paper-content .ProseMirror>*:first-child .paper-block,
+.paper-content .ProseMirror>*:first-child [class*="paper-node-"],
+.paper-content>*:first-child,
+.paper-content>*:first-child .paper-block,
+.paper-content>*:first-child [class*="paper-node-"],
+.paper-block:has(.paper-page-break-widget),
+.paper-block:has(.paper-page-break-widget) .paper-block,
+.paper-block:has(.paper-page-break-widget) [class*="paper-node-"],
+.paper-page-break-widget+*,
+.paper-page-break-widget+* .paper-block,
+.paper-page-break-widget+* [class*="paper-node-"],
+.ProseMirror-widget:has(.paper-page-break-widget)+*,
+.ProseMirror-widget:has(.paper-page-break-widget)+* .paper-block,
+.ProseMirror-widget:has(.paper-page-break-widget)+* [class*="paper-node-"] {
+  margin-top: 0 !important;
+}
+
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+
+  .paper-page {
+    box-shadow: none !important;
+    page-break-after: always !important;
+  }
+
+  .visual-page-break,
+  .sidebar-container,
+  .topbar-container {
+    display: none !important;
+  }
+}

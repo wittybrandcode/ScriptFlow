@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@100;200;300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Solid Black Theme */
+  --bg-main: #000000;          
+  --bg-surface: #0f0f0f;       
+  --bg-surface-hover: #1a1a1a; 
+  
+  --color-primary: #333333;     
+  --color-secondary: #262626;   
+  --color-accent: #ffffff;      
+  --color-success: #10b981;     
+  --color-warning: #f59e0b;     
+  --color-danger: #ef4444;      
+  
+  --text-primary: #ffffff;      
+  --text-secondary: #a3a3a3;    
+  --text-muted: #525252;       
+
+  --border-solid: #262626;
+  --shadow-solid: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+
+  /* Radix UI mapped to solid dark theme */
+  --background: 0 0% 0%;
+  --foreground: 0 0% 100%;
+  --card: 0 0% 6%;
+  --card-foreground: 0 0% 100%;
+  --primary-hsl: 0 0% 20%;
+  --primary-foreground: 0 0% 100%;
+  --secondary-hsl: 0 0% 10%;
+  --secondary-foreground: 0 0% 100%;
+  --muted-hsl: 0 0% 10%;
+  --muted-foreground: 0 0% 64%;
+  --accent-hsl: 0 0% 10%;
+  --accent-foreground: 0 0% 100%;
+  --destructive-hsl: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 100%;
+  --border-hsl: 0 0% 15%;
+  --input: 0 0% 15%;
+  --ring: 0 0% 83.9%;
+  --radius: 0.25rem;
+}
+
+* {
+  border-color: hsl(var(--border-hsl, 0 0% 15%));
+}
+
+* {
+  font-family: 'IBM Plex Sans Arabic', sans-serif !important;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  margin: 0;
+  overflow-x: hidden;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(163, 163, 163, 0.2);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(163, 163, 163, 0.4);
+}
+
+.pdf-export-container {
+  font-family: 'IBM Plex Sans Arabic', sans-serif !important;
+}
+
+/* Tiptap Rich Text Editor Styles */
+.tiptap-wrapper .tiptap {
+  outline: none;
+  min-height: inherit;
+}
+.tiptap-wrapper .tiptap p {
+  margin: 0;
+  line-height: 1.8;
+}
+.tiptap-wrapper .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: right;
+  color: rgba(163, 163, 163, 0.4);
+  pointer-events: none;
+  height: 0;
+}
+.tiptap-wrapper .tiptap mark {
+  background-color: rgb(254 240 138);
+  color: rgb(113 63 18);
+  border-radius: 2px;
+  padding: 0 2px;
+}
+.tiptap-wrapper .ProseMirror-focused {
+  outline: none;
+}
+
+/* CSS Virtualization Utilities for Heavy Lists (Milestone 6) */
+.virtualize-item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 65px;
+}
+.virtualize-compact {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 45px;
+}

@@ -1,0 +1,40 @@
+rule_group: HUSBAND_INHERITANCE
+target_node: "SPOUSE_MALE"
+domain: "MAWARITH"
+
+rules:
+  - rule_id: "HUSBAND_GETS_ONE_HALF"
+    name_ar: "نصيب الزوج - النصف"
+    description: "يرث الزوج النصف عند عدم وجود الفرع الوارث للزوجة."
+    priority: 100
+    conditions:
+      - operator: "AND"
+        criteria:
+          - not_exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+              state: "ALIVE"
+    effect:
+      type: "ASSIGN_FRACTIONAL_SHARE"
+      value: "1/2"
+      label: "فرض النصف"
+    evidence: 
+      - source: "QURAN_4_12"
+        text: "وَلَكُمْ نِصْفُ مَا تَرَكَ أَزْوَاجُكُمْ إِن لَّمْ يَكُن لَّهُنَّ وَلَدٌ"
+
+  - rule_id: "HUSBAND_GETS_ONE_QUARTER"
+    name_ar: "نصيب الزوج - الربع"
+    description: "يرث الزوج الربع عند وجود الفرع الوارث للزوجة."
+    priority: 90
+    conditions:
+      - operator: "AND"
+        criteria:
+          - exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+              state: "ALIVE"
+    effect:
+      type: "ASSIGN_FRACTIONAL_SHARE"
+      value: "1/4"
+      label: "فرض الربع"
+    evidence:
+      - source: "QURAN_4_12"
+        text: "فَإِن كَانَ لَهُنَّ وَلَدٌ فَلَكُمُ الرُّبُعُ مِمَّا تَرَكْنَ"

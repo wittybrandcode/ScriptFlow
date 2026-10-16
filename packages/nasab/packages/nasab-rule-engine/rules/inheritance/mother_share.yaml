@@ -1,0 +1,74 @@
+rule_group: MOTHER_INHERITANCE
+target_node: "MOTHER"
+domain: "MAWARITH"
+
+rules:
+  - rule_id: "MOTHER_GETS_ONE_SIXTH"
+    name_ar: "نصيب الأم - السدس"
+    description: "ترث الأم السدس في حال وجود فرع وارث، أو جمع من الإخوة."
+    priority: 100
+    conditions:
+      - operator: "OR"
+        criteria:
+          - exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+              state: "ALIVE"
+          - count_greater_or_equal:
+              relation: ["SIBLING_FULL", "SIBLING_PATERNAL", "SIBLING_MATERNAL"]
+              count: 2
+              state: "ALIVE"
+    effect:
+      type: "ASSIGN_FRACTIONAL_SHARE"
+      value: "1/6"
+      label: "فرض السدس"
+    evidence: 
+      - source: "QURAN_4_11"
+        text: "فَإِن كَانَ لَهُ إِخْوَةٌ فَلِأُمِّهِ السُّدُسُ"
+      - source: "QURAN_4_11"
+        text: "وَلِأَبَوَيْهِ لِكُلِّ وَاحِدٍ مِّنْهُمَا السُّدُسُ مِمَّا تَرَكَ إِن كَانَ لَهُ وَلَدٌ"
+
+  - rule_id: "MOTHER_GETS_ONE_THIRD"
+    name_ar: "نصيب الأم - الثلث"
+    description: "ترث الأم الثلث عند عدم الفرع الوارث وعدم الجمع من الإخوة."
+    priority: 95
+    conditions:
+      - operator: "AND"
+        criteria:
+          - not_exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+              state: "ALIVE"
+          - count_strictly_less:
+              relation: ["SIBLING_FULL", "SIBLING_PATERNAL", "SIBLING_MATERNAL"]
+              count: 2
+              state: "ALIVE"
+    effect:
+      type: "ASSIGN_FRACTIONAL_SHARE"
+      value: "1/3"
+      label: "فرض الثلث"
+    evidence:
+      - source: "QURAN_4_11"
+        text: "فَإِن لَّمْ يَكُن لَّهُ وَلَدٌ وَوَرِثَهُ أَبَوَاهُ فَلِأُمِّهِ الثُّلُثُ"
+
+  - rule_id: "MOTHER_GETS_ONE_THIRD_OF_REMAINDER"
+    name_ar: "نصيب الأم - ثلث الباقي (المسألتان العمريتان)"
+    description: "ترث الأم ثلث الباقي بعد نصيب أحد الزوجين إذا اجتمع الأب والأم وأحد الزوجين فقط دون فروع."
+    priority: 90
+    conditions:
+      - operator: "AND"
+        criteria:
+          - exists:
+              relation: ["FATHER"]
+          - exists:
+              relation: ["SPOUSE_MALE", "SPOUSE_FEMALE"]
+          - not_exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+          - count_strictly_less: 
+              relation: ["SIBLING_FULL", "SIBLING_PATERNAL", "SIBLING_MATERNAL"]
+              count: 2
+    effect:
+      type: "ASSIGN_REMAINDER_FRACTIONAL_SHARE"
+      fraction_of_remainder: "1/3"
+      label: "ثلث الباقي"
+    evidence:
+      - source: "IJMA_SABAHA"
+        text: "قضاء عمر بن الخطاب واجماع الصحابة في الغراوين"

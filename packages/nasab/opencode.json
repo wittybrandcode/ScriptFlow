@@ -1,0 +1,65 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": [
+    "AGENTS.md",
+    "DEVELOPMENT_PLAN.md",
+    "EXECUTION.md",
+    ".opencode/skills/nasab-fiqh/SKILL.md"
+  ],
+  "lsp": true,
+  "command": {
+    "test": {
+      "template": "Run the full test suite: `npm test`\nCheck for any failures and report them.\nIf failures exist, analyze the root cause and fix.",
+      "description": "Run all 357 tests"
+    },
+    "test:fiqh": {
+      "template": "Run the fiqh-specific tests:\n- `npx vitest run tests/extreme_fiqh_cases.test.ts`\n- `npx vitest run tests/comprehensive_scenarios.test.ts`\n- `npx vitest run tests/madhab.test.ts`\n- `npx vitest run tests/advanced_cases.test.ts`\nReport results in Arabic.",
+      "description": "Run fiqh-specific test suites"
+    },
+    "test:blocking": {
+      "template": "Run blocking and shares tests:\n`npx vitest run tests/blocking.test.ts tests/shares_asaba.test.ts`",
+      "description": "Test blocking matrix and fard/asaba"
+    },
+    "test:fuzz": {
+      "template": "Run fuzzing tests with detailed output:\n`npm run test:fuzz`",
+      "description": "Run fuzzing property-based tests"
+    },
+    "test:mutation": {
+      "template": "Run Stryker mutation testing:\n`npm run test:mutation`\nAnalyze which mutants survived and suggest test improvements.",
+      "description": "Run mutation testing"
+    },
+    "lint": {
+      "template": "Run TypeScript type checking:\n`npm run lint`\nFix any type errors found.",
+      "description": "TypeScript type check and fix"
+    },
+    "build": {
+      "template": "Build the library:\n`npm run build`\nVerify output in lib/ directory.\nThen run lint and test.",
+      "description": "Build library then lint + test"
+    },
+    "audit": {
+      "template": "Run security audit:\n`npm audit --audit-level=high`\nReview findings and suggest fixes.",
+      "description": "Security audit"
+    },
+    "coverage": {
+      "template": "Run tests with coverage:\n`npm run test:coverage`\nAnalyze uncovered lines.",
+      "description": "Test coverage analysis"
+    }
+  },
+  "agent": {
+    "fiqh-expert": {
+      "description": "خبير فقهي متخصص في المواريث والقرابات — يحلل المسائل الفقهية ويتحقق من صحة الأحكام",
+      "mode": "subagent",
+      "temperature": 0.1,
+      "permission": {
+        "edit": "deny",
+        "write": "deny",
+        "bash": "deny",
+        "read": "allow",
+        "grep": "allow",
+        "glob": "allow",
+        "websearch": "allow"
+      },
+      "prompt": "أنت خبير فقهي متخصص في علم المواريث (الفرائض).\n\nلديك صلاحية قراءة الملفات والبحث.\n\nمهمتك:\n1. تحليل المسائل الفقهية المطروحة\n2. التحقق من صحة الأحكام (فروض، حجب، تعصيب، عول، رد)\n3. مراجعة الاختلافات المذهبية (حنفي، شافعي، مالكي، حنبلي)\n4. اقتراح حالات اختبار جديدة\n\nلديك مرجع فقهي في docs-knowledge/\n\nلا تقم بتعديل الكود أبداً — أنت في وضع المراجعة فقط."
+    }
+  }
+}

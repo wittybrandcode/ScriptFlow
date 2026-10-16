@@ -1,0 +1,108 @@
+rule_group: GRANDDAUGHTER_INHERITANCE
+target_node: "GRANDCHILD_MALE_LINE"
+domain: "MAWARITH"
+
+rules:
+  - rule_id: "GRANDDAUGHTER_IS_ASABAH_WITH_BROTHER"
+    name_ar: "نصيب بنت الابن - التعصيب بالغير"
+    description: "ترث بنت الابن بالتعصيب بالغير لوجود ابن الابن (أخوها أو ابن عمها في درجتها، أو أسفل منها إذا احتاجت إليه)."
+    priority: 100
+    conditions:
+      - operator: "AND"
+        criteria:
+          - node_has:
+              gender: "FEMALE"
+          - exists:
+              relation: ["GRANDCHILD_MALE_LINE"]
+              gender: "MALE"
+              state: "ALIVE"
+          # يفترض أن قاعدة الحجب ستتعامل مع وجود الابن المباشر
+    effect:
+      type: "ASSIGN_RESIDUARY_WITH_ANOTHER"
+      value: "1"
+      label: "تعصيب بالغير"
+    evidence:
+      - source: "QURAN_4_11"
+        text: "لِلذَّكَرِ مِثْلُ حَظِّ الْأُنثَيَيْنِ"
+
+  - rule_id: "GRANDDAUGHTER_GETS_ONE_SIXTH_WITH_DAUGHTER"
+    name_ar: "نصيب بنت الابن - السدس تكملة الثلثين"
+    description: "ترث بنت الابن (أو بنات الابن) السدس مع وجود بنت صلب واحدة."
+    priority: 90
+    conditions:
+      - operator: "AND"
+        criteria:
+          - node_has:
+              gender: "FEMALE"
+          - count_equals:
+              relation: ["CHILD"]
+              gender: "FEMALE"
+              count: 1
+              state: "ALIVE"
+          - not_exists:
+              relation: ["GRANDCHILD_MALE_LINE"]
+              gender: "MALE"
+              state: "ALIVE"
+    effect:
+      type: "ASSIGN_FRACTIONAL_SHARE"
+      value: "1/6"
+      label: "فرض السدس (تكملة الثلثين)"
+    evidence:
+      - source: "HADITH_IBN_MASUD"
+        text: "أقضي فيها بما قضى النبي ﷺ: للبنت النصف، ولابنة الابن السدس تكملة الثلثين..."
+
+  - rule_id: "GRANDDAUGHTER_GETS_ONE_HALF"
+    name_ar: "نصيب بنت الابن - النصف"
+    description: "ترث بنت الابن المنفردة النصف عند عدم وجود البنات الصلبيات وعدم المعصب."
+    priority: 80
+    conditions:
+      - operator: "AND"
+        criteria:
+          - node_has:
+              gender: "FEMALE"
+          - count_equals:
+              relation: ["GRANDCHILD_MALE_LINE"]
+              gender: "FEMALE"
+              count: 1
+          - not_exists:
+              relation: ["CHILD"]
+              state: "ALIVE"
+          - not_exists:
+              relation: ["GRANDCHILD_MALE_LINE"]
+              gender: "MALE"
+              state: "ALIVE"
+    effect:
+      type: "ASSIGN_FRACTIONAL_SHARE"
+      value: "1/2"
+      label: "فرض النصف"
+    evidence:
+      - source: "QURAN_4_11_BY_QURANIC_ANALOGY"
+        text: "بنت الابن تقوم مقام البنت عند عدمها (إجماع)"
+
+  - rule_id: "GRANDDAUGHTERS_GET_TWO_THIRDS"
+    name_ar: "نصيب بنات الابن - الثلثان"
+    description: "ترث بنات الابن (إذا كن اثنتين فأكثر) الثلثين عند عدم وجود البنات الصلبيات وعدم المعصب."
+    priority: 70
+    conditions:
+      - operator: "AND"
+        criteria:
+          - node_has:
+              gender: "FEMALE"
+          - count_greater_or_equal:
+              relation: ["GRANDCHILD_MALE_LINE"]
+              gender: "FEMALE"
+              count: 2
+          - not_exists:
+              relation: ["CHILD"]
+              state: "ALIVE"
+          - not_exists:
+              relation: ["GRANDCHILD_MALE_LINE"]
+              gender: "MALE"
+              state: "ALIVE"
+    effect:
+      type: "ASSIGN_FRACTIONAL_SHARE"
+      value: "2/3"
+      label: "فرض الثلثين"
+    evidence:
+      - source: "QURAN_4_11_BY_QURANIC_ANALOGY"
+        text: "بنات الابن يقمن مقام البنات عند عدمهن (إجماع)"

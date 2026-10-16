@@ -1,0 +1,63 @@
+rule_group: FATHER_INHERITANCE
+target_node: "FATHER"
+domain: "MAWARITH"
+
+rules:
+  - rule_id: "FATHER_GETS_ONE_SIXTH"
+    name_ar: "نصيب الأب - السدس"
+    description: "يرث الأب السدس مع وجود الفرع الوارث الذكر."
+    priority: 100
+    conditions:
+      - operator: "AND"
+        criteria:
+          - exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+              gender: "MALE"
+              state: "ALIVE"
+    effect:
+      type: "ASSIGN_FRACTIONAL_SHARE"
+      value: "1/6"
+      label: "فرض السدس"
+    evidence: 
+      - source: "QURAN_4_11"
+        text: "وَلِأَبَوَيْهِ لِكُلِّ وَاحِدٍ مِّنْهُمَا السُّدُسُ مِمَّا تَرَكَ إِن كَانَ لَهُ وَلَدٌ"
+
+  - rule_id: "FATHER_GETS_ONE_SIXTH_AND_REMAINDER"
+    name_ar: "نصيب الأب - السدس زائد التعصيب"
+    description: "يرث الأب السدس فرضاً والباقي تعصيباً مع الفرع الوارث الأنثى."
+    priority: 90
+    conditions:
+      - operator: "AND"
+        criteria:
+          - exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+              gender: "FEMALE"
+              state: "ALIVE"
+          - not_exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+              gender: "MALE"
+              state: "ALIVE"
+    effect:
+      type: "ASSIGN_FRACTIONAL_AND_RESIDUARY"
+      value: "1/6"
+      label: "السدس + التعصيب"
+    evidence:
+      - source: "QURAN_4_11_AND_HADITH_IBN_ABBAS"
+        text: "السدس للآية، وما بقي فلأولى رجل ذكر"
+
+  - rule_id: "FATHER_IS_ASABAH"
+    name_ar: "نصيب الأب - التعصيب المحض"
+    description: "يرث الأب بالتعصيب فقط إذا لم يكن للميت فرع وارث مطلقاً."
+    priority: 80
+    conditions:
+      - operator: "AND"
+        criteria:
+          - not_exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+              state: "ALIVE"
+    effect:
+      type: "ASSIGN_RESIDUARY"
+      label: "التعصيب المحض"
+    evidence:
+      - source: "HADITH_IBN_ABBAS"
+        text: "ألحقوا الفرائض بأهلها فما بقي فهو لأولى رجل ذكر"

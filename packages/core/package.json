@@ -1,0 +1,17 @@
+{
+  "name": "@scriptflow/core",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^3.22.4",
+    "nanoid": "^5.0.6"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}

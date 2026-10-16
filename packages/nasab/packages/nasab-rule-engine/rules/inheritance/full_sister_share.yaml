@@ -1,0 +1,106 @@
+rule_group: FULL_SISTER_INHERITANCE
+target_node: "SIBLING_FULL"
+domain: "MAWARITH"
+
+rules:
+  - rule_id: "FULL_SISTER_IS_ASABAH_WITH_BROTHER"
+    name_ar: "نصيب الأخت الشقيقة - التعصيب بالغير"
+    description: "ترث الأخت الشقيقة بالتعصيب بالغير مع الأخ الشقيق."
+    priority: 100
+    conditions:
+      - operator: "AND"
+        criteria:
+          - node_has:
+              gender: "FEMALE"
+          - exists:
+              relation: ["SIBLING_FULL"]
+              gender: "MALE"
+              state: "ALIVE"
+    effect:
+      type: "ASSIGN_RESIDUARY_WITH_ANOTHER"
+      value: "1"
+      label: "تعصيب بالغير"
+    evidence:
+      - source: "QURAN_4_176"
+        text: "وَإِن كَانُوا إِخْوَةً رِّجَالًا وَنِسَاءً فَلِلذَّكَرِ مِثْلُ حَظِّ الْأُنثَيَيْنِ"
+
+  - rule_id: "FULL_SISTER_IS_ASABAH_WITH_FEMALE_CHILD"
+    name_ar: "نصيب الأخت الشقيقة - التعصيب مع الغير"
+    description: "ترث الأخت الشقيقة الباقي تعصيباً (عصبة مع الغير) مع البنت أو بنت الابن."
+    priority: 90
+    conditions:
+      - operator: "AND"
+        criteria:
+          - node_has:
+              gender: "FEMALE"
+          - exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+              gender: "FEMALE" # البنت أو بنت الابن
+              state: "ALIVE"
+          - not_exists:
+              relation: ["SIBLING_FULL"]
+              gender: "MALE" # لا يوجد أخ شقيق يعصبها
+              state: "ALIVE"
+    effect:
+      type: "ASSIGN_RESIDUARY_WITH_OTHERS_FEMALE"
+      label: "تعصيب مع الغير"
+    evidence:
+      - source: "HADITH_IBN_MASUD"
+        text: "اجعلوا الأخوات مع البنات عصبة"
+
+  - rule_id: "FULL_SISTER_GETS_ONE_HALF"
+    name_ar: "نصيب الأخت الشقيقة - النصف"
+    description: "ترث الأخت الشقيقة النصف إذا كانت منفردة، وعدم الفرع الوارث مطلقاً، وعدم الأصل الوارث الذكر."
+    priority: 80
+    conditions:
+      - operator: "AND"
+        criteria:
+          - node_has:
+              gender: "FEMALE"
+          - count_equals:
+              relation: ["SIBLING_FULL"]
+              gender: "FEMALE"
+              count: 1
+          - not_exists:
+              relation: ["SIBLING_FULL"]
+              gender: "MALE"
+          - not_exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+          # حجب الأب يعالج في Blocking Engine لكن يمكن تأكيده
+          - not_exists:
+              relation: ["FATHER", "GRANDFATHER_PATERNAL"]
+    effect:
+      type: "ASSIGN_FRACTIONAL_SHARE"
+      value: "1/2"
+      label: "فرض النصف"
+    evidence:
+      - source: "QURAN_4_176"
+        text: "إِنِ امْرُؤٌ هَلَكَ لَيْسَ لَهُ وَلَدٌ وَلَهُ أُخْتٌ فَلَهَا نِصْفُ مَا تَرَكَ"
+
+  - rule_id: "FULL_SISTERS_GET_TWO_THIRDS"
+    name_ar: "نصيب الأخوات الشقيقات - الثلثان"
+    description: "ترث الأخوات الشقيقات الثلثين إذا كن اثنتين فأكثر، وعدم الفرع الوارث، وعدم الأصل الوارث الذكر."
+    priority: 70
+    conditions:
+      - operator: "AND"
+        criteria:
+          - node_has:
+              gender: "FEMALE"
+          - count_greater_or_equal:
+              relation: ["SIBLING_FULL"]
+              gender: "FEMALE"
+              count: 2
+          - not_exists:
+              relation: ["SIBLING_FULL"]
+              gender: "MALE"
+          - not_exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+          - not_exists:
+              relation: ["FATHER", "GRANDFATHER_PATERNAL"]
+    effect:
+      type: "ASSIGN_FRACTIONAL_SHARE"
+      value: "2/3"
+      label: "فرض الثلثين"
+    evidence:
+      - source: "QURAN_4_176"
+        text: "فَإِن كَانَتَا اثْنَتَيْنِ فَلَهُمَا الثُّلُثَانِ مِمَّا تَرَكَ"

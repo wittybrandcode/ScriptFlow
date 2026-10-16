@@ -1,0 +1,116 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`TextMeasurementEngine (Phase 0 Baseline Shield) > groupBlocksByPage should paginate the fixture deterministically 1`] = `
+[
+  {
+    "blocks": [
+      {
+        "id": "b1",
+        "textContent": "الغرفة مظلمة تماماً. شعاع نور خافت يتسلل من تحت الباب الخشبي القديم.",
+        "type": "ACTION",
+      },
+      {
+        "id": "b2",
+        "textContent": "أحمد",
+        "type": "CHARACTER",
+      },
+      {
+        "id": "b3",
+        "textContent": "بصوت هامس ومرتعد",
+        "type": "PARENTHETICAL",
+      },
+      {
+        "id": "b4",
+        "textContent": "هل يوجد أحد هنا؟ لقد سمعت صوتاً يأتي من الطابق العلوي.",
+        "type": "DIALOGUE",
+      },
+      {
+        "id": "b5",
+        "textContent": "صمت مطبق. فجأة، يسقط كتاب من الرف.",
+        "type": "ACTION",
+      },
+      {
+        "id": "b6",
+        "textContent": "لقطة مقربة على وجه أحمد",
+        "type": "SHOT",
+      },
+      {
+        "id": "b7",
+        "textContent": "تتوسع عيناه ذعراً. يتراجع خطوة للوراء.",
+        "type": "ACTION",
+      },
+      {
+        "id": "b8",
+        "textContent": "صوت مجهول",
+        "type": "CHARACTER",
+      },
+      {
+        "id": "b9",
+        "textContent": "لم يكن يجب أن تأتي إلى هنا يا أحمد. هذا المكان يحمل ذكريات لا يجب أن توقظ.",
+        "type": "DIALOGUE",
+      },
+      {
+        "id": "b10",
+        "textContent": "قطع إلى:",
+        "type": "TRANSITION",
+      },
+      {
+        "id": "b11",
+        "textContent": "شارع مزدحم في وسط المدينة. السيارات تمر بسرعة والناس يمشون في كل اتجاه. الشمس مشرقة وتتناقض تماماً مع المشهد السابق.",
+        "type": "ACTION",
+      },
+      {
+        "id": "b12",
+        "textContent": "سارة",
+        "type": "CHARACTER",
+      },
+      {
+        "id": "b13",
+        "textContent": "لقد تأخرت نصف ساعة! ألم نتفق على اللقاء في الثامنة؟",
+        "type": "DIALOGUE",
+      },
+      {
+        "id": "b14",
+        "textContent": "خالد",
+        "type": "CHARACTER",
+      },
+      {
+        "id": "b15",
+        "textContent": "يلهث",
+        "type": "PARENTHETICAL",
+      },
+      {
+        "id": "b16",
+        "textContent": "آسف جداً. زحمة السير كانت لا تطاق اليوم.",
+        "type": "DIALOGUE",
+      },
+    ],
+    "pageNumber": 1,
+  },
+  {
+    "blocks": [
+      {
+        "id": "b17",
+        "textContent": "التركيز على حركة الكاميرا العشوائية لتعزيز شعور الارتباك.",
+        "type": "DIRECTOR_NOTE",
+      },
+      {
+        "id": "b18",
+        "textContent": "صوت بوق سيارة عالٍ",
+        "type": "AUDIO",
+      },
+      {
+        "id": "b19",
+        "textContent": "سارة تنظر إلى ساعتها بضيق ثم تبتسم ابتسامة خفيفة.",
+        "type": "ACTION",
+      },
+      {
+        "id": "b20",
+        "textContent": "حسناً، لندخل المقهى قبل أن نفقد الطاولة.",
+        "type": "DIALOGUE",
+      },
+    ],
+    "pageNumber": 2,
+  },
+]
+`;

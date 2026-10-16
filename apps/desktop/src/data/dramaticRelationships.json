@@ -1,0 +1,143 @@
+[
+  {
+    "id": "FRIEND_OF",
+    "label": "صديق مقرب لـ",
+    "edgeLabel": "صداقة",
+    "color": "#10b981",
+    "inverseId": "FRIEND_OF",
+    "action": "DB_RELATION",
+    "symmetric": true
+  },
+  {
+    "id": "ENEMY_OF",
+    "label": "عدو لـ",
+    "edgeLabel": "عداوة",
+    "color": "#ef4444",
+    "inverseId": "ENEMY_OF",
+    "action": "DB_RELATION",
+    "symmetric": true
+  },
+  {
+    "id": "BOSS_OF",
+    "label": "مدير / رئيس لـ",
+    "edgeLabel": "مدير",
+    "color": "#f59e0b",
+    "inverseId": "WORKS_FOR",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "WORKS_FOR",
+    "label": "يعمل لدى",
+    "edgeLabel": "موظف",
+    "color": "#f59e0b",
+    "inverseId": "BOSS_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "LOVES",
+    "label": "يُحب (من طرف واحد)",
+    "edgeLabel": "حب",
+    "color": "#f43f5e",
+    "inverseId": null,
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "MUTUAL_LOVE",
+    "label": "علاقة حب متبادلة",
+    "edgeLabel": "حب متبادل",
+    "color": "#e11d48",
+    "inverseId": "MUTUAL_LOVE",
+    "action": "DB_RELATION",
+    "symmetric": true
+  },
+  {
+    "id": "MENTOR_OF",
+    "label": "معلم / مرشد لـ",
+    "edgeLabel": "معلم",
+    "color": "#6366f1",
+    "inverseId": "STUDENT_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "STUDENT_OF",
+    "label": "تلميذ / متعلم من",
+    "edgeLabel": "تلميذ",
+    "color": "#6366f1",
+    "inverseId": "MENTOR_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "BETRAYER_OF",
+    "label": "خائن لـ",
+    "edgeLabel": "خائن",
+    "color": "#991b1b",
+    "inverseId": "BETRAYED_BY",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "BETRAYED_BY",
+    "label": "مخدوع من طرف",
+    "edgeLabel": "ضحية خيانة",
+    "color": "#991b1b",
+    "inverseId": "BETRAYER_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "PROTECTS",
+    "label": "يحمي",
+    "edgeLabel": "حامي",
+    "color": "#0284c7",
+    "inverseId": "PROTECTED_BY",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "PROTECTED_BY",
+    "label": "محمي من طرف",
+    "edgeLabel": "محمي",
+    "color": "#0284c7",
+    "inverseId": "PROTECTS",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "RIVAL_OF",
+    "label": "منافس لـ",
+    "edgeLabel": "منافسة",
+    "color": "#ea580c",
+    "inverseId": "RIVAL_OF",
+    "action": "DB_RELATION",
+    "symmetric": true
+  },
+  {
+    "id": "ALLY_OF",
+    "label": "حليف لـ",
+    "edgeLabel": "تحالف",
+    "color": "#16a34a",
+    "inverseId": "ALLY_OF",
+    "action": "DB_RELATION",
+    "symmetric": true
+  },
+  {
+    "id": "SUSPECTS",
+    "label": "يشك في",
+    "edgeLabel": "شك",
+    "color": "#78716c",
+    "inverseId": null,
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "BLACKMAILS",
+    "label": "يبتز",
+    "edgeLabel": "ابتزاز",
+    "color": "#451a03",
+    "inverseId": "BLACKMAILED_BY",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "BLACKMAILED_BY",
+    "label": "مبتز من طرف",
+    "edgeLabel": "ضحية ابتزاز",
+    "color": "#451a03",
+    "inverseId": "BLACKMAILS",
+    "action": "DB_RELATION"
+  }
+]

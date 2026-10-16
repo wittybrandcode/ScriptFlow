@@ -1,0 +1,26 @@
+rule_group: FULL_SIBLING_BLOCKING
+target_node: "SIBLING_FULL"
+domain: "MAWARITH"
+
+rules:
+  - rule_id: "FULL_SIBLINGS_BLOCKED_BY_MALE_CHILD_OR_FATHER"
+    name_ar: "حجب الإخوة الأشقاء بالفرع المذكر أو الأب"
+    description: "الإخوة والأخوات الأشقاء يحجبون بالفرع الوارث المذكر (الابن وابن الابن) وبالأب."
+    priority: 100
+    conditions:
+      - operator: "OR"
+        criteria:
+          - exists:
+              relation: ["CHILD", "GRANDCHILD_MALE_LINE"]
+              gender: "MALE"
+              state: "ALIVE"
+          - exists:
+              relation: ["FATHER"]
+              state: "ALIVE"
+    effect:
+      type: "TOTAL_BLOCK"
+      blocked_by: ["CHILD_MALE", "GRANDCHILD_MALE_LINE", "FATHER"]
+      label: "حجب حرمان"
+    evidence:
+      - source: "IJMA"
+        text: "حجب الإخوة بالابن والأب مجمع عليه"

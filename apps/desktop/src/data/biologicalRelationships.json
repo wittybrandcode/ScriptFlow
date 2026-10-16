@@ -1,0 +1,200 @@
+[
+  {
+    "id": "FATHER_OF",
+    "label": "أب لـ",
+    "edgeLabel": "أب",
+    "color": "#3b82f6",
+    "sourceGender": "MALE",
+    "inverseId": "CHILD_OF",
+    "action": "SET_FATHER"
+  },
+  {
+    "id": "MOTHER_OF",
+    "label": "أم لـ",
+    "edgeLabel": "أم",
+    "color": "#ec4899",
+    "sourceGender": "FEMALE",
+    "inverseId": "CHILD_OF",
+    "action": "SET_MOTHER"
+  },
+  {
+    "id": "CHILD_OF",
+    "label": "ابن/ابنة لـ",
+    "edgeLabelMale": "ابن",
+    "edgeLabelFemale": "ابنة",
+    "color": "#3b82f6",
+    "sourceGender": null,
+    "inverseId": "PARENT_OF",
+    "action": "SET_CHILD"
+  },
+  {
+    "id": "HUSBAND_OF",
+    "label": "زوج لـ",
+    "edgeLabel": "زوج",
+    "color": "#8b5cf6",
+    "sourceGender": "MALE",
+    "inverseId": "WIFE_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "WIFE_OF",
+    "label": "زوجة لـ",
+    "edgeLabel": "زوجة",
+    "color": "#d946ef",
+    "sourceGender": "FEMALE",
+    "inverseId": "HUSBAND_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "SIBLING_OF",
+    "label": "أخ/أخت لـ (يدوي)",
+    "edgeLabelMale": "أخ",
+    "edgeLabelFemale": "أخت",
+    "color": "#10b981",
+    "sourceGender": null,
+    "inverseId": "SIBLING_OF",
+    "action": "DB_RELATION",
+    "symmetric": true
+  },
+  {
+    "id": "GRANDFATHER_OF",
+    "label": "جد لـ",
+    "edgeLabel": "جد",
+    "color": "#0ea5e9",
+    "sourceGender": "MALE",
+    "inverseId": "GRANDCHILD_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "GRANDMOTHER_OF",
+    "label": "جدة لـ",
+    "edgeLabel": "جدة",
+    "color": "#f472b6",
+    "sourceGender": "FEMALE",
+    "inverseId": "GRANDCHILD_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "GRANDCHILD_OF",
+    "label": "حفيد/حفيدة لـ",
+    "edgeLabelMale": "حفيد",
+    "edgeLabelFemale": "حفيدة",
+    "color": "#0ea5e9",
+    "sourceGender": null,
+    "inverseId": "GRANDPARENT_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "UNCLE_OF",
+    "label": "عم/خال لـ",
+    "edgeLabel": "عم/خال",
+    "color": "#14b8a6",
+    "sourceGender": "MALE",
+    "inverseId": "NEPHEW_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "AUNT_OF",
+    "label": "عمة/خالة لـ",
+    "edgeLabel": "عمة/خالة",
+    "color": "#f97316",
+    "sourceGender": "FEMALE",
+    "inverseId": "NEPHEW_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "NEPHEW_OF",
+    "label": "ابن/ابنة أخ أو أخت لـ",
+    "edgeLabelMale": "ابن أخ",
+    "edgeLabelFemale": "ابنة أخ",
+    "color": "#14b8a6",
+    "sourceGender": null,
+    "inverseId": "UNCLE_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "COUSIN_OF",
+    "label": "ابن/ابنة عم أو خال لـ",
+    "edgeLabelMale": "ابن عم",
+    "edgeLabelFemale": "ابنة عم",
+    "color": "#06b6d4",
+    "sourceGender": null,
+    "inverseId": "COUSIN_OF",
+    "action": "DB_RELATION",
+    "symmetric": true
+  },
+  {
+    "id": "STEPFATHER_OF",
+    "label": "زوج أم لـ",
+    "edgeLabel": "زوج الأم",
+    "color": "#64748b",
+    "sourceGender": "MALE",
+    "inverseId": "STEPCHILD_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "STEPMOTHER_OF",
+    "label": "زوجة أب لـ",
+    "edgeLabel": "زوجة الأب",
+    "color": "#94a3b8",
+    "sourceGender": "FEMALE",
+    "inverseId": "STEPCHILD_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "STEPCHILD_OF",
+    "label": "ربيب/ربيبة لـ",
+    "edgeLabelMale": "ربيب",
+    "edgeLabelFemale": "ربيبة",
+    "color": "#64748b",
+    "sourceGender": null,
+    "inverseId": "STEPPARENT_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "FATHER_IN_LAW_OF",
+    "label": "حمو لـ",
+    "edgeLabel": "حمو",
+    "color": "#475569",
+    "sourceGender": "MALE",
+    "inverseId": "CHILD_IN_LAW_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "MOTHER_IN_LAW_OF",
+    "label": "حماة لـ",
+    "edgeLabel": "حماة",
+    "color": "#be185d",
+    "sourceGender": "FEMALE",
+    "inverseId": "CHILD_IN_LAW_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "CHILD_IN_LAW_OF",
+    "label": "صهر/كنة لـ",
+    "edgeLabelMale": "صهر",
+    "edgeLabelFemale": "كنة",
+    "color": "#475569",
+    "sourceGender": null,
+    "inverseId": "PARENT_IN_LAW_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "EX_HUSBAND_OF",
+    "label": "طليق لـ",
+    "edgeLabel": "طليق",
+    "color": "#ef4444",
+    "sourceGender": "MALE",
+    "inverseId": "EX_WIFE_OF",
+    "action": "DB_RELATION"
+  },
+  {
+    "id": "EX_WIFE_OF",
+    "label": "طليقة لـ",
+    "edgeLabel": "طليقة",
+    "color": "#ef4444",
+    "sourceGender": "FEMALE",
+    "inverseId": "EX_HUSBAND_OF",
+    "action": "DB_RELATION"
+  }
+]

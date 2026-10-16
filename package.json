@@ -1,0 +1,23 @@
+{
+  "name": "scriptflow-enterprise-workspace",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "tooling/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@scriptflow/desktop",
+    "tauri": "npm run tauri --workspace=@scriptflow/desktop --",
+    "build": "npm run build --workspaces",
+    "test": "vitest run",
+    "build-tree": "node tooling/generate-tree.js"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vitest": "^1.4.0"
+  }
+}
