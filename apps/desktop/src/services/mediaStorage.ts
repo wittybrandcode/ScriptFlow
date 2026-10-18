@@ -5,6 +5,7 @@ let projectsBaseDir = '';
 let convertFileSrcFn: any = null;
 let fsModule: any = null;
 let pathModule: any = null;
+let initStoragePromise: Promise<void> | null = null;
 
 const isTauri = typeof window !== 'undefined' && !!(window as any).__TAURI_INTERNALS__;
 
@@ -17,26 +18,40 @@ export async function initMediaStorage() {
     return;
   }
 
-  try {
-    // Dynamically import Tauri modules to prevent bundle issues in non-Tauri environments
-    const core = await import('@tauri-apps/api/core');
-    fsModule = await import('@tauri-apps/plugin-fs');
-    pathModule = await import('@tauri-apps/api/path');
-
-    convertFileSrcFn = core.convertFileSrc;
-
-    const docDir = await pathModule.documentDir();
-    projectsBaseDir = await pathModule.join(docDir, 'ScriptFlowProjects');
-    
-    // Ensure root projects folder exists
-    const rootExists = await fsModule.exists(projectsBaseDir);
-    if (!rootExists) {
-      await fsModule.mkdir(projectsBaseDir, { recursive: true });
-    }
-    console.log('MediaStorage initialized. Base path:', projectsBaseDir);
-  } catch (err) {
-    console.error('Failed to initialize media storage:', err);
+  if (projectsBaseDir) {
+    return;
   }
+
+  if (initStoragePromise) {
+    return initStoragePromise;
+  }
+
+  initStoragePromise = (async () => {
+    try {
+      // Dynamically import Tauri modules to prevent bundle issues in non-Tauri environments
+      const core = await import('@tauri-apps/api/core');
+      fsModule = await import('@tauri-apps/plugin-fs');
+      pathModule = await import('@tauri-apps/api/path');
+
+      convertFileSrcFn = core.convertFileSrc;
+
+      const docDir = await pathModule.documentDir();
+      projectsBaseDir = await pathModule.join(docDir, 'ScriptFlowProjects');
+      
+      // Ensure root projects folder exists
+      const rootExists = await fsModule.exists(projectsBaseDir);
+      if (!rootExists) {
+        await fsModule.mkdir(projectsBaseDir, { recursive: true });
+      }
+      console.log('MediaStorage initialized. Base path:', projectsBaseDir);
+    } catch (err) {
+      console.error('Failed to initialize media storage:', err);
+    } finally {
+      initStoragePromise = null;
+    }
+  })();
+
+  return initStoragePromise;
 }
 
 /**

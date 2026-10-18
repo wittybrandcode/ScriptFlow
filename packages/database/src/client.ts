@@ -11,6 +11,7 @@ export interface IDatabaseClient {
 
 // Global instance
 let dbInstance: IDatabaseClient | null = null;
+let initDbPromise: Promise<void> | null = null;
 
 /**
  * Initialize the database. If running in Vitest, we can inject a mock.
@@ -23,7 +24,15 @@ export async function initDb(mockClient?: IDatabaseClient): Promise<void> {
     return;
   }
   
-  if (!dbInstance) {
+  if (dbInstance) {
+    return;
+  }
+
+  if (initDbPromise) {
+    return initDbPromise;
+  }
+
+  initDbPromise = (async () => {
     try {
       // Fetch dynamic self-contained sqlite path from Rust
       const dbPath = await invoke<string>("get_db_path");
@@ -49,8 +58,12 @@ export async function initDb(mockClient?: IDatabaseClient): Promise<void> {
     } catch (err) {
       console.warn("Could not load Tauri SQLite DB. Are you running outside Tauri?", err);
       throw err;
+    } finally {
+      initDbPromise = null;
     }
-  }
+  })();
+
+  return initDbPromise;
 }
 
 export interface TransactionContext {
