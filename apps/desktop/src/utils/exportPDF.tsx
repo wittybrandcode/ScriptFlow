@@ -18,31 +18,41 @@ async function getEmbeddedFontsCSS(): Promise<string> {
       let cssText = await fontFacesRes.text();
       
       const regex = /url\(([^)]+)\)/g;
-      const urls = [];
+      const urls: string[] = [];
       let match;
       while ((match = regex.exec(cssText)) !== null) {
         urls.push(match[1]);
       }
       
-      for (const url of urls) {
-        const res = await fetch(url);
-        if (!res.ok) continue;
-        const blob = await res.blob();
-        
-        const dataUri = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(blob);
-        });
-        
+      const urlToDataUriMap = new Map<string, string>();
+      await Promise.all(
+        urls.map(async (url) => {
+          try {
+            const res = await fetch(url);
+            if (!res.ok) return;
+            const blob = await res.blob();
+            
+            const dataUri = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+            urlToDataUriMap.set(url, dataUri);
+          } catch (e) {
+            console.warn(`[ExportPDF] Failed to embed font ${url}:`, e);
+          }
+        })
+      );
+
+      for (const [url, dataUri] of urlToDataUriMap.entries()) {
         cssText = cssText.replace(url, dataUri);
       }
       
       cachedFontFacesCss = cssText;
       return cssText;
     } catch (err) {
-      console.warn('Failed to embed fonts, fallback to system fonts:', err);
+      console.warn('[ExportPDF] Failed to embed fonts, fallback to system fonts:', err);
       return '';
     } finally {
       fontsPromise = null;
@@ -304,7 +314,11 @@ async function exportViaPrintEngine(
           scenesHtml += sceneChunkHtml;
           
           // Yield to main thread after every scene to prevent UI freezing
-          await new Promise(resolve => setTimeout(resolve, 0));
+          if (typeof (globalThis as any).scheduler?.yield === 'function') {
+            await (globalThis as any).scheduler.yield();
+          } else {
+            await new Promise(resolve => setTimeout(resolve, 0));
+          }
         }
       }
     }
@@ -498,12 +512,34 @@ async function exportViaPrintEngine(
     iframeDoc.write(htmlDocument);
     iframeDoc.close();
 
-    // Trigger printing smoothly inside iframe and resolve promise
+    // Trigger printing smoothly inside iframe and schedule memory cleanup
     await new Promise<void>((resolve) => {
       setTimeout(() => {
         try {
-          printIframe.contentWindow?.focus();
-          printIframe.contentWindow?.print();
+          const iframeWindow = printIframe.contentWindow;
+          if (iframeWindow) {
+            iframeWindow.focus();
+            
+            // Clean up iframe DOM and HTML contents after print dialog closes to prevent memory leaks
+            const cleanupIframeMemory = () => {
+              try {
+                if (iframeDoc) {
+                  iframeDoc.open();
+                  iframeDoc.write('<!DOCTYPE html><html><body></body></html>');
+                  iframeDoc.close();
+                }
+              } catch (_) {
+                // Ignore cleanup errors
+              }
+            };
+
+            // Use onafterprint if supported by browser/WebView2
+            iframeWindow.onafterprint = cleanupIframeMemory;
+            iframeWindow.print();
+
+            // Safety cleanup fallback timer (reclaims memory after 8s if onafterprint does not trigger)
+            setTimeout(cleanupIframeMemory, 8000);
+          }
         } catch (printErr) {
           console.error('[ExportPDF] Print error:', printErr);
         }
@@ -513,8 +549,17 @@ async function exportViaPrintEngine(
 
     return { success: true, count: filteredScenes.length };
   } catch (error) {
-    console.error('Failed to export PDF:', error);
-    alert('حدث خطأ أثناء إعداد ملف الطباعة: ' + (error as any).message);
+    console.error('[ExportPDF] Failed to export PDF:', error);
+    // Cleanup any lingering iframe content on error
+    try {
+      const printIframe = document.getElementById('scriptflow-print-iframe') as HTMLIFrameElement;
+      const iframeDoc = printIframe?.contentWindow?.document || printIframe?.contentDocument;
+      if (iframeDoc) {
+        iframeDoc.open();
+        iframeDoc.write('<!DOCTYPE html><html><body></body></html>');
+        iframeDoc.close();
+      }
+    } catch (_) {}
     throw error;
   }
 }
