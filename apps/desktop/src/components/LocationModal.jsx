@@ -7,6 +7,7 @@ import { useLocationsQuery, useCreateLocationMutation, useUpdateLocationMutation
 import { useToast } from '../hooks/useToast';
 import { generateId } from '@scriptflow/core';
 import InlineFieldError, { parseApiErrors } from './ui/InlineFieldError';
+import { resolveMediaUrl, saveMediaFile } from '../services/mediaStorage';
 
 export default function LocationModal({ location, onClose, onLocationAdded, onLocationUpdated }) {
   const { activeScenarioId } = useUIStore();
@@ -61,16 +62,14 @@ export default function LocationModal({ location, onClose, onLocationAdded, onLo
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const base64Url = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = (e) => resolve(e.target.result);
-          reader.onerror = (e) => reject(new Error('Failed to read file'));
-          reader.readAsDataURL(file);
-        });
+        const ext = file.name.split('.').pop() || 'png';
+        const fileName = `loc_${Date.now()}_${i}.${ext}`;
+        const mediaUri = await saveMediaFile(activeScenarioId || 'shared', fileName, file);
         
         // First uploaded image becomes primary if none exists
         uploadedImages.push({ 
-          url: base64Url, 
+          url: mediaUri,
+          image_url: mediaUri,
           is_primary: (!hasPrimary && i === 0) 
         });
       }
@@ -300,7 +299,7 @@ export default function LocationModal({ location, onClose, onLocationAdded, onLo
                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                    {formData.images.map((img, idx) => (
                      <div key={idx} className={`relative group rounded-2xl overflow-hidden aspect-video border-2 ${img.is_primary ? 'border-primary' : 'border-border'}`}>
-                       <img src={img.image_url || img.url} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
+                       <img src={resolveMediaUrl(img.image_url || img.url)} alt={`Preview ${idx}`} className="w-full h-full object-cover" />
                        
                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                           <button 

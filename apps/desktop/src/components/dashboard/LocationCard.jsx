@@ -1,5 +1,6 @@
 import React from 'react';
 import { MapPin, Edit3, Trash2, Home, Trees, ImageOff, Film, BarChart3, Eye, Image as ImageIcon, Map, Phone } from 'lucide-react';
+import { resolveMediaUrl } from '../../services/mediaStorage';
 
 const STATUS_MAP = {
   'AVAILABLE': { label: 'متاح', cls: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
@@ -13,7 +14,7 @@ export default function LocationCard({ location, parentLocation, onEdit, onDelet
   const percent = totalScenes > 0 ? Math.round((sceneCount / totalScenes) * 100) : 0;
   const isInt = location.type === 'INT';
   const images = location.images || [];
-  const primaryImage = images.find(img => img.is_primary)?.image_url || images[0]?.image_url || location.image;
+  const primaryImage = images.find(img => img.is_primary)?.image_url || images.find(img => img.is_primary)?.url || images[0]?.image_url || images[0]?.url || location.image;
   const hasMultipleImages = images.length > 1;
 
   return (
@@ -23,7 +24,7 @@ export default function LocationCard({ location, parentLocation, onEdit, onDelet
       <div className="relative h-28 overflow-hidden bg-secondary cursor-pointer shrink-0" onClick={onPreview}>
         {primaryImage ? (
           <img 
-            src={primaryImage} 
+            src={resolveMediaUrl(primaryImage)} 
             alt={location.name} 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />

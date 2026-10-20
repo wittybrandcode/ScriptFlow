@@ -3,6 +3,7 @@ import { X, Phone, Mail, Briefcase, ShieldCheck, AlignLeft, User, ClipboardList,
 import { useUIStore } from '../store/useUIStore';
 import { useScenarioQuery, useScenarioStatsQuery } from '../hooks/queries/useScenarios';
 import { useCrewAssignmentsQuery } from '../hooks/queries';
+import { resolveMediaUrl } from '../services/mediaStorage';
 
 export default function CrewPreviewModal({ member, onClose }) {
   const { activeScenarioId } = useUIStore();
@@ -21,7 +22,7 @@ export default function CrewPreviewModal({ member, onClose }) {
         <div className="md:w-2/5 bg-secondary relative shrink-0">
           {member.image_url ? (
             <img 
-              src={member.image_url} 
+              src={resolveMediaUrl(member.image_url)} 
               alt={member.name} 
               className="w-full h-64 md:h-full object-cover"
             />

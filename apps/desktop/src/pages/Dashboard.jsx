@@ -11,6 +11,7 @@ import { useToast } from '../hooks/useToast'
 import { ToastContainer } from '../components/Toast'
 import { useUIStore } from '../store/useUIStore';
 import { useScenariosQuery, useGlobalStatsQuery, useCreateScenarioMutation, useUpdateScenarioMutation, useDeleteScenarioMutation } from '../hooks/queries';
+import { saveMediaFile } from '../services/mediaStorage';
 
 
 import StatCard from '../components/dashboard/StatCard'
@@ -172,13 +173,33 @@ export default function Dashboard() {
 
   async function updateScenario(id, title, description, cover_image, status, genre, notes, cover_video) {
     try {
+      let finalCoverImage = cover_image;
+      let finalCoverVideo = cover_video;
+
       if (id === '__new__') {
         const result = await createScenarioMutation.mutateAsync(title || 'سيناريو جديد');
-        if (description || cover_image || status || genre || notes || cover_video) {
-          await updateScenarioMutation.mutateAsync({ id: result.id, data: { title, description, cover_image, cover_video, status, genre, notes } });
+        const targetId = result.id;
+
+        if (cover_image && (cover_image.startsWith('project-media://temp/') || cover_image.startsWith('data:'))) {
+          const ext = cover_image.includes('.') ? cover_image.split('.').pop() : 'png';
+          finalCoverImage = await saveMediaFile(targetId, `cover_${Date.now()}.${ext}`, cover_image);
+        }
+        if (cover_video && (cover_video.startsWith('project-media://temp/') || cover_video.startsWith('data:'))) {
+          const ext = cover_video.includes('.') ? cover_video.split('.').pop() : 'mp4';
+          finalCoverVideo = await saveMediaFile(targetId, `video_${Date.now()}.${ext}`, cover_video);
+        }
+
+        if (description || finalCoverImage || status || genre || notes || finalCoverVideo) {
+          await updateScenarioMutation.mutateAsync({ id: targetId, data: { title, description, cover_image: finalCoverImage, cover_video: finalCoverVideo, status, genre, notes } });
         }
       } else {
-        await updateScenarioMutation.mutateAsync({ id, data: { title, description, cover_image, cover_video, status, genre, notes } });
+        if (cover_image && cover_image.startsWith('data:')) {
+          finalCoverImage = await saveMediaFile(id, `cover_${Date.now()}.png`, cover_image);
+        }
+        if (cover_video && cover_video.startsWith('data:')) {
+          finalCoverVideo = await saveMediaFile(id, `video_${Date.now()}.mp4`, cover_video);
+        }
+        await updateScenarioMutation.mutateAsync({ id, data: { title, description, cover_image: finalCoverImage, cover_video: finalCoverVideo, status, genre, notes } });
       }
       setEditingItem(null)
       showToast('تم حفظ التعديلات', 'success')

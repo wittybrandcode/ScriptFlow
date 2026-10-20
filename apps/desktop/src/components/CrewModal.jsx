@@ -3,6 +3,7 @@ import { X, User, Briefcase, Phone, Mail, Image as ImageIcon, AlignLeft, ShieldC
 import { useCharactersQuery } from '../hooks/queries';
 import { useUIStore } from '../store/useUIStore';
 import { useScenarioQuery, useScenarioStatsQuery } from '../hooks/queries/useScenarios';
+import { resolveMediaUrl, saveMediaFile } from '../services/mediaStorage';
 
 export default function CrewModal({ member, activeTab, onClose, onSubmit }) {
   const fileInputRef = useRef(null);
@@ -69,16 +70,12 @@ export default function CrewModal({ member, activeTab, onClose, onSubmit }) {
     setIsUploading(true);
 
     try {
-      const base64Url = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => resolve(e.target.result);
-        reader.onerror = (e) => reject(new Error('Failed to read file'));
-        reader.readAsDataURL(file);
-      });
-      setFormData(prev => ({ ...prev, image_url: base64Url }));
+      const ext = file.name.split('.').pop() || 'png';
+      const fileName = `crew_${member?.id || 'new'}_${Date.now()}.${ext}`;
+      const mediaUri = await saveMediaFile(activeScenarioId || 'shared', fileName, file);
+      setFormData(prev => ({ ...prev, image_url: mediaUri }));
     } catch (err) {
-      console.error('Upload error:', err);
-      alert('حدث خطأ أثناء قراءة الصورة.');
+      console.error('[CrewModal] Upload error:', err);
     } finally {
       setIsUploading(false);
     }
@@ -123,7 +120,7 @@ export default function CrewModal({ member, activeTab, onClose, onSubmit }) {
             <div className="shrink-0 flex flex-col items-center gap-2">
                <div className="w-20 h-20 rounded-xl bg-secondary border border-border flex items-center justify-center overflow-hidden relative group">
                   {formData.image_url ? (
-                    <img src={formData.image_url} alt="Preview" className="w-full h-full object-cover" />
+                    <img src={resolveMediaUrl(formData.image_url)} alt="Preview" className="w-full h-full object-cover" />
                   ) : (
                     <User size={32} className="text-muted-foreground/30" />
                   )}

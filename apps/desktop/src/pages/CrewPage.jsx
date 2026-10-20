@@ -7,6 +7,7 @@ import CrewModal from '../components/CrewModal';
 import CrewPreviewModal from '../components/CrewPreviewModal';
 import CrewAssignmentModal from '../components/CrewAssignmentModal';
 import { ClipboardList, AlertTriangle } from 'lucide-react';
+import { resolveMediaUrl } from '../services/mediaStorage';
 
 const ROLE_LABELS = {
   DIRECTOR: 'قسم الإخراج',
@@ -316,7 +317,7 @@ export default function CrewPage() {
                         <div className="flex gap-4 mb-3 relative z-10">
                           <div className="w-20 h-28 sm:w-24 sm:h-32 rounded-xl bg-secondary border border-border flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
                             {member.image_url ? (
-                              <img src={member.image_url} alt={member.name} className="w-full h-full object-cover" />
+                              <img src={resolveMediaUrl(member.image_url)} alt={member.name} className="w-full h-full object-cover" />
                             ) : (
                               <User size={32} className="text-muted-foreground/40" />
                             )}

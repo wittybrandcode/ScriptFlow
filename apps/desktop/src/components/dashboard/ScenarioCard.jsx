@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Film, Clock, Edit3, Trash2, Save, X, FileDown, Image as ImageIcon, Tag, FileText, FileJson, CheckCircle, Archive, Clapperboard, Tv } from 'lucide-react';
-import { resolveMediaUrl } from '../../services/mediaStorage';
+import { resolveMediaUrl, saveMediaFile } from '../../services/mediaStorage';
 
 /**
  * مكون بطاقة السيناريو مع مراجعة التعديل والحذف والتصدير
@@ -109,12 +109,14 @@ const ScenarioCard = ({ scenario, editing, onEdit, onCancel, onSave, onDelete, o
     const file = e.target.files[0];
     if (file) {
       if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-        alert('يرجى اختيار ملف صورة أو فيديو صحيح.');
+        console.warn('الملف المختار ليس صورة أو فيديو');
         return;
       }
 
+      const targetId = scenario?.id && scenario.id !== '__new__' ? scenario.id : 'temp';
+
       if (file.type.startsWith('video/')) {
-        // === VIDEO: Extract first frame as PNG, store video separately ===
+        // === VIDEO: Extract first frame as PNG, store video directly to disk ===
         setIsExtracting(true);
         try {
           const videoUrl = URL.createObjectURL(file);
@@ -128,10 +130,9 @@ const ScenarioCard = ({ scenario, editing, onEdit, onCancel, onSave, onDelete, o
             vid.crossOrigin = 'anonymous';
             vid.src = videoUrl;
 
-            const fallbackTimeout = setTimeout(() => reject(new Error('Video frame extraction timed out')), 4000);
+            const fallbackTimeout = setTimeout(() => reject(new Error('Video frame extraction timed out')), 5000);
 
             vid.addEventListener('loadedmetadata', () => {
-              // Once metadata is loaded, we know the dimensions. Seek to 0.1s.
               vid.currentTime = 0.1;
             });
 
@@ -143,7 +144,7 @@ const ScenarioCard = ({ scenario, editing, onEdit, onCancel, onSave, onDelete, o
                 canvas.height = vid.videoHeight || 600;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(vid, 0, 0, canvas.width, canvas.height);
-                const png = canvas.toDataURL('image/png', 0.8);
+                const png = canvas.toDataURL('image/png', 0.85);
                 resolve(png);
               } catch (err) {
                 reject(err);
@@ -158,37 +159,34 @@ const ScenarioCard = ({ scenario, editing, onEdit, onCancel, onSave, onDelete, o
             vid.load();
           });
 
-          // Read video as base64 for DB storage
-          const videoBase64 = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target.result);
-            reader.onerror = () => reject(new Error('Failed to read video'));
-            reader.readAsDataURL(file);
-          });
-
-          setCoverImage(thumbnailPng);  // PNG first frame
-          setCoverVideo(videoBase64);   // Full video
-          setLazyVideoSrc(videoBase64); // Update lazy source so hover works during edit
           URL.revokeObjectURL(videoUrl);
+
+          // Save thumbnail PNG to project media directory
+          const thumbUri = await saveMediaFile(targetId, `cover_${Date.now()}.png`, thumbnailPng);
+          
+          // Save video file directly to project media directory
+          const ext = file.name.split('.').pop() || 'mp4';
+          const videoUri = await saveMediaFile(targetId, `video_${Date.now()}.${ext}`, file);
+
+          setCoverImage(resolveMediaUrl(thumbUri) || thumbnailPng);
+          setCoverVideo(videoUri);
+          setLazyVideoSrc(resolveMediaUrl(videoUri));
+          setVideoReady(false);
         } catch (err) {
-          console.error('Error extracting video frame:', err);
-          alert('خطأ أثناء معالجة الفيديو');
+          console.error('[ScenarioCard] Error extracting/saving video frame:', err);
         } finally {
           setIsExtracting(false);
         }
       } else {
-        // === IMAGE: Store as-is ===
+        // === IMAGE: Save directly to project media directory ===
         try {
-          const base64Url = await new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = (e) => resolve(e.target.result);
-            reader.onerror = () => reject(new Error('Failed to read file'));
-            reader.readAsDataURL(file);
-          });
-          setCoverImage(base64Url);
-          setCoverVideo(''); // Clear any previous video
+          const ext = file.name.split('.').pop() || 'png';
+          const imageUri = await saveMediaFile(targetId, `cover_${Date.now()}.${ext}`, file);
+          setCoverImage(resolveMediaUrl(imageUri));
+          setCoverVideo('');
+          setLazyVideoSrc('none');
         } catch (err) {
-          alert('خطأ أثناء قراءة الصورة');
+          console.error('[ScenarioCard] Error saving cover image:', err);
         }
       }
     }
@@ -209,7 +207,7 @@ const ScenarioCard = ({ scenario, editing, onEdit, onCancel, onSave, onDelete, o
     }, 400);
   };
 
-  const isVideo = (url) => url?.startsWith('data:video');
+  const isVideo = (url) => !!url && (url.startsWith('data:video') || url.endsWith('.mp4') || url.endsWith('.webm') || url.includes('video_'));
   const hasVideo = !!lazyVideoSrc && lazyVideoSrc !== 'none';
 
   // Once on-demand fetch completes, if we are still hovering, mount it!

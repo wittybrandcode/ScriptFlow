@@ -204,39 +204,23 @@ export default function CharacterProfilePage() {
 
     setUploadingImage(true);
     try {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        try {
-          const base64Data = reader.result;
-          
-          // Add to reference_images
-          const currentImages = Array.isArray(character.reference_images) 
-            ? character.reference_images 
-            : JSON.parse(character.reference_images || '[]');
-          
-          const extMatch = base64Data.match(/data:image\/([a-zA-Z]+);/);
-          let ext = extMatch ? extMatch[1] : 'png';
-          if (ext === 'jpeg') ext = 'jpg';
-          const fileName = `char_${id}_ref_${Date.now()}.${ext}`;
-          
-          const mediaUri = await saveMediaFile(activeScenarioId, fileName, base64Data);
-          const updatedImages = [...currentImages, mediaUri || base64Data];
-          
-          await updateMutation.mutateAsync({ id, data: { reference_images: JSON.stringify(updatedImages) } });
-        } catch (err) {
-          console.error('Failed to process image:', err);
-          alert('فشل رفع الصورة');
-        } finally {
-          setUploadingImage(false);
-        }
-      };
-      reader.readAsDataURL(file);
+      const currentImages = Array.isArray(character.reference_images) 
+        ? character.reference_images 
+        : JSON.parse(character.reference_images || '[]');
+      
+      const ext = file.name.split('.').pop() || 'png';
+      const fileName = `char_${id}_ref_${Date.now()}.${ext}`;
+      
+      const mediaUri = await saveMediaFile(activeScenarioId, fileName, file);
+      const updatedImages = [...currentImages, mediaUri];
+      
+      await updateMutation.mutateAsync({ id, data: { reference_images: JSON.stringify(updatedImages) } });
     } catch (err) {
-      console.error('Upload failed:', err);
-      alert('فشل رفع الصورة');
+      console.error('[CharacterProfilePage] Upload failed:', err);
+    } finally {
       setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
-    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const removeImage = async (indexToRemove) => {
@@ -519,7 +503,7 @@ export default function CharacterProfilePage() {
               <p className="text-sm font-bold text-foreground">{actor.name}</p>
             </div>
             {actor.image_url ? (
-              <img src={actor.image_url} alt={actor.name} className="w-10 h-10 rounded-lg object-cover" />
+              <img src={resolveMediaUrl(actor.image_url)} alt={actor.name} className="w-10 h-10 rounded-lg object-cover" />
             ) : (
               <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground">
                 <User size={20} />

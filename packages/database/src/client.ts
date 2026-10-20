@@ -219,3 +219,11 @@ export async function vacuumDatabase(destPath: string): Promise<void> {
   const safePath = normalized.replace(/'/g, "''");
   await dbExecute(`VACUUM INTO '${safePath}'`);
 }
+
+/**
+ * Reclaim unused disk space in-place after deleting or purging large blobs.
+ */
+export async function vacuumInPlace(): Promise<void> {
+  await dbExecute('VACUUM');
+}
+

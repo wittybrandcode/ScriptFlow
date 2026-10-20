@@ -1,5 +1,6 @@
 import React from 'react';
 import { User, Edit3, Trash2, Eye, Maximize2, Phone, Mail, AlertTriangle, MessageSquare, FileText, Film, BarChart3 } from 'lucide-react';
+import { resolveMediaUrl } from '../../services/mediaStorage';
 
 const ROLE_COLORS = {
   'بطل رئيسي': { dot: 'bg-indigo-500', text: 'text-indigo-600', bg: 'bg-indigo-50' },
@@ -32,7 +33,7 @@ export default function CharacterCard({ character, onPreview, onOpenFull, onDele
           <div className="w-16 h-16 rounded-xl overflow-hidden bg-secondary border border-border/50 shadow-sm cursor-pointer" onClick={onOpenFull}>
             {character.actor_photo ? (
               <img 
-                src={character.actor_photo} 
+                src={resolveMediaUrl(character.actor_photo)} 
                 alt={character.actor_name} 
                 className="w-full h-full object-cover hover:scale-110 transition-transform duration-300"
               />

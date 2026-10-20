@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ImageOff, ChevronLeft, ChevronRight, Map, MapPin, Clapperboard, FileDown, Home, Trees, X, BarChart3, Sun, Phone, DollarSign, Lightbulb } from 'lucide-react';
 import MapDisplay from './MapDisplay';
 import WeatherWidget from './WeatherWidget';
+import { resolveMediaUrl } from '../services/mediaStorage';
 
 export default function LocationPreviewModal({
   previewLocation,
@@ -35,7 +36,7 @@ export default function LocationPreviewModal({
   const linkedScenes = allScenes.filter(s => s.location_id === previewLocation.id);
 
   const images = previewLocation.images?.length > 0 
-    ? previewLocation.images.map(i => i.image_url) 
+    ? previewLocation.images.map(i => i.image_url || i.url) 
     : (previewLocation.image ? [previewLocation.image] : []);
   const hasMultiple = images.length > 1;
 
@@ -81,7 +82,7 @@ export default function LocationPreviewModal({
                 images.length > 0 ? (
                   <img 
                     key={images[imgIndex]}
-                    src={images[imgIndex]} 
+                    src={resolveMediaUrl(images[imgIndex])} 
                     alt={previewLocation.name} 
                     className="w-full h-full object-cover animate-in fade-in duration-500"
                   />
