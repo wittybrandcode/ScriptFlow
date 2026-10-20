@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getCurrentWindow } from '@tauri-apps/api/window'
-import { confirm } from '@tauri-apps/plugin-dialog'
 import { Plus, Save, Undo2, Redo2, FileDown, BookOpen, CheckCircle2, MessageSquare, X, Timer, Sparkles, Edit3, Settings, CheckSquare, AlignLeft, Users2, Search, UserPlus, Camera, Volume2, MonitorPlay, AlertCircle, StickyNote, Scissors, ChevronDown } from 'lucide-react'
 import CharacterModal from '../components/CharacterModal'
 import { useToast } from '../hooks/useToast'
@@ -103,6 +102,9 @@ export default function SceneEditor() {
   const lastSavedBlocksJsonRef = useRef('')
   const lastSavedSceneJsonRef = useRef('')
   const isSavingRef = useRef(false)
+  const isSettledRef = useRef(false)
+  const saveStatusRef = useRef(saveStatus)
+  saveStatusRef.current = saveStatus
   const [pinnedSceneData, setPinnedSceneData] = useState(null)
   const [allScenes, setAllScenes] = useState([])
   const [selectedCharId, setSelectedCharId] = useState('')
@@ -203,6 +205,15 @@ export default function SceneEditor() {
       if (unlisten) unlisten();
     };
   }, [saveStatus, id, blocks, createSnapshotMutation]);
+
+  // 4. Silent Flush on Route Exit / Unmount
+  useEffect(() => {
+    return () => {
+      if (saveStatusRef.current === 'unsaved' && saveSceneRef.current) {
+        saveSceneRef.current().catch((e) => console.error('Unmount flush error:', e));
+      }
+    };
+  }, []);
 
   // ==========================================
 
@@ -542,6 +553,10 @@ export default function SceneEditor() {
       }
 
       setSaveStatus('saved')
+      // Mark scene as settled after initial mount normalization window
+      setTimeout(() => {
+        isSettledRef.current = true;
+      }, 600);
     } catch (err) {
       console.error(err)
       navigate('/scenarios');
@@ -1041,10 +1056,7 @@ export default function SceneEditor() {
           currentEpisodeId={scene.episode_id}
           pageNumbering={pageNumbering}
           onSelectScene={async (targetId) => {
-             if (saveStatus === 'unsaved') {
-                const confirmed = await confirm('لديك تغييرات غير محفوظة. سيتم حفظها الآن.', { title: 'تأكيد الحفظ' });
-                if (!confirmed) return;
-             }
+            if (targetId === id) return;
             try {
               if (saveStatus === 'unsaved') {
                 await saveSceneRef.current();
@@ -1055,7 +1067,8 @@ export default function SceneEditor() {
               }
               navigate(`/scene/${targetId}`);
             } catch (err) {
-              showToast('لا يمكن الانتقال: فشل حفظ المشهد الحالي', 'error');
+              console.error('Failed to auto-save scene before switching:', err);
+              showToast('تعذر الانتقال: حدث خطأ أثناء حفظ المشهد', 'error');
             }
           }}
         />
@@ -1068,9 +1081,25 @@ export default function SceneEditor() {
               characters={characters}
               locations={locations}
               onUpdateBlocks={(newBlocks) => {
+                // Ignore programmatic normalization during initial mount/settling phase
+                if (!isSettledRef.current) {
+                  setBlocks(newBlocks);
+                  lastSavedBlocksJsonRef.current = JSON.stringify(newBlocks);
+                  return;
+                }
+
+                const cleanContent = (str) => String(str || '')
+                  .replace(/<[^>]*>/g, '')
+                  .replace(/&nbsp;/g, ' ')
+                  .replace(/&amp;/g, '&')
+                  .replace(/&lt;/g, '<')
+                  .replace(/&gt;/g, '>')
+                  .replace(/\s+/g, ' ')
+                  .trim();
+
                 const normNewObj = (newBlocks || []).map(b => ({
                   type: String(b.type || '').toUpperCase(),
-                  content: (b.content || '').trim(),
+                  content: cleanContent(b.content),
                   character_id: b.character_id ? String(b.character_id) : null
                 }));
                 const normNew = JSON.stringify(normNewObj);
@@ -1080,14 +1109,15 @@ export default function SceneEditor() {
                   const parsedOld = JSON.parse(lastSavedBlocksJsonRef.current || '[]');
                   normOldObj = (parsedOld || []).map(b => ({
                     type: String(b.type || '').toUpperCase(),
-                    content: (b.content || '').trim(),
+                    content: cleanContent(b.content),
                     character_id: b.character_id ? String(b.character_id) : null
                   }));
                 } catch(e) {}
                 const normOld = JSON.stringify(normOldObj);
 
                 // Prevent false 'unsaved' status when TipTap auto-injects an empty action block into an empty scene
-                if (normOld === '[]' && normNew === '[{"type":"ACTION","content":"","character_id":null}]') {
+                if ((normOld === '[]' || normOld === '') && (normNew === '[{"type":"ACTION","content":"","character_id":null}]' || normNew === '[]')) {
+                  setBlocks(newBlocks);
                   return;
                 }
 
