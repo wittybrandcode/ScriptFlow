@@ -6,7 +6,7 @@ import FallbackLoader from './components/FallbackLoader'
 import AutoBackupProvider from './components/providers/AutoBackupProvider'
 import GlobalErrorBoundary from './components/common/GlobalErrorBoundary'
 
-// Lazy loaded pages
+// Lazy loaded pages (Modernized TSX)
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Insights = lazy(() => import('./pages/Insights'))
 const ScenesPage = lazy(() => import('./pages/ScenesPage'))
