@@ -28,8 +28,10 @@ interface EditFormState {
 }
 
 export default function EpisodesPage() {
-  const { setTopBarConfig, setSidebarContext, clearSidebarContext } = useUIStore();
-  const { activeScenarioId } = useUIStore();
+  const setTopBarConfig = useUIStore(s => s.setTopBarConfig);
+  const setSidebarContext = useUIStore(s => s.setSidebarContext);
+  const clearSidebarContext = useUIStore(s => s.clearSidebarContext);
+  const activeScenarioId = useUIStore(s => s.activeScenarioId);
   const { data: rawScenario } = useScenarioQuery(activeScenarioId || '');
   const activeScenario = rawScenario as IScenario | undefined;
   const { data: rawEpisodes = [] } = useEpisodesQuery(activeScenarioId || '');
@@ -76,7 +78,7 @@ export default function EpisodesPage() {
   handleCreateEpisodeRef.current = handleCreateEpisode;
 
   useEffect(() => {
-    const infoText = `${episodes.length} حلقة مسجلة${stats?.totalDuration > 0 ? ` • ${stats.totalDuration} دقيقة` : ''}`;
+    const infoText = `${episodes.length} حلقة مسجلة${stats?.totalDuration && stats.totalDuration > 0 ? ` • ${stats.totalDuration} دقيقة` : ''}`;
 
     setTopBarConfig({
       pageName: 'الحلقات',
@@ -87,8 +89,12 @@ export default function EpisodesPage() {
         { id: 'new', label: 'حلقة جديدة', icon: Plus, onClick: () => handleCreateEpisodeRef.current(), variant: 'primary' }
       ]
     });
+  }, [episodes.length, stats?.totalDuration, setTopBarConfig]);
+
+  // Cleanup on unmount only
+  useEffect(() => {
     return () => { setTopBarConfig(null); clearSidebarContext(); };
-  }, [activeScenario, episodes.length, stats?.totalDuration, setTopBarConfig, clearSidebarContext]);
+  }, [setTopBarConfig, clearSidebarContext]);
 
   // Register sidebar context
   useEffect(() => {

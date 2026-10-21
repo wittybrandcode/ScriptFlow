@@ -43,7 +43,10 @@ const EMPLOYMENT_BADGES: Record<string, { label: string; cls: string }> = {
 
 export default function CrewPage() {
   const { toasts, showToast, dismissToast } = useToast();
-  const { activeScenarioId, setTopBarConfig, setSidebarContext, clearSidebarContext } = useUIStore();
+  const activeScenarioId = useUIStore(s => s.activeScenarioId);
+  const setTopBarConfig = useUIStore(s => s.setTopBarConfig);
+  const setSidebarContext = useUIStore(s => s.setSidebarContext);
+  const clearSidebarContext = useUIStore(s => s.clearSidebarContext);
   const { data: crew } = useCrewQuery(activeScenarioId);
   const { data: assignments } = useCrewAssignmentsQuery(activeScenarioId);
   const { data: characters } = useCharactersQuery(activeScenarioId);

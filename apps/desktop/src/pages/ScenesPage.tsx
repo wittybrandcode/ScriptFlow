@@ -45,8 +45,12 @@ const SafeExportWizardModal = ExportWizardModal as React.ComponentType<any>;
  */
 export default function ScenesPage() {
   const [scenes, setScenes] = useState<IScene[]>([])
-  const { setTopBarConfig, setSidebarContext, clearSidebarContext, hasHydrated } = useUIStore();
-  const { activeScenarioId, setActiveScenarioId } = useUIStore();
+  const setTopBarConfig = useUIStore(s => s.setTopBarConfig);
+  const setSidebarContext = useUIStore(s => s.setSidebarContext);
+  const clearSidebarContext = useUIStore(s => s.clearSidebarContext);
+  const hasHydrated = useUIStore(s => s.hasHydrated);
+  const activeScenarioId = useUIStore(s => s.activeScenarioId);
+  const setActiveScenarioId = useUIStore(s => s.setActiveScenarioId);
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient();
@@ -315,6 +319,7 @@ export default function ScenesPage() {
   handleExportPDFRef.current = handleExportPDF;
   handleExportJSONRef.current = handleExportJSON;
 
+  // تزامن أزرار وإحصائيات الصفحة مع التوب بار
   useEffect(() => {
     const totalDuration = scenes.reduce((sum, s) => sum + (s.estimated_duration || 0), 0);
     const durationText = totalDuration > 0 ? ` • ${totalDuration.toFixed(1)} دقيقة` : '';
@@ -329,11 +334,15 @@ export default function ScenesPage() {
         { id: 'export-json', label: 'تصدير JSON', icon: FileJson, onClick: () => handleExportJSONRef.current(), disabled: isExporting, variant: 'outline' }
       ]
     });
+  }, [scenes.length, isExporting, setTopBarConfig, scenes]);
 
+  // تنظيف شريط الأدوات والسايدبار عند مغادرة الصفحة فقط (Unmount)
+  useEffect(() => {
     return () => {
       setTopBarConfig(null);
+      clearSidebarContext();
     };
-  }, [activeScenario, scenes.length, isExporting, setTopBarConfig, scenes]);
+  }, [setTopBarConfig, clearSidebarContext]);
 
   // Register sidebar context
   const completedCount = useMemo(() => scenes.filter(s => s.status === 'COMPLETED').length, [scenes]);
@@ -349,8 +358,7 @@ export default function ScenesPage() {
         { label: 'حلقات', value: episodes.length },
       ],
     });
-    return () => clearSidebarContext();
-  }, [scenes.length, completedCount, draftsCount, episodes.length, setSidebarContext, clearSidebarContext]);
+  }, [scenes.length, completedCount, draftsCount, episodes.length, setSidebarContext]);
 
   function handleDragEnd(event: any) {
     const { active, over } = event

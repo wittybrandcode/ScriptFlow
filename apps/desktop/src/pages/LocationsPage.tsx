@@ -30,7 +30,9 @@ export default function LocationsPage() {
   const deleteMutation = useDeleteLocationMutation(activeScenarioId || '');
   const exportProjectMutation = useExportProjectMutation() as any;
   
-  const { setTopBarConfig, setSidebarContext, clearSidebarContext } = useUIStore();
+  const setTopBarConfig = useUIStore(s => s.setTopBarConfig);
+  const setSidebarContext = useUIStore(s => s.setSidebarContext);
+  const clearSidebarContext = useUIStore(s => s.clearSidebarContext);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [locationToDelete, setLocationToDelete] = useState<any>(null);
   const [filterType, setFilterType] = useState<string>('');
@@ -55,8 +57,11 @@ export default function LocationsPage() {
       ]
     });
     if (activeScenarioId) fetchSceneCounts();
+  }, [activeScenarioId, setTopBarConfig]);
+
+  useEffect(() => {
     return () => { setTopBarConfig(null); clearSidebarContext(); };
-  }, [activeScenarioId, setTopBarConfig, clearSidebarContext]);
+  }, [setTopBarConfig, clearSidebarContext]);
 
   async function fetchSceneCounts() {
     if (!activeScenarioId) return;

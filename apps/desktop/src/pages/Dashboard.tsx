@@ -61,7 +61,10 @@ interface ConflictDataState {
 }
 
 export default function Dashboard() {
-  const { setTopBarConfig, clearSidebarContext, clearActiveScenario, setActiveScenarioId } = useUIStore();
+  const setTopBarConfig = useUIStore(s => s.setTopBarConfig);
+  const clearSidebarContext = useUIStore(s => s.clearSidebarContext);
+  const clearActiveScenario = useUIStore(s => s.clearActiveScenario);
+  const setActiveScenarioId = useUIStore(s => s.setActiveScenarioId);
   
   const { data: rawScenarios = [], isLoading: isLoadingScenarios } = useScenariosQuery();
   const scenarios = (rawScenarios as IScenario[]) || [];
@@ -109,7 +112,7 @@ export default function Dashboard() {
         }
       ]
     });
-  }, [scenarios.length, stats, setTopBarConfig]);
+  }, [scenarios.length, stats?.scenes, stats?.characters, setTopBarConfig]);
 
   const [editingItem, setEditingItem] = useState<EditingItemState | null>(null)
   const [conflictData, setConflictData] = useState<ConflictDataState | null>(null)
