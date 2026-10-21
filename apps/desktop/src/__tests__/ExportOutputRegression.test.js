@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { exportToPDF } from '../utils/exportPDF';
 
+const realCreateElement = document.createElement.bind(document);
+
 describe('Export Output Regression', () => {
   let mockIframe;
 
@@ -21,7 +23,7 @@ describe('Export Output Regression', () => {
     
     vi.spyOn(document, 'createElement').mockImplementation((tagName) => {
       if (tagName === 'iframe') return mockIframe;
-      return document.createElement(tagName);
+      return realCreateElement(tagName);
     });
     
     vi.spyOn(document, 'getElementById').mockImplementation((id) => {
@@ -84,5 +86,55 @@ describe('Export Output Regression', () => {
     
     // Check for Font Embedding
     expect(htmlOutput).toContain('data:font/woff2;base64');
+  });
+
+  it('should render scene content and blocks in single scene export without blank pages', async () => {
+    const singleSceneData = {
+      scenario: { title: 'مغامرة الصحراء', writer_name: 'أحمد' },
+      scenes: [
+        {
+          id: 'scene-42',
+          scene_number: 7,
+          title: 'لقاء في المقهى',
+          location_type: 'INT',
+          location_name: 'مقهى التحرير',
+          time_of_day: 'NIGHT',
+          blocks: [
+            { id: 'b1', type: 'action', content: 'يدخل طارق وينظر حوله بترقب.' },
+            { id: 'b2', type: 'character', content: 'طارق' },
+            { id: 'b3', type: 'dialogue', content: 'هل تأخرت عليك؟' }
+          ]
+        }
+      ],
+      characters: [{ id: 'c1', name: 'طارق' }],
+      episodes: []
+    };
+
+    const options = {
+      exportLevel: 'SCENE',
+      targetEntityId: 'scene-42',
+      includeMasterCover: false,
+      exportSettings: {
+        enableWatermark: false
+      }
+    };
+
+    const result = await exportToPDF(singleSceneData, options);
+
+    expect(result.success).toBe(true);
+    expect(result.count).toBe(1);
+
+    const htmlOutput = mockIframe.contentDocument.write.mock.calls[0][0];
+
+    // Verify Scene Header is present (handling React SSR comment nodes)
+    expect(htmlOutput).toMatch(/مشهد.*7/);
+    expect(htmlOutput).toContain('لقاء في المقهى');
+    expect(htmlOutput).toContain('داخلي');
+    expect(htmlOutput).toContain('مقهى التحرير');
+
+    // Verify Scene Blocks are present (PROVING NO BLANK PAGE)
+    expect(htmlOutput).toContain('يدخل طارق وينظر حوله بترقب.');
+    expect(htmlOutput).toContain('طارق');
+    expect(htmlOutput).toContain('هل تأخرت عليك؟');
   });
 });

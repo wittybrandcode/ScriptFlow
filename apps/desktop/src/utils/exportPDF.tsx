@@ -11,9 +11,19 @@ async function getEmbeddedFontsCSS(): Promise<string> {
   if (cachedFontFacesCss) return cachedFontFacesCss;
   if (fontsPromise) return fontsPromise;
   
-  fontsPromise = (async () => {
+  const timeoutPromise = new Promise<string>((resolve) => {
+    setTimeout(() => {
+      console.warn('[ExportPDF] Font embedding timed out (1000ms limit reached), falling back to @import');
+      resolve('@import url("/fonts/font_faces.css");');
+    }, 1000);
+  });
+
+  const loadFontsPromise = (async () => {
     try {
-      const fontFacesRes = await fetch('/fonts/font_faces.css');
+      const controller = new AbortController();
+      const fetchTimer = setTimeout(() => controller.abort(), 900);
+      const fontFacesRes = await fetch('/fonts/font_faces.css', { signal: controller.signal });
+      clearTimeout(fetchTimer);
       if (!fontFacesRes.ok) throw new Error('Could not load font_faces.css');
       let cssText = await fontFacesRes.text();
       
@@ -28,19 +38,29 @@ async function getEmbeddedFontsCSS(): Promise<string> {
       await Promise.all(
         urls.map(async (url) => {
           try {
-            const res = await fetch(url);
+            const fontCtrl = new AbortController();
+            const fontTimer = setTimeout(() => fontCtrl.abort(), 700);
+            const res = await fetch(url, { signal: fontCtrl.signal });
+            clearTimeout(fontTimer);
             if (!res.ok) return;
             const blob = await res.blob();
             
-            const dataUri = await new Promise<string>((resolve, reject) => {
+            const dataUri = await new Promise<string>((resolveUri, rejectUri) => {
               const reader = new FileReader();
-              reader.onload = () => resolve(reader.result as string);
-              reader.onerror = reject;
+              const readerTimer = setTimeout(() => rejectUri(new Error('FileReader timeout')), 500);
+              reader.onload = () => {
+                clearTimeout(readerTimer);
+                resolveUri(reader.result as string);
+              };
+              reader.onerror = () => {
+                clearTimeout(readerTimer);
+                rejectUri(reader.error);
+              };
               reader.readAsDataURL(blob);
             });
             urlToDataUriMap.set(url, dataUri);
           } catch (e) {
-            console.warn(`[ExportPDF] Failed to embed font ${url}:`, e);
+            // Non-critical: continue without this specific font data-uri
           }
         })
       );
@@ -52,13 +72,14 @@ async function getEmbeddedFontsCSS(): Promise<string> {
       cachedFontFacesCss = cssText;
       return cssText;
     } catch (err) {
-      console.warn('[ExportPDF] Failed to embed fonts, fallback to system fonts:', err);
-      return '';
+      console.warn('[ExportPDF] Failed to embed fonts, fallback to @import / system fonts:', err);
+      return '@import url("/fonts/font_faces.css");';
     } finally {
       fontsPromise = null;
     }
   })();
 
+  fontsPromise = Promise.race([loadFontsPromise, timeoutPromise]);
   return fontsPromise;
 }
 
@@ -77,6 +98,7 @@ export interface ExportPDFOptions {
   startPageNumber?: number;
   scenarioName?: string;
   filterEpisodeId?: string | null;
+  filterSceneId?: string | null;
   targetEntityId?: string | null;
   includeMasterCover?: boolean;
   includeEpisodeCovers?: boolean;
@@ -128,9 +150,9 @@ async function exportViaPrintEngine(
     const scenarioTitleVal = options.scenarioName || scenario?.title || scenario?.name || 'مشروع بدون عنوان';
 
     // 1. Resolve active level & dynamic filters
-    const exportLevel = options.exportLevel || (options.filterEpisodeId ? 'EPISODE' : 'PROJECT');
+    const exportLevel = options.exportLevel || (options.filterEpisodeId ? 'EPISODE' : (options.filterSceneId || options.targetEntityId ? 'SCENE' : 'PROJECT'));
     const filterEpisodeId = options.filterEpisodeId || (exportLevel === 'EPISODE' ? options.targetEntityId : null);
-    const filterSceneId = exportLevel === 'SCENE' ? options.targetEntityId : null;
+    const filterSceneId = options.filterSceneId || (exportLevel === 'SCENE' ? options.targetEntityId : null);
 
     let filteredScenes = scenes;
     let filteredEpisodes = episodes || [];
@@ -202,17 +224,27 @@ async function exportViaPrintEngine(
     }
     
     // 2. Scene Cover Page for Single Scene
-    if (exportLevel === 'SCENE' && options.includeMasterCover && filteredScenes[0]) {
+    const shouldIncludeSceneCover = exportLevel === 'SCENE' && (
+      options.includeMasterCover || 
+      options.includeSceneCovers || 
+      Boolean(options.coverPage) || 
+      Boolean(options.exportSettings?.enableCoverPage)
+    );
+
+    if (shouldIncludeSceneCover && filteredScenes[0]) {
       const sceneCoverRec = pageNumbering?.find(r => r.item_id === filteredScenes[0].id && r.item_type === 'SCENE_COVER');
       const sceneCoverPageNum = sceneCoverRec ? sceneCoverRec.start_page : 1;
+      const coverData = options.coverPage || {};
+      
       scenesHtml += renderToString(
         <SceneCoverPage 
-          scenarioTitle={scenarioTitleVal}
-          sceneNumber={filteredScenes[0].scene_number || '1'}
-          sceneTitle={filteredScenes[0].title || 'مشهد بدون عنوان'}
-          writerName={exportSettings.writerName}
-          directorName={exportSettings.directorName}
-          productionCompany={exportSettings.productionCompany}
+          scenarioTitle={coverData.scenarioTitle || scenarioTitleVal}
+          sceneNumber={filteredScenes[0].scene_number || coverData.sceneNumber || '1'}
+          sceneTitle={filteredScenes[0].title || coverData.sceneTitle || 'مشهد بدون عنوان'}
+          episodeTitle={coverData.episodeTitle || ''}
+          writerName={coverData.writerName || exportSettings.writerName}
+          directorName={coverData.directorName || exportSettings.directorName}
+          productionCompany={coverData.productionCompany || exportSettings.productionCompany}
           revisionColor={exportSettings.revisionColor}
           revisionDate={exportSettings.revisionDate}
           revisionDraft={exportSettings.revisionDraft}
@@ -512,40 +544,37 @@ async function exportViaPrintEngine(
     iframeDoc.write(htmlDocument);
     iframeDoc.close();
 
-    // Trigger printing smoothly inside iframe and schedule memory cleanup
-    await new Promise<void>((resolve) => {
-      setTimeout(() => {
-        try {
-          const iframeWindow = printIframe.contentWindow;
-          if (iframeWindow) {
-            iframeWindow.focus();
-            
-            // Clean up iframe DOM and HTML contents after print dialog closes to prevent memory leaks
-            const cleanupIframeMemory = () => {
-              try {
-                if (iframeDoc) {
-                  iframeDoc.open();
-                  iframeDoc.write('<!DOCTYPE html><html><body></body></html>');
-                  iframeDoc.close();
-                }
-              } catch (_) {
-                // Ignore cleanup errors
+    // Trigger printing smoothly inside iframe and decouple promise resolution so modals close cleanly
+    setTimeout(() => {
+      try {
+        const iframeWindow = printIframe.contentWindow;
+        if (iframeWindow) {
+          iframeWindow.focus();
+          
+          // Clean up iframe DOM and HTML contents after print dialog closes to prevent memory leaks
+          const cleanupIframeMemory = () => {
+            try {
+              if (iframeDoc) {
+                iframeDoc.open();
+                iframeDoc.write('<!DOCTYPE html><html><body></body></html>');
+                iframeDoc.close();
               }
-            };
+            } catch (_) {
+              // Ignore cleanup errors
+            }
+          };
 
-            // Use onafterprint if supported by browser/WebView2
-            iframeWindow.onafterprint = cleanupIframeMemory;
-            iframeWindow.print();
+          // Use onafterprint if supported by browser/WebView2
+          iframeWindow.onafterprint = cleanupIframeMemory;
+          iframeWindow.print();
 
-            // Safety cleanup fallback timer (reclaims memory after 8s if onafterprint does not trigger)
-            setTimeout(cleanupIframeMemory, 8000);
-          }
-        } catch (printErr) {
-          console.error('[ExportPDF] Print error:', printErr);
+          // Safety cleanup fallback timer (reclaims memory after 12s if onafterprint does not trigger)
+          setTimeout(cleanupIframeMemory, 12000);
         }
-        resolve();
-      }, 400);
-    });
+      } catch (printErr) {
+        console.error('[ExportPDF] Print error:', printErr);
+      }
+    }, 250);
 
     return { success: true, count: filteredScenes.length };
   } catch (error) {

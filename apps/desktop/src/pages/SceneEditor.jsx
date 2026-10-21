@@ -774,12 +774,15 @@ export default function SceneEditor() {
       const finalFilename = `المشهد ${scene.scene_number}${sceneTitleStr ? ' ' + sceneTitleStr : ''}`;
 
       await exportToPDF({ 
-        scenario: { title: finalFilename }, 
+        scenario: { title: scenarioTitle || finalFilename }, 
         scenes: [{ ...scene, blocks }],
         characters,
         episodes
       }, { 
         filename: finalFilename,
+        exportLevel: 'SCENE',
+        targetEntityId: scene.id,
+        includeMasterCover: !!exportSettings.enableCoverPage,
         coverPage: exportSettings.enableCoverPage ? {
           scenarioTitle: scenarioTitle,
           directorName: directorName,

@@ -49,6 +49,7 @@ export class LocationScenesPDFStrategy {
     if (options.filterSceneId) {
        this.options.exportLevel = 'SCENE';
        this.options.targetEntityId = options.filterSceneId;
+       this.options.filterSceneId = options.filterSceneId;
     }
   }
 

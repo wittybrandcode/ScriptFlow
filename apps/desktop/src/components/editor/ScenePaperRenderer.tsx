@@ -1,9 +1,8 @@
-import { memo, useState, useEffect } from 'react';
+import { memo, useMemo } from 'react';
 import { TIME_MAP } from '../../constants/sceneConstants';
-import { GRID } from './TextMeasurementEngine';
+import { GRID, expandBlocksToLayoutNodes, groupBlocksByPage } from './TextMeasurementEngine';
 import { useUIStore } from '../../store/useUIStore';
 import PageFooter from '../pdf/PageFooter';
-import { useExportWorker } from '../../hooks/useExportWorker';
 import './paper/paper-editor.css';
 
 export interface ScenePaperRendererProps {
@@ -34,27 +33,14 @@ const ScenePaperRendererComponent = ({
   const { showDebugGrid, showDebugMargins } = useUIStore();
   const currentEpisode = episodes?.find(e => e.id === scene?.episode_id);
 
-  const { paginateSingleScene } = useExportWorker();
-  const [pagesState, setPagesState] = useState<{ pages: any[], totalPages: number }>({ pages: [], totalPages: 0 });
-
-  // === المحرك الموحد: توسيع الكتل البرمجية وتجميعها حسب الصفحة (عبر الـ Worker) ===
-  useEffect(() => {
-    if (!scene) return;
-    
-    let isMounted = true;
-    
-    paginateSingleScene(blocks, characters).then((result: any) => {
-      if (isMounted && result && result.success) {
-        setPagesState({ pages: result.pages, totalPages: result.totalPages });
-      }
-    });
-
-    return () => {
-      isMounted = false;
-    };
-  }, [blocks, characters, scene, paginateSingleScene]);
-
-  const { pages, totalPages } = pagesState;
+  // Synchronous pagination calculation: guarantees pages are immediately populated on the first render,
+  // which is strictly required for SSR (renderToString) during PDF export and eliminates client flicker.
+  const { pages, totalPages } = useMemo(() => {
+    if (!scene) return { pages: [], totalPages: 0 };
+    const effectiveBlocks = (blocks && blocks.length > 0) ? blocks : (scene?.blocks || []);
+    const layoutNodes = expandBlocksToLayoutNodes(effectiveBlocks, characters || []);
+    return groupBlocksByPage(layoutNodes, { hasSceneHeader: true });
+  }, [blocks, characters, scene]);
 
   if (!scene) return null;
 
