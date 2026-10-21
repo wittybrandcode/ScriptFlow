@@ -1,0 +1,2 @@
+# Ensure all migration SQL files maintain LF line endings to preserve SHA-384 sqlx checksums
+*.sql text eol=lf
