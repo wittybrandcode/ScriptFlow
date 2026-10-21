@@ -3,6 +3,7 @@ import { ChevronDown, Search, Plus, UserPlus, Camera, Volume2, MonitorPlay, Aler
 import { useNavigate } from 'react-router-dom';
 import { useSceneSnapshotsQuery } from '../../hooks/queries/useSnapshots';
 import { History } from 'lucide-react';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 const SceneEditorHeader = ({
   scene,
@@ -33,7 +34,20 @@ const SceneEditorHeader = ({
 }) => {
   const navigate = useNavigate();
   const [showSnapshots, setShowSnapshots] = React.useState(false);
+  const [snapshotToRestore, setSnapshotToRestore] = React.useState(null);
   const { data: snapshots = [] } = useSceneSnapshotsQuery(id ? String(id) : null);
+
+  const handleConfirmRestore = () => {
+    if (snapshotToRestore && onRestoreSnapshot) {
+      try {
+        const parsedBlocks = JSON.parse(snapshotToRestore.snapshot_json);
+        onRestoreSnapshot(parsedBlocks);
+      } catch (e) {
+        console.error("Failed to parse snapshot", e);
+      }
+    }
+    setSnapshotToRestore(null);
+  };
 
   return (
     <div className="shrink-0 bg-card flex flex-col z-20 pt-2 px-2 pb-1.5 border-b border-border shadow-[0_4px_10px_-4px_rgba(0,0,0,0.05)] gap-1.5">
@@ -157,16 +171,7 @@ const SceneEditorHeader = ({
                             key={snap.id}
                             onClick={() => {
                               setShowSnapshots(false);
-                              if (window.confirm('هل أنت متأكد من استعادة هذه النسخة؟ ستفقد التعديلات الحالية غير المحفوظة.')) {
-                                try {
-                                  const parsedBlocks = JSON.parse(snap.snapshot_json);
-                                  if (onRestoreSnapshot) {
-                                    onRestoreSnapshot(parsedBlocks);
-                                  }
-                                } catch(e) {
-                                  console.error("Failed to parse snapshot", e);
-                                }
-                              }
+                              setSnapshotToRestore(snap);
                             }}
                             className="w-full text-right px-3 py-2 text-xs font-bold transition-colors hover:bg-secondary text-foreground flex flex-col gap-1"
                           >
@@ -291,6 +296,17 @@ const SceneEditorHeader = ({
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={!!snapshotToRestore}
+        onClose={() => setSnapshotToRestore(null)}
+        onConfirm={handleConfirmRestore}
+        title="استعادة نقطة حفظ سابقة"
+        message="هل أنت متأكد من استعادة هذه النسخة السابقة؟ ستفقد أي تعديلات حالية غير محفوظة في هذا المشهد."
+        confirmText="استعادة النسخة"
+        cancelText="إلغاء"
+        variant="warning"
+      />
     </div>
   );
 };

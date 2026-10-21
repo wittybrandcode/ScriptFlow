@@ -12,6 +12,7 @@ import { ToastContainer } from '../components/Toast';
 import { useExportProjectMutation } from '../hooks/queries/useExport';
 import { PDFExportStrategy, JSONExportStrategy } from '../services/exportStrategies';
 import { formatDate } from '../utils/dateUtils';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 const STATUS_MAP = {
   DRAFT: { label: 'مسودة', icon: Edit3, color: 'text-zinc-400 bg-zinc-500/15 border-zinc-500/30' },
@@ -204,6 +205,9 @@ function BackupTab() {
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
 
+  const [backupToDelete, setBackupToDelete] = useState(null);
+  const [isDeletingBackup, setIsDeletingBackup] = useState(false);
+
   useEffect(() => {
     loadBackups();
   }, []);
@@ -237,17 +241,24 @@ function BackupTab() {
     }
   }
 
-  async function handleDeleteBackup(filename) {
-    if (!confirm(`هل أنت متأكد من حذف النسخة الاحتياطية ${filename}؟ لا يمكن التراجع عن هذا الإجراء.`)) return;
-    
+  function handleDeleteBackup(filename) {
+    setBackupToDelete(filename);
+  }
+
+  async function confirmDeleteBackup() {
+    if (!backupToDelete) return;
+    setIsDeletingBackup(true);
     try {
       const { backupService } = await import('../services/BackupService');
-      await backupService.deleteBackup(filename);
-      showToast('تم حذف النسخة الاحتياطية', 'info');
+      await backupService.deleteBackup(backupToDelete);
+      showToast('تم حذف النسخة الاحتياطية بنجاح', 'info');
+      setBackupToDelete(null);
       loadBackups();
     } catch (err) {
       console.error(err);
       showToast('فشل حذف النسخة الاحتياطية', 'error');
+    } finally {
+      setIsDeletingBackup(false);
     }
   }
 
@@ -329,6 +340,23 @@ function BackupTab() {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={!!backupToDelete}
+        onClose={() => !isDeletingBackup && setBackupToDelete(null)}
+        onConfirm={confirmDeleteBackup}
+        title="حذف النسخة الاحتياطية"
+        message={
+          <span>
+            هل أنت متأكد من حذف النسخة الاحتياطية <strong className="text-foreground font-mono" dir="ltr">{backupToDelete}</strong>؟ لا يمكن التراجع عن هذا الإجراء بعد تنفيذه.
+          </span>
+        }
+        confirmText="تأكيد الحذف"
+        cancelText="إلغاء"
+        variant="danger"
+        isLoading={isDeletingBackup}
+      />
+
       <ToastContainer toasts={toasts} dismissToast={dismissToast} />
     </div>
   );

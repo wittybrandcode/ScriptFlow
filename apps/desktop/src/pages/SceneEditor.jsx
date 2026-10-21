@@ -183,7 +183,23 @@ export default function SceneEditor() {
         const appWindow = getCurrentWindow();
         unlisten = await appWindow.onCloseRequested(async (event) => {
           if (saveStatus === 'unsaved') {
-            const confirmed = await window.confirm('لديك تغييرات غير محفوظة في هذا المشهد. هل أنت متأكد أنك تريد إغلاق التطبيق وفقدانها؟');
+            let confirmed = false;
+            try {
+              const { confirm: tauriConfirm } = await import('@tauri-apps/plugin-dialog');
+              confirmed = await tauriConfirm(
+                'لديك تغييرات غير محفوظة في هذا المشهد. هل أنت متأكد أنك تريد إغلاق التطبيق وفقدانها؟',
+                {
+                  title: 'تأكيد الإغلاق',
+                  kind: 'warning',
+                  okLabel: 'إغلاق بدون حفظ',
+                  cancelLabel: 'إلغاء'
+                }
+              );
+            } catch (dialogErr) {
+              // Fallback if dialog plugin is unavailable
+              confirmed = true;
+            }
+
             if (!confirmed) {
               event.preventDefault();
             } else {

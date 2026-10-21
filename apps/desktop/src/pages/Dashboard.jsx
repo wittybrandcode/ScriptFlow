@@ -19,6 +19,7 @@ import ScenarioCard from '../components/dashboard/ScenarioCard'
 import CharacterCard from '../components/dashboard/CharacterCard'
 import ExportWizardModal from '../components/export/ExportWizardModal';
 import ConflictResolutionModal from '../components/dashboard/ConflictResolutionModal';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 const ActionCard = ({ icon: Icon, title, statLine, onClick }) => (
   <button 
@@ -95,6 +96,7 @@ export default function Dashboard() {
   const [conflictData, setConflictData] = useState(null)
   const [exportWizardScenario, setExportWizardScenario] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [scenarioToDelete, setScenarioToDelete] = useState(null);
   const navigate = useNavigate()
   const { toasts, showToast, dismissToast } = useToast()
   
@@ -208,11 +210,16 @@ export default function Dashboard() {
     }
   }
 
-  async function deleteScenario(id) {
-    if (!confirm('هل تريد حذف هذا السيناريو؟ سيتم حذف جميع مشاهده.')) return
+  function handleDeleteScenarioClick(scenario) {
+    setScenarioToDelete(scenario)
+  }
+
+  async function handleConfirmDeleteScenario() {
+    if (!scenarioToDelete) return
     try {
-      await deleteScenarioMutation.mutateAsync(id);
-      showToast('تم حذف السيناريو', 'info')
+      await deleteScenarioMutation.mutateAsync(scenarioToDelete.id);
+      showToast('تم حذف السيناريو بنجاح', 'info')
+      setScenarioToDelete(null)
     } catch (err) {
       showToast('فشل حذف السيناريو', 'error')
     }
@@ -350,7 +357,6 @@ export default function Dashboard() {
     } catch (err) {
       console.error('Import error:', err)
       showToast(err.message || 'فشل استيراد الحزمة', 'error')
-      alert(`خطأ في الاستيراد:\n${err.message}\n\n${err.stack}`);
     }
     e.target.value = '' // Reset
   }
@@ -440,7 +446,7 @@ export default function Dashboard() {
                     onEdit={() => setEditingItem({ type: 'scenario', id: scenario.id, title: scenario.title, description: scenario.description || '' })}
                     onCancel={handleCancelEdit}
                     onSave={(title, desc, cover_image, status, genre, notes, cover_video) => updateScenario(scenario.id, title, desc, cover_image, status, genre, notes, cover_video)}
-                    onDelete={() => deleteScenario(scenario.id)}
+                    onDelete={() => handleDeleteScenarioClick(scenario)}
                     onOpen={() => {
                       setActiveScenarioId(scenario.id);
                       navigate('/insights');
@@ -504,6 +510,18 @@ export default function Dashboard() {
           conflictData={conflictData}
           onResolve={resolveConflict}
           onCancel={() => setConflictData(null)}
+        />
+
+        <ConfirmModal 
+          isOpen={!!scenarioToDelete}
+          title="حذف السيناريو"
+          message={`هل أنت متأكد من رغبتك في حذف السيناريو "${scenarioToDelete?.title || 'سيناريو بدون عنوان'}" نهائياً؟ سيتم حذف جميع المشاهد والبيانات المرتبطة به.`}
+          confirmText="تأكيد الحذف النهائي"
+          cancelText="إلغاء"
+          variant="danger"
+          isLoading={deleteScenarioMutation.isPending}
+          onClose={() => setScenarioToDelete(null)}
+          onConfirm={handleConfirmDeleteScenario}
         />
       </main>
     </div>

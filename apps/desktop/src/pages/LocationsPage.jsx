@@ -11,6 +11,7 @@ import LocationModal from '../components/LocationModal';
 import LocationPreviewModal from '../components/LocationPreviewModal';
 import MapDisplay from '../components/MapDisplay';
 import WeatherWidget from '../components/WeatherWidget';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 const STATUS_FILTERS = [
   { value: '', label: 'جميع الحالات' },
@@ -28,6 +29,7 @@ export default function LocationsPage() {
   
   const { setTopBarConfig, setSidebarContext, clearSidebarContext } = useUIStore();
   const [searchTerm, setSearchTerm] = useState('');
+  const [locationToDelete, setLocationToDelete] = useState(null);
   const [filterType, setFilterType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -95,9 +97,18 @@ export default function LocationsPage() {
     }
   }
 
-  const handleDelete = async (id) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا الموقع من المكتبة؟')) {
-      await deleteMutation.mutateAsync(id);
+  const handleDelete = (locOrId) => {
+    setLocationToDelete(locOrId);
+  };
+
+  const handleConfirmDeleteLocation = async () => {
+    if (!locationToDelete) return;
+    try {
+      const locId = typeof locationToDelete === 'object' ? locationToDelete.id : locationToDelete;
+      await deleteMutation.mutateAsync(locId);
+      setLocationToDelete(null);
+    } catch (err) {
+      console.error('Delete location error:', err);
     }
   };
 
@@ -265,6 +276,18 @@ export default function LocationsPage() {
         onClose={() => setPreviewLocation(null)}
         onExportAllScenesPdf={exportAllScenesPdf}
         onExportScenePdf={exportScenePdf}
+      />
+
+      <ConfirmModal 
+        isOpen={!!locationToDelete}
+        title="حذف الموقع"
+        message="هل أنت متأكد من رغبتك في حذف هذا الموقع من المكتبة؟"
+        confirmText="تأكيد حذف الموقع"
+        cancelText="إلغاء"
+        variant="danger"
+        isLoading={deleteMutation.isPending}
+        onClose={() => setLocationToDelete(null)}
+        onConfirm={handleConfirmDeleteLocation}
       />
     </div>
   );

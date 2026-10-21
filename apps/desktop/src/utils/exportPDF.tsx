@@ -3,6 +3,7 @@ import ScenePaperRenderer from '../components/editor/ScenePaperRenderer';
 import SceneCoverPage from '../components/pdf/SceneCoverPage';
 import CallSheetPage from '../components/pdf/CallSheetPage';
 import { groupBlocksByPage, expandBlocksToLayoutNodes } from '../components/editor/TextMeasurementEngine';
+import { useToastStore } from '../hooks/useToast';
 
 let cachedFontFacesCss = '';
 let fontsPromise: Promise<string> | null = null;
@@ -144,7 +145,7 @@ async function exportViaPrintEngine(
 
     const isZipMode = options.exportType === 'ZIP_EPISODES';
     if (isZipMode) {
-      alert("تصدير ZIP قيد التطوير التقني في الخلفية... سيتم تحويلك إلى تصدير PDF واحد مؤقتاً.");
+      useToastStore.getState().showToast("تصدير ZIP قيد التطوير التقني... سيتم تحويلك إلى تصدير PDF موحد مؤقتاً.", "info", 5000);
     }
 
     let cumulativePage = options.startPageNumber || 1;

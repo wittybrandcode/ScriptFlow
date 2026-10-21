@@ -7,6 +7,7 @@ import { useCharactersQuery, useCharacterStatsQuery, useDeleteCharacterMutation 
 import { useToast } from '../hooks/useToast';
 import CharacterCard from '../components/dashboard/CharacterCard';
 import CharacterModal from '../components/CharacterModal';
+import ConfirmModal from '../components/common/ConfirmModal';
 import type { ICharacter } from '@scriptflow/core';
 
 const SafeFilterBar = AdvancedFilterBar as React.ComponentType<any>;
@@ -78,11 +79,18 @@ export default function CharactersPage() {
     });
   }, [characters, setSidebarContext]);
 
-  async function deleteCharacter(id: string) {
-    if (!confirm('هل أنت متأكد من حذف هذه الشخصية نهائياً؟')) return;
+  const [charToDelete, setCharToDelete] = useState<{ id: string; name: string } | null>(null);
+
+  function deleteCharacter(id: string, name?: string) {
+    setCharToDelete({ id, name: name || '' });
+  }
+
+  async function confirmDeleteCharacter() {
+    if (!charToDelete) return;
     try {
-      await deleteMutation.mutateAsync(id);
+      await deleteMutation.mutateAsync(charToDelete.id);
       showToast('تم حذف الشخصية بنجاح', 'success');
+      setCharToDelete(null);
     } catch {
       showToast('فشل حذف الشخصية', 'error');
     }
@@ -230,7 +238,7 @@ export default function CharactersPage() {
                 character={char} 
                 onPreview={() => setEditingChar(char)}
                 onOpenFull={() => navigate(`/characters/${char.id}`)}
-                onDelete={() => deleteCharacter(char.id)}
+                onDelete={() => deleteCharacter(char.id, char.name)}
                 charStats={charStatsMap[char.id] || {}}
               />
             ))}
@@ -252,6 +260,22 @@ export default function CharactersPage() {
           onCharacterUpdated={() => {}}
         />
       )}
+
+      <ConfirmModal
+        isOpen={!!charToDelete}
+        onClose={() => setCharToDelete(null)}
+        onConfirm={confirmDeleteCharacter}
+        title="حذف الشخصية"
+        message={
+          <span>
+            هل أنت متأكد من حذف الشخصية {charToDelete?.name ? <strong className="text-foreground">«{charToDelete.name}»</strong> : ''} نهائياً؟ سيتم إزالة كافة البيانات المرتبطة بها.
+          </span>
+        }
+        confirmText="تأكيد الحذف"
+        cancelText="إلغاء"
+        variant="danger"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }

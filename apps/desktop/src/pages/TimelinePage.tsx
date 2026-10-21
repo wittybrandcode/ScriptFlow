@@ -28,6 +28,7 @@ import TimelineStats from '../components/timeline/TimelineStats';
 import CompactSceneCard from '../components/timeline/CompactSceneCard';
 import ContinuityPanel from '../components/timeline/ContinuityPanel';
 import ShootDayModal from '../components/timeline/ShootDayModal';
+import ConfirmModal from '../components/common/ConfirmModal';
 import { Plus, Printer, HelpCircle, Columns, Calendar as CalendarIcon, CalendarDays, CalendarRange, Activity, AlignJustify } from 'lucide-react';
 
 const SafeTimelineBoard = TimelineBoard as any;
@@ -134,10 +135,17 @@ export default function TimelinePage() {
     })
   );
 
+  const [dayToDelete, setDayToDelete] = useState<string | null>(null);
+
   const handleDeleteDay = (id: string) => {
-    if (activeScenarioId && confirm('هل أنت متأكد من حذف يوم التصوير هذا؟ سيتم إرجاع جميع المشاهد المجدولة فيه إلى البنك.')) {
-      deleteShootDay(activeScenarioId, id);
+    setDayToDelete(id);
+  };
+
+  const confirmDeleteDay = () => {
+    if (activeScenarioId && dayToDelete) {
+      deleteShootDay(activeScenarioId, dayToDelete);
     }
+    setDayToDelete(null);
   };
 
   if (!activeScenarioId) {
@@ -306,6 +314,18 @@ export default function TimelinePage() {
           }}
         />
       )}
+
+      {/* Confirm Delete Shoot Day Modal */}
+      <ConfirmModal
+        isOpen={!!dayToDelete}
+        onClose={() => setDayToDelete(null)}
+        onConfirm={confirmDeleteDay}
+        title="حذف يوم التصوير"
+        message="هل أنت متأكد من حذف يوم التصوير هذا؟ سيتم إرجاع جميع المشاهد المجدولة فيه إلى بنك المشاهد تلقائياً."
+        confirmText="تأكيد الحذف"
+        cancelText="إلغاء"
+        variant="danger"
+      />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import { useScenarioQuery } from '../hooks/queries/useScenarios';
 import ExportWizardModal from '../components/export/ExportWizardModal';
 import { useExportProjectMutation } from '../hooks/queries/useExport';
 import { PDFExportStrategy } from '../services/exportStrategies';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 
 
@@ -72,6 +73,7 @@ export default function ScenesPage() {
   const [quickEditScene, setQuickEditScene] = useState(null)
   const [showAddEpisodeModal, setShowAddEpisodeModal] = useState(false)
   const [showQuickAddModal, setShowQuickAddModal] = useState(false)
+  const [sceneToDelete, setSceneToDelete] = useState(null)
 
   const { data: scenesData = [], refetch: fetchScenes } = useScenesQuery(scenarioId);
   const createSceneMutation = useCreateSceneMutation();
@@ -169,14 +171,20 @@ export default function ScenesPage() {
     setShowExportWizard(true);
   }, []);
 
-  async function handleDeleteScene(id, e) {
-    e.stopPropagation()
-    if (!confirm('هل تريد حذف هذا المشهد؟')) return
+  function handleDeleteScene(sceneOrId, e) {
+    if (e && e.stopPropagation) e.stopPropagation()
+    setSceneToDelete(sceneOrId)
+  }
+
+  async function handleConfirmDeleteScene() {
+    if (!sceneToDelete) return
     try {
-      await deleteSceneMutation.mutateAsync(id)
-      showToast('تم حذف المشهد', 'info')
+      const sceneId = typeof sceneToDelete === 'object' ? sceneToDelete.id : sceneToDelete
+      await deleteSceneMutation.mutateAsync(sceneId)
+      showToast('تم حذف المشهد بنجاح', 'info')
       fetchScenes()
       fetchStats()
+      setSceneToDelete(null)
     } catch (err) {
       console.error(err);
       showToast('حدث خطأ أثناء الحذف', 'error');
@@ -567,6 +575,18 @@ export default function ScenesPage() {
             setIsExporting(false);
           }
         }}
+      />
+
+      <ConfirmModal 
+        isOpen={!!sceneToDelete}
+        title="حذف المشهد"
+        message={`هل أنت متأكد من رغبتك في حذف ${sceneToDelete?.scene_number ? `المشهد ${sceneToDelete.scene_number}` : 'هذا المشهد'}؟ لا يمكن التراجع عن هذا الإجراء.`}
+        confirmText="تأكيد حذف المشهد"
+        cancelText="إلغاء"
+        variant="danger"
+        isLoading={deleteSceneMutation.isPending}
+        onClose={() => setSceneToDelete(null)}
+        onConfirm={handleConfirmDeleteScene}
       />
     </div>
   )

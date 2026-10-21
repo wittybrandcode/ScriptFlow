@@ -14,6 +14,7 @@ import ExportWizardModal from '../components/export/ExportWizardModal';
 import { PDFExportStrategy } from '../services/exportStrategies';
 import { useExportProjectMutation } from '../hooks/queries/useExport';
 import { formatDate } from '../utils/dateUtils';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 import StatCard from '../components/dashboard/StatCard';
 /**
@@ -57,6 +58,7 @@ export default function EpisodesPage() {
   // Episode Export state
   const [exportEpisode, setExportEpisode] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [episodeToDelete, setEpisodeToDelete] = useState(null);
   const exportProjectMutation = useExportProjectMutation();
 
   useEffect(() => {
@@ -135,13 +137,19 @@ export default function EpisodesPage() {
     }
   }
 
-  async function handleDelete(ep) {
-    if (!confirm(`هل تريد حذف الحلقة ${ep.episode_number}؟ سيتم فصل مشاهدها فقط (لن تُحذف).`)) return;
+  function handleDelete(ep) {
+    setEpisodeToDelete(ep);
+  }
+
+  async function handleConfirmDeleteEpisode() {
+    if (!episodeToDelete) return;
     try {
-      await deleteEpisodeMutation.mutateAsync({ scenarioId: activeScenarioId, id: ep.id });
-      showToast('تم حذف الحلقة', 'info');
+      await deleteEpisodeMutation.mutateAsync({ scenarioId: activeScenarioId, id: episodeToDelete.id });
+      showToast('تم حذف الحلقة بنجاح', 'info');
+      setEpisodeToDelete(null);
     } catch (err) {
       console.error(err);
+      showToast('فشل حذف الحلقة', 'error');
     }
   }
 
@@ -535,6 +543,18 @@ export default function EpisodesPage() {
             setIsExporting(false);
           }
         }}
+      />
+
+      <ConfirmModal 
+        isOpen={!!episodeToDelete}
+        title="حذف الحلقة"
+        message={`هل أنت متأكد من حذف الحلقة ${episodeToDelete?.episode_number}${episodeToDelete?.title ? ` (${episodeToDelete.title})` : ''}؟ سيتم فصل مشاهدها فقط ولن تُحذف نهائياً.`}
+        confirmText="تأكيد حذف الحلقة"
+        cancelText="إلغاء"
+        variant="danger"
+        isLoading={deleteEpisodeMutation.isPending}
+        onClose={() => setEpisodeToDelete(null)}
+        onConfirm={handleConfirmDeleteEpisode}
       />
     </div>
   )

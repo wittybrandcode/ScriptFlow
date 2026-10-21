@@ -3,9 +3,11 @@ import { X, CheckSquare, Square, Save, Loader2, PlaySquare, Film } from 'lucide-
 import { useUIStore } from '../store/useUIStore';
 import { useScenarioQuery, useScenarioStatsQuery } from '../hooks/queries/useScenarios';
 import { useCharactersQuery, useCrewAssignmentsQuery, useSyncCrewAssignmentsMutation, useEpisodesQuery, useScenesQuery } from '../hooks/queries';
+import { useToast } from '../hooks/useToast';
 
 export default function CrewAssignmentModal({ member, onClose }) {
   const activeScenarioId = useUIStore().activeScenarioId; const activeScenario = null;
+  const { showToast } = useToast();
   const { data: assignments = [] } = useCrewAssignmentsQuery(activeScenarioId);
   const syncMutation = useSyncCrewAssignmentsMutation();
   const { data: characters = [] } = useCharactersQuery(activeScenarioId);
@@ -85,7 +87,7 @@ export default function CrewAssignmentModal({ member, onClose }) {
       onClose();
     } catch(err) {
       setSaving(false);
-      alert('حدث خطأ أثناء حفظ التكليفات.');
+      showToast('حدث خطأ أثناء حفظ التكليفات.', 'error');
     }
   };
 

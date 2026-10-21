@@ -6,6 +6,8 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import { useUIStore } from '../../store/useUIStore';
 import { useScenarioQuery, useScenarioStatsQuery } from '../../hooks/queries/useScenarios';
 import { useCharactersQuery, useUpdateCharacterMutation } from '../../hooks/queries';
+import { useToast } from '../../hooks/useToast';
+import ConfirmModal from '../../components/common/ConfirmModal';
 
 import CustomCharacterNode from '../../components/dashboard/CustomCharacterNode';
 import UnionNode from '../../components/dashboard/UnionNode';
@@ -42,6 +44,8 @@ export default function RelationshipsPage() {
   const [errorModalMessage, setErrorModalMessage] = useState(null);
   const [manualLinkPopup, setManualLinkPopup] = useState(null);
   const [manualLinkLabel, setManualLinkLabel] = useState('');
+  const [edgeToRemove, setEdgeToRemove] = useState(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     setTopBarConfig({ pageName: 'خريطة العلاقات المتصلة' });
@@ -151,8 +155,19 @@ export default function RelationshipsPage() {
       setErrorModalMessage({ message: 'لا يمكن حذف خط الارتباط المجمع المباشر. لحذف القرابة، احذف علاقة الزواج أولاً أو قم بفك ارتباط الابن من صفحة الشخصية.' });
       return;
     }
-    if (!confirm('هل تريد بالتأكيد إزالة هذه العلاقة؟')) return;
-    await removeRelationship(edgeId);
+    setEdgeToRemove(edgeId);
+  };
+
+  const confirmRemoveEdge = async () => {
+    if (!edgeToRemove) return;
+    try {
+      await removeRelationship(edgeToRemove);
+      showToast('تمت إزالة العلاقة بنجاح', 'info');
+    } catch (err) {
+      showToast('فشل حذف العلاقة', 'error');
+    } finally {
+      setEdgeToRemove(null);
+    }
   };
 
 
@@ -309,7 +324,7 @@ export default function RelationshipsPage() {
             URL.revokeObjectURL(url);
           } catch (e) {
             console.error('Failed to export GEDCOM:', e);
-            alert('حدث خطأ أثناء تصدير ملف GEDCOM: ' + e.message);
+            showToast('حدث خطأ أثناء تصدير ملف GEDCOM: ' + e.message, 'error');
           }
         }}
         handleImportGedcom={async (file) => {
@@ -357,10 +372,10 @@ export default function RelationshipsPage() {
             }
             
             await loadGraph();
-            alert(`تم استيراد ${nodes.length} شخصية و ${edges.length} علاقة بنجاح!`);
+            showToast(`تم استيراد ${nodes.length} شخصية و ${edges.length} علاقة بنجاح!`, 'success');
           } catch (e) {
             console.error('Failed to import GEDCOM:', e);
-            alert('حدث خطأ أثناء استيراد ملف GEDCOM: ' + e.message);
+            showToast('حدث خطأ أثناء استيراد ملف GEDCOM: ' + e.message, 'error');
           }
         }}
         addingPartner={addingPartner}
@@ -465,6 +480,17 @@ export default function RelationshipsPage() {
         onClose={() => setManualLinkPopup(null)}
         onLink={handleManualLink}
         addingPartner={addingPartner}
+      />
+
+      <ConfirmModal
+        isOpen={!!edgeToRemove}
+        onClose={() => setEdgeToRemove(null)}
+        onConfirm={confirmRemoveEdge}
+        title="إزالة العلاقة"
+        message="هل أنت متأكد من رغبتك في إزالة هذه العلاقة بين الشخصيتين؟"
+        confirmText="تأكيد الإزالة"
+        cancelText="إلغاء"
+        variant="danger"
       />
     </div>
   );

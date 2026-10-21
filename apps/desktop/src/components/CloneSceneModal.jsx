@@ -4,6 +4,8 @@ import { useEpisodesQuery } from '../hooks/queries/useEpisodes';
 import { useUIStore } from '../store/useUIStore';
 import { useScenarioQuery, useScenarioStatsQuery } from '../hooks/queries/useScenarios';
 
+import { useToast } from '../hooks/useToast';
+
 const CLONE_TYPES = [
   { id: 'FLASHBACK', label: 'فلاشباك', desc: 'استرجاع حدث ماضي' },
   { id: 'FLASHFORWARD', label: 'فلاشفوروارد', desc: 'استباق حدث مستقبلي' },
@@ -14,6 +16,7 @@ const CLONE_TYPES = [
 
 export default function CloneSceneModal({ scene, onClose, onClone }) {
   const { activeScenarioId } = useUIStore();
+  const { showToast } = useToast();
   const { data: episodes = [] } = useEpisodesQuery(activeScenarioId);
   const [targetEpisodeId, setTargetEpisodeId] = useState(scene.episode_id || '')
   const [cloneType, setCloneType] = useState('FLASHBACK')
@@ -28,7 +31,7 @@ export default function CloneSceneModal({ scene, onClose, onClone }) {
       onClose()
     } catch (error) {
       console.error(error)
-      alert('حدث خطأ أثناء الاستنساخ')
+      showToast('حدث خطأ أثناء استنساخ المشهد', 'error')
     } finally {
       setIsSubmitting(false)
     }

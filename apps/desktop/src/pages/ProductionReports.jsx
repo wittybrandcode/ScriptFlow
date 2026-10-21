@@ -8,9 +8,11 @@ import { useTimelineQuery } from '../hooks/queries/useTimeline';
 import { useExportProjectMutation } from '../hooks/queries/useExport';
 import { CallSheetPDFStrategy } from '../services/exportStrategies';
 import { formatDate } from '../utils/dateUtils';
+import { useToast } from '../hooks/useToast';
 
 export default function ProductionReports() {
   const { activeScenarioId } = useUIStore();
+  const { showToast } = useToast();
   const { data: locations = [] } = useLocationsQuery(activeScenarioId);
   const { setTopBarConfig, setSidebarContext, clearSidebarContext } = useUIStore();
   
@@ -89,7 +91,7 @@ export default function ProductionReports() {
       });
     } catch (err) {
       console.error('Failed to export Call Sheet:', err);
-      alert('حدث خطأ أثناء تصدير كشف الاستدعاء.');
+      showToast('حدث خطأ أثناء تصدير كشف الاستدعاء.', 'error');
     }
   };
 

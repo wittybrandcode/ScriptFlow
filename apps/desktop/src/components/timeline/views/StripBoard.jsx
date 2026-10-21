@@ -7,6 +7,7 @@ import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-
 import { CSS } from '@dnd-kit/utilities';
 import { useDroppable } from '@dnd-kit/core';
 import { exportToPDF } from '../../../utils/exportPDF';
+import { useToast } from '../../../hooks/useToast';
 
 export default function StripBoard({ shootDays, characters = [], scenario = null, episodes = [] }) {
   const getStripColor = (locationType, timeOfDay) => {
@@ -142,6 +143,7 @@ export default function StripBoard({ shootDays, characters = [], scenario = null
 }
 
 function DayStripGroup({ day, dIdx, calculateDayStats, formatPages, getStripColor, getCastString, getSmartDuration, getSmartEighths, characters, scenario, episodes }) {
+  const { showToast } = useToast();
   const stats = calculateDayStats(day.scenes);
   const sceneIds = (day.scenes || []).map(s => s.id.toString());
   
@@ -170,7 +172,7 @@ function DayStripGroup({ day, dIdx, calculateDayStats, formatPages, getStripColo
       });
     } catch (err) {
       console.error("Failed to export Call Sheet:", err);
-      alert("فشل في استخراج تقرير اليوم.");
+      showToast("فشل في استخراج تقرير اليوم.", "error");
     }
   };
 

@@ -8,6 +8,9 @@ import CrewPreviewModal from '../components/CrewPreviewModal';
 import CrewAssignmentModal from '../components/CrewAssignmentModal';
 import { ClipboardList, AlertTriangle } from 'lucide-react';
 import { resolveMediaUrl } from '../services/mediaStorage';
+import { useToast } from '../hooks/useToast';
+import { ToastContainer } from '../components/Toast';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 const ROLE_LABELS = {
   DIRECTOR: 'قسم الإخراج',
@@ -29,6 +32,7 @@ const EMPLOYMENT_BADGES = {
 };
 
 export default function CrewPage() {
+  const { toasts, showToast, dismissToast } = useToast();
   const { activeScenarioId } = useUIStore();
   const { data: crew } = useCrewQuery(activeScenarioId);
   const { data: assignments } = useCrewAssignmentsQuery(activeScenarioId);
@@ -163,9 +167,10 @@ export default function CrewPage() {
           return { ...newMember, scenario_id: activeScenarioId };
         });
         await bulkCreateMutation.mutateAsync(newMembers);
+        showToast(`تم استيراد ${newMembers.length} فرد بنجاح`, 'success');
       }
     } catch (err) {
-      alert('حدث خطأ أثناء قراءة ملف JSON. تأكد من صحة الملف.');
+      showToast('حدث خطأ أثناء قراءة ملف JSON. تأكد من صحة الملف.', 'error');
     }
     e.target.value = null; // reset
   };
@@ -456,52 +461,20 @@ export default function CrewPage() {
         }
 
         return (
-          <SafeDeleteModal
+          <ConfirmModal
             isOpen={true}
             onClose={() => setMemberToDelete(null)}
             onConfirm={confirmDelete}
+            title="تأكيد حذف الفرد"
             message={customMessage}
+            confirmText="تأكيد الحذف"
+            cancelText="إلغاء"
+            variant="danger"
+            isLoading={deleteMutation.isPending}
           />
         );
       })()}
-    </div>
-  );
-}
-
-// -------------------------------------------------------------
-// SafeDeleteModal Component (Embedded for zero-dependency)
-// -------------------------------------------------------------
-function SafeDeleteModal({ isOpen, onClose, onConfirm, message }) {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-card border border-border/50 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200 font-sans">
-        <div className="flex flex-col items-center justify-center p-8 text-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center mb-2 border border-rose-500/20">
-            <AlertTriangle size={32} />
-          </div>
-          <h3 className="font-black text-2xl text-foreground">تأكيد الحذف</h3>
-          <p className="text-sm font-medium leading-relaxed text-muted-foreground">
-            {message}
-          </p>
-        </div>
-        
-        <div className="p-6 bg-muted/20 border-t border-border flex gap-3">
-          <button 
-            onClick={onClose}
-            className="flex-1 py-3 px-4 rounded-xl border border-border font-bold text-muted-foreground hover:text-foreground hover:bg-background transition-colors"
-          >
-            تراجع
-          </button>
-          <button 
-            onClick={() => { onConfirm(); onClose(); }}
-            className="flex-1 py-3 px-4 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold transition-colors shadow-sm shadow-rose-500/20"
-          >
-            نعم، احذف نهائياً
-          </button>
-        </div>
-      </div>
+      <ToastContainer toasts={toasts} dismissToast={dismissToast} />
     </div>
   );
 }
