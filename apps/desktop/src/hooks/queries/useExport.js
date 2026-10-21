@@ -29,20 +29,22 @@ export function useExportProjectMutation() {
   return useMutation({
     mutationFn: async ({ scenarioId, strategy }) => {
       const opts = strategy.options || {};
+      console.log('[useExport] Starting export mutation for scenario:', scenarioId);
       
-      // Update scenario cover options if they are explicitly passed
+      // Update scenario cover options asynchronously in background without blocking export execution
       if (opts.includeMasterCover !== undefined || opts.includeEpisodeCovers !== undefined || opts.includeSceneCovers !== undefined) {
-        await scenarioRepo.update(scenarioId, {
+        scenarioRepo.update(scenarioId, {
           include_master_cover: opts.includeMasterCover ? 1 : 0,
           include_episode_covers: opts.includeEpisodeCovers ? 1 : 0,
           include_scene_covers: opts.includeSceneCovers ? 1 : 0,
-        });
+        }).catch(e => console.warn('[useExport] Cover prefs update non-critical warning:', e));
         
-        // Recalculate page numbering
-        await updateScenarioPageNumbering(scenarioId);
+        // Recalculate page numbering asynchronously in background
+        updateScenarioPageNumbering(scenarioId).catch(e => console.warn('[useExport] Background pagination update warning:', e));
       }
 
       // Step 1: Gather all data from repositories (no transaction needed for reads)
+      console.log('[useExport] Step 1: Gathering scenario data...');
       const scenario = await scenarioRepo.findById(scenarioId);
       if (!scenario) {
         throw new Error(`Scenario with ID ${scenarioId} not found.`);
@@ -68,13 +70,29 @@ export function useExportProjectMutation() {
       const episodes = await epRepo.getByScenarioId(scenarioId);
       
       // We also need shoot_days for the Call Sheet Strategy
-      const ShootDayRepository = (await import('@scriptflow/database')).ShootDayRepository;
-      const shootDayRepo = new ShootDayRepository();
-      const shoot_days = await shootDayRepo.getByScenarioId(scenarioId);
+      let shoot_days = [];
+      try {
+        const ShootDayRepository = (await import('@scriptflow/database')).ShootDayRepository;
+        const shootDayRepo = new ShootDayRepository();
+        shoot_days = await shootDayRepo.getByScenarioId(scenarioId);
+      } catch (sdErr) {
+        console.warn('[useExport] Shoot days load warning:', sdErr);
+      }
 
-      const PageNumberingRepository = (await import('@scriptflow/database')).PageNumberingRepository;
-      const pageNumberingRepo = new PageNumberingRepository();
-      const pageNumbering = await pageNumberingRepo.getByScenarioId(scenarioId);
+      let pageNumbering = [];
+      try {
+        const PageNumberingRepository = (await import('@scriptflow/database')).PageNumberingRepository;
+        const pageNumberingRepo = new PageNumberingRepository();
+        pageNumbering = await pageNumberingRepo.getByScenarioId(scenarioId);
+      } catch (pnErr) {
+        console.warn('[useExport] Page numbering load warning:', pnErr);
+      }
+
+      // Fallback: If pageNumbering is empty, calculate dynamically in-memory immediately
+      if (!pageNumbering || pageNumbering.length === 0) {
+        const { calculatePageNumbers } = await import('../../utils/paginationCalculator');
+        pageNumbering = calculatePageNumbers(scenesWithBlocks, episodes);
+      }
 
       const payload = {
         version: '1.0',
@@ -87,8 +105,11 @@ export function useExportProjectMutation() {
         pageNumbering,
       };
 
+      console.log(`[useExport] Step 2: Data loaded (${scenesWithBlocks.length} scenes, ${allBlocks.length} blocks). Executing strategy...`);
+
       // Step 2: All DB work is done. Now call the strategy (which may open print dialog)
       const result = await strategy.export(payload);
+      console.log('[useExport] Step 3: Strategy export completed successfully.');
       return result;
     }
   });

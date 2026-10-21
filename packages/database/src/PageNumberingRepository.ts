@@ -12,14 +12,26 @@ export class PageNumberingRepository extends BaseRepository<IPageNumbering> {
   }
 
   async savePageNumbering(scenarioId: string, records: IPageNumbering[]): Promise<void> {
-    await withTransaction(async (tx) => {
-      // 1. Delete all old page numbering records for this scenario
-      await tx.execute(`DELETE FROM ${this.tableName} WHERE scenario_id = $1`, [scenarioId]);
-      
-      // 2. Insert new records one by one
-      for (const record of records) {
-        await this.insert(record, tx);
-      }
-    });
+    if (!scenarioId) return;
+    const { dbExecute } = await import('./client.js');
+    await dbExecute(`DELETE FROM ${this.tableName} WHERE scenario_id = $1`, [scenarioId]);
+    if (!records || records.length === 0) return;
+
+    // Batch insert in chunks of 50 to avoid SQLite bind variable limits and transaction overhead
+    const CHUNK_SIZE = 50;
+    for (let i = 0; i < records.length; i += CHUNK_SIZE) {
+      const chunk = records.slice(i, i + CHUNK_SIZE);
+      const values: any[] = [];
+      const rowPlaceholders: string[] = [];
+      chunk.forEach((rec, rIdx) => {
+        const offset = rIdx * 7;
+        rowPlaceholders.push(`($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7})`);
+        values.push(rec.id, rec.scenario_id, rec.item_id, rec.item_type, rec.page_count, rec.start_page, rec.sort_order);
+      });
+      await dbExecute(
+        `INSERT INTO ${this.tableName} (id, scenario_id, item_id, item_type, page_count, start_page, sort_order) VALUES ${rowPlaceholders.join(', ')}`,
+        values
+      );
+    }
   }
 }

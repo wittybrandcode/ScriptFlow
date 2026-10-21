@@ -14,7 +14,8 @@ async function getEmbeddedFontsCSS(): Promise<string> {
   const timeoutPromise = new Promise<string>((resolve) => {
     setTimeout(() => {
       console.warn('[ExportPDF] Font embedding timed out (1000ms limit reached), falling back to @import');
-      resolve('@import url("/fonts/font_faces.css");');
+      cachedFontFacesCss = '@import url("/fonts/font_faces.css");';
+      resolve(cachedFontFacesCss);
     }, 1000);
   });
 
@@ -524,12 +525,12 @@ async function exportViaPrintEngine(
       printIframe = document.createElement('iframe');
       printIframe.id = 'scriptflow-print-iframe';
       printIframe.style.position = 'fixed';
-      printIframe.style.right = '0';
-      printIframe.style.bottom = '0';
-      printIframe.style.width = '0px';
-      printIframe.style.height = '0px';
+      printIframe.style.top = '0';
+      printIframe.style.left = '0';
+      printIframe.style.width = '100vw';
+      printIframe.style.height = '100vh';
       printIframe.style.border = 'none';
-      printIframe.style.opacity = '0';
+      printIframe.style.opacity = '0.01';
       printIframe.style.pointerEvents = 'none';
       printIframe.style.zIndex = '-9999';
       document.body.appendChild(printIframe);
@@ -540,9 +541,11 @@ async function exportViaPrintEngine(
       throw new Error('تعذر إعداد إطار التصدير في بيئة التطبيق');
     }
 
+    console.log(`[ExportPDF] Writing document (${filteredScenes.length} scenes) to print iframe...`);
     iframeDoc.open();
     iframeDoc.write(htmlDocument);
     iframeDoc.close();
+    console.log('[ExportPDF] Iframe document ready. Scheduling print...');
 
     // Trigger printing smoothly inside iframe and decouple promise resolution so modals close cleanly
     setTimeout(() => {
@@ -566,6 +569,7 @@ async function exportViaPrintEngine(
 
           // Use onafterprint if supported by browser/WebView2
           iframeWindow.onafterprint = cleanupIframeMemory;
+          console.log('[ExportPDF] Triggering iframe print dialog now...');
           iframeWindow.print();
 
           // Safety cleanup fallback timer (reclaims memory after 12s if onafterprint does not trigger)

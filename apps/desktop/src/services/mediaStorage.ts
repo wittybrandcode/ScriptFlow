@@ -339,63 +339,41 @@ export async function sanitizeDatabaseMedia(): Promise<{ sanitizedCount: number 
       }
     }
 
-    // 2. Locations: image and images (JSON)
+    // 2. Locations: image
     const locations = await dbSelect<any>(
-      `SELECT id, scenario_id, image, images FROM locations WHERE (image LIKE 'data:%' OR images LIKE '%data:%') AND deleted_at IS NULL`
+      `SELECT id, scenario_id, image FROM locations WHERE image LIKE 'data:%' AND deleted_at IS NULL`
     );
 
     for (const loc of locations) {
-      let updatedImage = loc.image;
-      let updatedImagesJson = loc.images;
-      let needsUpdate = false;
-
-      const targetScenarioId = loc.scenario_id || 'shared';
-
       if (loc.image && typeof loc.image === 'string' && loc.image.startsWith('data:')) {
         const extMatch = loc.image.match(/^data:([^;]+);/);
         const mime = extMatch ? extMatch[1] : 'image/png';
         const ext = mime.split('/')[1] === 'jpeg' ? 'jpg' : (mime.split('/')[1] || 'png');
         const fileName = `loc_${loc.id}_${Date.now()}.${ext}`;
-        updatedImage = await saveMediaFile(targetScenarioId, fileName, loc.image);
-        needsUpdate = true;
-      }
-
-      if (loc.images && typeof loc.images === 'string' && loc.images.includes('data:')) {
-        try {
-          const parsed = JSON.parse(loc.images);
-          if (Array.isArray(parsed)) {
-            let imagesModified = false;
-            for (let i = 0; i < parsed.length; i++) {
-              const item = parsed[i];
-              const rawUrl = item.url || item.image_url;
-              if (rawUrl && typeof rawUrl === 'string' && rawUrl.startsWith('data:')) {
-                const extMatch = rawUrl.match(/^data:([^;]+);/);
-                const mime = extMatch ? extMatch[1] : 'image/png';
-                const ext = mime.split('/')[1] === 'jpeg' ? 'jpg' : (mime.split('/')[1] || 'png');
-                const fileName = `loc_${loc.id}_img_${i}_${Date.now()}.${ext}`;
-                const savedUri = await saveMediaFile(targetScenarioId, fileName, rawUrl);
-                item.url = savedUri;
-                item.image_url = savedUri;
-                imagesModified = true;
-              }
-            }
-            if (imagesModified) {
-              updatedImagesJson = JSON.stringify(parsed);
-              needsUpdate = true;
-            }
-          }
-        } catch (e) {
-          console.warn('[MediaStorage] Failed to parse location images JSON:', e);
-        }
-      }
-
-      if (needsUpdate) {
-        await dbExecute(
-          `UPDATE locations SET image = $1, images = $2 WHERE id = $3`,
-          [updatedImage, updatedImagesJson, loc.id]
-        );
+        const savedUri = await saveMediaFile(loc.scenario_id || 'shared', fileName, loc.image);
+        await dbExecute(`UPDATE locations SET image = $1 WHERE id = $2`, [savedUri, loc.id]);
         sanitizedCount++;
       }
+    }
+
+    // 2b. Location Images: image_url
+    try {
+      const locImages = await dbSelect<any>(
+        `SELECT li.id, li.image_url, l.scenario_id FROM location_images li JOIN locations l ON li.location_id = l.id WHERE li.image_url LIKE 'data:%'`
+      );
+      for (const li of locImages) {
+        if (li.image_url && typeof li.image_url === 'string' && li.image_url.startsWith('data:')) {
+          const extMatch = li.image_url.match(/^data:([^;]+);/);
+          const mime = extMatch ? extMatch[1] : 'image/png';
+          const ext = mime.split('/')[1] === 'jpeg' ? 'jpg' : (mime.split('/')[1] || 'png');
+          const fileName = `loc_img_${li.id}_${Date.now()}.${ext}`;
+          const savedUri = await saveMediaFile(li.scenario_id || 'shared', fileName, li.image_url);
+          await dbExecute(`UPDATE location_images SET image_url = $1 WHERE id = $2`, [savedUri, li.id]);
+          sanitizedCount++;
+        }
+      }
+    } catch (liErr) {
+      console.warn('[MediaStorage] Location images sanitization warning:', liErr);
     }
 
     // 3. Crew: image_url
