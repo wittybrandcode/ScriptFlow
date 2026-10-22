@@ -13,8 +13,9 @@ import Topbar from './Topbar';
  */
 export default function AppLayout({ children }) {
   const { theme } = useTheme();
-  const { saveStatus, hasHydrated } = useUIStore();
-  const { activeScenarioId } = useUIStore();
+  const saveStatus = useUIStore(s => s.saveStatus);
+  const hasHydrated = useUIStore(s => s.hasHydrated);
+  const activeScenarioId = useUIStore(s => s.activeScenarioId);
   
   const { toasts } = useToast();
   const currentToast = toasts[toasts.length - 1];

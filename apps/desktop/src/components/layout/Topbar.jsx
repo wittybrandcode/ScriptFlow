@@ -43,8 +43,11 @@ const TopBarButton = ({ action }) => {
 export default function Topbar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { topBarConfig, saveStatus, toggleSidebar, sidebarExpanded } = useUIStore();
-  const { activeScenarioId } = useUIStore();
+  const topBarConfig = useUIStore(s => s.topBarConfig);
+  const saveStatus = useUIStore(s => s.saveStatus);
+  const toggleSidebar = useUIStore(s => s.toggleSidebar);
+  const sidebarExpanded = useUIStore(s => s.sidebarExpanded);
+  const activeScenarioId = useUIStore(s => s.activeScenarioId);
   const { data: activeScenario } = useScenarioQuery(activeScenarioId);
 
   // Breadcrumbs Generator (Smart Fallback)

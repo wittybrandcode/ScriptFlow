@@ -79,7 +79,7 @@ export default function ScenesPage() {
   const [showQuickAddModal, setShowQuickAddModal] = useState<boolean>(false)
   const [sceneToDelete, setSceneToDelete] = useState<any>(null)
 
-  const { data: scenesData = [], refetch: fetchScenes } = useScenesQuery(scenarioId);
+  const { data: rawScenes, refetch: fetchScenes } = useScenesQuery(scenarioId);
   const createSceneMutation = useCreateSceneMutation();
   const updateSceneMutation = useUpdateSceneMutation();
   const deleteSceneMutation = useDeleteSceneMutation();
@@ -93,22 +93,21 @@ export default function ScenesPage() {
   }, [scenarioId, queryClient]);
 
   useEffect(() => {
-    if (scenesData) {
-      setScenes(scenesData as IScene[]);
+    if (rawScenes) {
+      setScenes(rawScenes as IScene[]);
     }
-  }, [scenesData]);
+  }, [rawScenes]);
 
   useEffect(() => {
     if (!hasHydrated) return; 
 
     if (scenarioId) {
-       if (!activeScenarioId) setActiveScenarioId(scenarioId)
-       fetchScenes()
+       if (!activeScenarioId) setActiveScenarioId(scenarioId);
     } else {
        // إذا لم يوجد مشروع نشط، نعود للمكتبة
-       navigate('/')
+       navigate('/');
     }
-  }, [scenarioId, activeScenarioId, hasHydrated, setActiveScenarioId, fetchScenes, navigate])
+  }, [scenarioId, activeScenarioId, hasHydrated, setActiveScenarioId, navigate]);
 
   // States for Search & Filter
   const [searchQuery, setSearchQuery] = useState<string>('')
@@ -334,7 +333,7 @@ export default function ScenesPage() {
         { id: 'export-json', label: 'تصدير JSON', icon: FileJson, onClick: () => handleExportJSONRef.current(), disabled: isExporting, variant: 'outline' }
       ]
     });
-  }, [scenes.length, isExporting, setTopBarConfig, scenes]);
+  }, [scenes.length, isExporting, setTopBarConfig]);
 
   // تنظيف شريط الأدوات والسايدبار عند مغادرة الصفحة فقط (Unmount)
   useEffect(() => {
