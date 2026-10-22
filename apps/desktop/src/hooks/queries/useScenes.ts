@@ -60,6 +60,13 @@ export function useCreateSceneMutation() {
   return useMutation({
     mutationFn: async (data: Record<string, any>) => {
       const record: any = { ...data, id: data.id || generateId('scn') };
+      if ((record.scene_number === undefined || record.scene_number === null) && record.scenario_id) {
+        const existing = await sceneRepo.getByScenarioId(record.scenario_id);
+        const maxNum = existing.reduce((max, s) => Math.max(max, s.scene_number || 0), 0);
+        record.scene_number = maxNum + 1;
+      } else if (record.scene_number === undefined || record.scene_number === null) {
+        record.scene_number = 1;
+      }
       await sceneRepo.insert(record as any);
       if (record.scenario_id) {
         const { updateScenarioPageNumbering } = await import('../../utils/paginationCalculator');

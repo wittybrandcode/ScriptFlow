@@ -141,7 +141,12 @@ export default function ScenesPage() {
     }
 
     try {
-      const body: any = { scenario_id: scenarioId };
+      const nextNumber = scenes.length > 0 ? Math.max(...scenes.map(s => s.scene_number || 0)) + 1 : 1;
+      const body: any = { 
+        scenario_id: scenarioId,
+        scene_number: nextNumber,
+        title: `مشهد ${nextNumber}`
+      };
       
       // Auto-assign to current filtered episode or the first one available
       if (filterEpisode !== 'ALL' && filterEpisode !== 'NONE') {
@@ -156,7 +161,7 @@ export default function ScenesPage() {
       console.error('Failed to create scene:', err)
       showToast('حدث خطأ أثناء إنشاء المشهد', 'error')
     }
-  }, [scenarioId, navigate, showToast, episodes, filterEpisode, createSceneMutation]);
+  }, [scenarioId, navigate, showToast, episodes, filterEpisode, createSceneMutation, scenes]);
 
   const handleExportJSON = useCallback(async () => {
     if (!scenarioId) return;
@@ -290,8 +295,10 @@ export default function ScenesPage() {
     }
 
     try {
+      const nextNumber = scenes.length > 0 ? Math.max(...scenes.map(s => s.scene_number || 0)) + 1 : 1;
       const body: any = { 
         scenario_id: scenarioId,
+        scene_number: nextNumber,
         title,
         description
       };
