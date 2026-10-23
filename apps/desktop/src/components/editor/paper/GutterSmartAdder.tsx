@@ -25,8 +25,19 @@ export interface GutterSmartAdderProps {
   scale?: number;
 }
 
+interface HoveredBlockState {
+  pos: number;
+  node: any;
+  top: number;
+  left: number;
+  viewportX: number;
+  viewportY: number;
+  options: TabItem[];
+  openUpward: boolean;
+}
+
 export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdderProps) {
-  const [hoveredBlock, setHoveredBlock] = useState<any>(null);
+  const [hoveredBlock, setHoveredBlock] = useState<HoveredBlockState | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -35,25 +46,21 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
     const handleMouseMove = (e: MouseEvent) => {
       if (isMenuOpen) return;
 
+      const target = e.target as HTMLElement | null;
+      // Do not clear or recalculate if mouse is hovering over the button or menu container
+      if (target?.closest('.gutter-adder-container')) return;
+
       const contentEl = document.querySelector('.paper-content');
       if (!contentEl || !editor || !editor.view) return;
 
-      const target = e.target as HTMLElement | null;
       const blockEl = target?.closest('.paper-block') as HTMLElement | null;
       if (!blockEl) {
-        // If cursor moves away, we hide the button unless menu is open
-        const rect = contentEl.getBoundingClientRect();
-        const mouseX = e.clientX;
-        const mouseY = e.clientY;
-
-        if (
-          mouseX < rect.left ||
-          mouseX > rect.right ||
-          mouseY < rect.top ||
-          mouseY > rect.bottom
-        ) {
-          setHoveredBlock(null);
+        if (hoveredBlock) {
+          // Allow mouse to move smoothly across the small gap between text end and the '+' button
+          const dist = Math.hypot(e.clientX - hoveredBlock.viewportX, e.clientY - hoveredBlock.viewportY);
+          if (dist < 48) return;
         }
+        setHoveredBlock(null);
         return;
       }
 
@@ -68,7 +75,7 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
 
         const nodeType = node.type.name;
         const blockPos = $pos.start(1) - 1;
-        
+
         // Strict Constitution Filtering
         let shouldShow = false;
         let allowedOptions: TabItem[] = [];
@@ -81,14 +88,22 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
           const nextPos = blockPos + node.nodeSize;
           const nextNode = editor.state.doc.nodeAt(nextPos);
           const hasSpeechAfter = nextNode && (nextNode.type.name === 'dialogue' || nextNode.type.name === 'parenthetical');
-          
+
           if (!hasSpeechAfter) {
             shouldShow = true;
-            allowedOptions = [
-              { type: 'dialogue', label: 'حوار', shortcut: '3' }
-            ];
+            allowedOptions = [{ type: 'dialogue', label: 'حوار', shortcut: '3' }];
           }
-        } else if (nodeType === 'action') {
+        } else if (nodeType === 'parenthetical') {
+          shouldShow = true;
+          allowedOptions = [{ type: 'dialogue', label: 'حوار', shortcut: '3' }];
+        } else if (
+          nodeType === 'action' ||
+          nodeType === 'shot' ||
+          nodeType === 'transition' ||
+          nodeType === 'audio' ||
+          nodeType === 'textOnScreen' ||
+          nodeType === 'directorNote'
+        ) {
           shouldShow = true;
           allowedOptions = TAB_ITEMS;
         }
@@ -98,41 +113,127 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
           return;
         }
 
-        const rect = blockEl.getBoundingClientRect();
         const contentRect = contentEl.getBoundingClientRect();
+        const mouseY = e.clientY;
 
-        // Convert viewport pixels to logical pixels inside the scaled paper container
-        const logicalTop = (rect.top - contentRect.top) / scale;
-        const logicalHeight = rect.height / scale;
+        let endViewportX: number | null = null;
+        let endViewportY: number | null = null;
+        let lineH = 28;
 
-        // Calculate layout properties for the last line of the block (baseline alignment)
-        const logicalLineHeight = 28;
-        const lastLineTop = logicalTop + logicalHeight - logicalLineHeight;
-        const buttonTop = lastLineTop + (logicalLineHeight - 24) / 2; // Centers the 24px button vertically in the last line
+        // 1. For React NodeView (e.g. CharacterNodeView with name, arrow, and tone badge)
+        const flexRow = blockEl.querySelector('.flex.items-center') as HTMLElement | null;
+        if (nodeType === 'character' && flexRow) {
+          const children = Array.from(flexRow.children) as HTMLElement[];
+          let minLeft = Infinity;
+          const fRect = flexRow.getBoundingClientRect();
+          endViewportY = fRect.top;
+          lineH = fRect.height || 28;
 
-        // Check viewport limits to see if it should open upwards
-        const buttonViewportY = rect.top + rect.height - logicalLineHeight + (logicalLineHeight - 24) / 2;
+          children.forEach((child) => {
+            const cs = window.getComputedStyle(child);
+            if (cs.display !== 'none' && cs.visibility !== 'hidden') {
+              const cr = child.getBoundingClientRect();
+              if (
+                cr.width > 0 &&
+                (parseFloat(cs.opacity) > 0.1 || (child.textContent && child.textContent.trim().length > 0))
+              ) {
+                if (cr.left < minLeft) {
+                  minLeft = cr.left;
+                }
+              }
+            }
+          });
+
+          if (minLeft < Infinity) {
+            endViewportX = minLeft;
+          }
+        } else {
+          // 2. Regular screenplay text blocks (dialogue, action, parenthetical, etc.)
+          const range = document.createRange();
+          range.selectNodeContents(blockEl);
+          const clientRects = Array.from(range.getClientRects()).filter((r) => r.width > 0 && r.height > 0);
+
+          if (clientRects.length > 0) {
+            // Find visual line under the cursor or default to the last line
+            const targetLine =
+              clientRects.find((r) => mouseY >= r.top - 2 && mouseY <= r.bottom + 2) ||
+              clientRects[clientRects.length - 1];
+            endViewportX = targetLine.left;
+            endViewportY = targetLine.top;
+            lineH = targetLine.height;
+          } else {
+            // 3. Fallback using ProseMirror coordsAtPos
+            try {
+              const endPos = blockPos + node.nodeSize - 1;
+              const coords = editor.view.coordsAtPos(endPos);
+              if (coords) {
+                endViewportX = coords.left;
+                endViewportY = coords.top;
+                lineH = coords.bottom - coords.top;
+              }
+            } catch {
+              // ignore
+            }
+          }
+        }
+
+        // Final fallback if element is empty
+        if (endViewportX === null || endViewportY === null) {
+          const bRect = blockEl.getBoundingClientRect();
+          endViewportX = bRect.left + 20;
+          endViewportY = bRect.top;
+          lineH = bRect.height || 28;
+        }
+
+        // Convert viewport coordinates to logical container coordinates (accounting for zoom scale)
+        const logicalCharX = (endViewportX - contentRect.left) / scale;
+        const logicalCharY = (endViewportY - contentRect.top) / scale;
+
+        // In RTL text, the sentence ends on the left; position the '+' button right at the end of the line
+        const buttonTop = logicalCharY + (lineH - 24) / 2;
+        let buttonLeft = logicalCharX - 24 - 10;
+        // Clamp within paper width boundaries
+        buttonLeft = Math.max(10, Math.min(794 - 34, buttonLeft));
+
+        // Screen center coordinates of the button for mouse proximity tracking
+        const buttonViewportX = contentRect.left + buttonLeft * scale + 12 * scale;
+        const buttonViewportY = contentRect.top + buttonTop * scale + 12 * scale;
+
+        // Determine if menu should open upward based on viewport height
+        const spaceBelow = window.innerHeight - (buttonViewportY + 12 * scale);
         const menuHeight = allowedOptions.length * 36 + 16;
-        const spaceBelow = window.innerHeight - buttonViewportY;
         const isUpward = spaceBelow < menuHeight;
 
-        setHoveredBlock({
-          pos: blockPos,
-          node,
-          top: buttonTop,
-          height: logicalHeight,
-          options: allowedOptions,
-          openUpward: isUpward,
+        setHoveredBlock((prev) => {
+          if (
+            prev &&
+            prev.pos === blockPos &&
+            Math.abs(prev.top - buttonTop) < 2 &&
+            Math.abs(prev.left - buttonLeft) < 2
+          ) {
+            return prev;
+          }
+          return {
+            pos: blockPos,
+            node,
+            top: buttonTop,
+            left: buttonLeft,
+            viewportX: buttonViewportX,
+            viewportY: buttonViewportY,
+            options: allowedOptions,
+            openUpward: isUpward,
+          };
         });
       } catch (err) {
         // posAtDOM can throw on widgets or page breaks
       }
     };
 
-    const handleMouseLeave = () => {
-      if (!isMenuOpen) {
-        setHoveredBlock(null);
-      }
+    const handleMouseLeave = (e: MouseEvent) => {
+      if (isMenuOpen) return;
+      const relatedTarget = e.relatedTarget as HTMLElement | null;
+      if (relatedTarget?.closest('.gutter-adder-container')) return;
+      setHoveredBlock(null);
     };
 
     const handleClickOutside = (e: MouseEvent) => {
@@ -144,7 +245,7 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mousedown', handleClickOutside);
-    const contentEl = document.querySelector('.paper-content');
+    const contentEl = document.querySelector('.paper-content') as HTMLElement | null;
     if (contentEl) {
       contentEl.addEventListener('mouseleave', handleMouseLeave);
     }
@@ -156,7 +257,7 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
         contentEl.removeEventListener('mouseleave', handleMouseLeave);
       }
     };
-  }, [editor, isMenuOpen, scale]);
+  }, [editor, isMenuOpen, scale, hoveredBlock]);
 
   // Handle Keyboard Shortcuts when the dropdown is open
   useEffect(() => {
@@ -232,13 +333,13 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
 
   return (
     <div
-      className="absolute z-[999] select-none"
+      className="gutter-adder-container absolute z-[999] select-none"
       style={{
         top: `${hoveredBlock.top}px`,
-        right: '16px',
+        left: `${hoveredBlock.left}px`,
       }}
     >
-      {/* Gutter '+' Trigger Button */}
+      {/* '+' Trigger Button */}
       <button
         type="button"
         onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -256,9 +357,11 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
       {isMenuOpen && (
         <div
           ref={menuRef}
-          className={`absolute right-full mr-2 w-48 bg-white border border-zinc-200 rounded-xl shadow-xl z-[9999] flex flex-col p-1.5 animate-in fade-in slide-in-from-right-1 duration-150 text-right font-sans gap-0.5 ${
-            hoveredBlock.openUpward ? 'bottom-0' : 'top-0'
-          }`}
+          className={`absolute ${
+            hoveredBlock.left < 200 ? 'left-0' : 'right-0'
+          } ${
+            hoveredBlock.openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          } w-48 bg-white border border-zinc-200 rounded-xl shadow-xl z-[9999] flex flex-col p-1.5 animate-in fade-in zoom-in-95 duration-150 text-right font-sans gap-0.5`}
           dir="rtl"
         >
           {hoveredBlock.options.map((opt: TabItem, index: number) => {

@@ -316,26 +316,26 @@
   left: 0;
   right: 0;
   height: var(--paper-unit);
-  border-top: 1px solid rgba(99, 102, 241, 0.35);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
   box-sizing: border-box;
 }
 
 .paper-grid-line:nth-child(even) {
-  border-top-color: rgba(99, 102, 241, 0.50);
+  border-top-color: rgba(0, 0, 0, 0.11);
 }
 
 .paper-line-number {
   position: absolute;
-  right: -24px;
+  right: -44px;
   top: 0;
   height: var(--paper-unit);
   line-height: var(--paper-unit);
   font-family: 'Courier New', Courier, monospace;
   font-size: 11px;
-  font-weight: 700;
-  color: #4f46e5;
+  font-weight: 600;
+  color: #9ca3af;
   user-select: none;
   pointer-events: none;
   text-align: center;
-  width: 20px;
+  width: 24px;
 }
