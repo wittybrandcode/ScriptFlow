@@ -110,7 +110,7 @@ export default function PaperEditor({
       Underline,
       Highlight.configure({
         HTMLAttributes: {
-          class: 'bg-yellow-200 text-yellow-900 rounded-sm px-0.5',
+          class: 'bg-yellow-200/90 text-yellow-950',
         },
       }),
       ActionNode,

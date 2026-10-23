@@ -46,6 +46,25 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
     const handleMouseMove = (e: MouseEvent) => {
       if (isMenuOpen) return;
 
+      // 1. If mouse button is held down (user is actively dragging/selecting text), suppress '+'
+      if (e.buttons !== 0) {
+        setHoveredBlock(null);
+        return;
+      }
+
+      // 2. If text is currently selected in the editor, suppress '+' completely (yield to FloatingToolbar)
+      if (editor && !editor.state.selection.empty) {
+        setHoveredBlock(null);
+        return;
+      }
+
+      // 3. If window has an active text selection, suppress '+'
+      const winSel = window.getSelection();
+      if (winSel && winSel.toString().length > 0) {
+        setHoveredBlock(null);
+        return;
+      }
+
       const target = e.target as HTMLElement | null;
       // Do not clear or recalculate if mouse is hovering over the button or menu container
       if (target?.closest('.gutter-adder-container')) return;
@@ -114,7 +133,6 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
         }
 
         const contentRect = contentEl.getBoundingClientRect();
-        const mouseY = e.clientY;
 
         let endViewportX: number | null = null;
         let endViewportY: number | null = null;
@@ -149,35 +167,23 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
           }
         } else {
           // 2. Regular screenplay text blocks (dialogue, action, parenthetical, etc.)
-          const range = document.createRange();
-          range.selectNodeContents(blockEl);
-          const clientRects = Array.from(range.getClientRects()).filter((r) => r.width > 0 && r.height > 0);
-
-          if (clientRects.length > 0) {
-            // Find visual line under the cursor or default to the last line
-            const targetLine =
-              clientRects.find((r) => mouseY >= r.top - 2 && mouseY <= r.bottom + 2) ||
-              clientRects[clientRects.length - 1];
-            endViewportX = targetLine.left;
-            endViewportY = targetLine.top;
-            lineH = targetLine.height;
-          } else {
-            // 3. Fallback using ProseMirror coordsAtPos
-            try {
-              const endPos = blockPos + node.nodeSize - 1;
-              const coords = editor.view.coordsAtPos(endPos);
-              if (coords) {
-                endViewportX = coords.left;
-                endViewportY = coords.top;
-                lineH = coords.bottom - coords.top;
-              }
-            } catch {
-              // ignore
+          // The block is ONE unified, continuous component. The '+' button MUST ONLY appear
+          // at the TRUE END of the block in ProseMirror (endPos = blockPos + node.nodeSize - 1).
+          // We DO NOT use DOM range fragments which get split by inline marks (<mark>, <b>, <i>)!
+          try {
+            const endPos = blockPos + node.nodeSize - 1;
+            const coords = editor.view.coordsAtPos(endPos);
+            if (coords) {
+              endViewportX = coords.left;
+              endViewportY = coords.top;
+              lineH = coords.bottom - coords.top || 28;
             }
+          } catch {
+            // fallback
           }
         }
 
-        // Final fallback if element is empty
+        // Final fallback if element is empty or unmeasured
         if (endViewportX === null || endViewportY === null) {
           const bRect = blockEl.getBoundingClientRect();
           endViewportX = bRect.left + 20;

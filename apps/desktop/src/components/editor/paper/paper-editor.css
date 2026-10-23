@@ -141,6 +141,17 @@
   text-wrap: pretty;
 }
 
+/* Inline Marks: Ensure marks never disrupt block flow or word wrapping */
+.paper-block mark,
+.paper-block strong,
+.paper-block em,
+.paper-block u {
+  padding: 0 !important;
+  margin: 0 !important;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
 /* Action Node */
 .paper-node-action {
   font-weight: 400;
