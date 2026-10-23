@@ -46,6 +46,10 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
     const handleMouseMove = (e: MouseEvent) => {
       if (isMenuOpen) return;
 
+      const target = e.target as HTMLElement | null;
+      // Do not clear or recalculate if mouse is hovering or clicking over the button or menu container
+      if (target?.closest('.gutter-adder-container')) return;
+
       // 1. If mouse button is held down (user is actively dragging/selecting text), suppress '+'
       if (e.buttons !== 0) {
         setHoveredBlock(null);
@@ -64,10 +68,6 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
         setHoveredBlock(null);
         return;
       }
-
-      const target = e.target as HTMLElement | null;
-      // Do not clear or recalculate if mouse is hovering over the button or menu container
-      if (target?.closest('.gutter-adder-container')) return;
 
       const contentEl = document.querySelector('.paper-content');
       if (!contentEl || !editor || !editor.view) return;
@@ -243,6 +243,9 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
     };
 
     const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('.gutter-adder-container')) return;
+
       if (isMenuOpen && menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setIsMenuOpen(false);
         setHoveredBlock(null);
@@ -340,6 +343,10 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
   return (
     <div
       className="gutter-adder-container absolute z-[999] select-none"
+      onMouseDown={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
       style={{
         top: `${hoveredBlock.top}px`,
         left: `${hoveredBlock.left}px`,
@@ -348,7 +355,15 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
       {/* '+' Trigger Button */}
       <button
         type="button"
-        onClick={() => setIsMenuOpen(!isMenuOpen)}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        }}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsMenuOpen((prev) => !prev);
+        }}
         className={`w-6 h-6 rounded-md flex items-center justify-center shadow-md border transition-all duration-150 cursor-pointer ${
           isMenuOpen
             ? 'bg-zinc-950 border-zinc-950 text-white scale-110'
@@ -356,7 +371,7 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
         }`}
         title="إضافة كتلة جديدة"
       >
-        <Plus size={13} strokeWidth={3.5} className="transition-colors duration-150" />
+        <Plus size={13} strokeWidth={3.5} className="pointer-events-none transition-colors duration-150" />
       </button>
 
       {/* Context-Aware Dropdown Menu */}
@@ -376,7 +391,15 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
               <button
                 key={opt.type}
                 type="button"
-                onClick={() => insertBlock(opt.type)}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  insertBlock(opt.type);
+                }}
                 className={`flex flex-row items-center gap-3 w-full px-2 py-1.5 rounded-lg text-right select-none transition-colors border border-transparent cursor-pointer ${
                   isActive ? 'bg-zinc-100 border-zinc-100/50' : 'hover:bg-zinc-50'
                 }`}
