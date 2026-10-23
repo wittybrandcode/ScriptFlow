@@ -299,3 +299,43 @@
     display: none !important;
   }
 }
+
+/* Grid Lines & Numbering Overlay (33 lines per page @ 28px) */
+.paper-grid-overlay {
+  position: absolute;
+  top: var(--paper-margin-top);
+  left: var(--paper-margin-left);
+  right: var(--paper-margin-right);
+  height: calc(33 * var(--paper-unit));
+  pointer-events: none;
+  z-index: 20;
+}
+
+.paper-grid-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: var(--paper-unit);
+  border-top: 1px solid rgba(99, 102, 241, 0.35);
+  box-sizing: border-box;
+}
+
+.paper-grid-line:nth-child(even) {
+  border-top-color: rgba(99, 102, 241, 0.50);
+}
+
+.paper-line-number {
+  position: absolute;
+  right: -36px;
+  top: 0;
+  height: var(--paper-unit);
+  line-height: var(--paper-unit);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #4f46e5;
+  user-select: none;
+  pointer-events: none;
+  text-align: right;
+  width: 24px;
+}

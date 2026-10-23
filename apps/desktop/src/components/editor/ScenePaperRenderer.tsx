@@ -151,14 +151,14 @@ const ScenePaperRendererComponent = ({
         {/* Page Footer (28px high, top 1048px) */}
         <PageFooter scenarioName={scenarioName} pageNumber={startPageNumber + pageIndex} />
         {showDebugGrid && (
-          <div className="absolute inset-x-[96px] pointer-events-none z-20" style={{ top: '96px', height: '924px' }}>
+          <div className="paper-grid-overlay">
             {Array.from({ length: 33 }).map((_, lineIdx) => (
               <div 
                 key={lineIdx} 
-                className="absolute left-0 right-0 border-t border-indigo-400/25 flex items-center justify-between"
-                style={{ top: `${lineIdx * 28}px`, height: '28px' }}
+                className="paper-grid-line"
+                style={{ top: `${lineIdx * 28}px` }}
               >
-                <span className="text-[9px] font-mono text-indigo-400/40 select-none mr-[-24px]">{lineIdx + 1}</span>
+                <span className="paper-line-number">{lineIdx + 1}</span>
               </div>
             ))}
           </div>
