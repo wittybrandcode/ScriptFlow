@@ -235,22 +235,21 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
       className="absolute z-[999] select-none"
       style={{
         top: `${hoveredBlock.top}px`,
-        right: '48px', // Positioned centered in the 96px right padding margin
-        transform: 'translateX(50%)',
+        right: '56px',
       }}
     >
-      {/* Gutter '+' Trigger Button - Black Square design */}
+      {/* Gutter '+' Trigger Button */}
       <button
         type="button"
         onClick={() => setIsMenuOpen(!isMenuOpen)}
-        className={`w-6 h-6 rounded-md flex items-center justify-center shadow-md transition-all duration-150 cursor-pointer ${
+        className={`w-6 h-6 rounded-md flex items-center justify-center shadow-md border transition-all duration-150 cursor-pointer ${
           isMenuOpen
-            ? 'bg-zinc-800 scale-110'
-            : 'bg-zinc-950 hover:bg-black text-white'
+            ? 'bg-zinc-950 border-zinc-950 text-white scale-110'
+            : 'bg-white hover:bg-black text-black hover:text-white border-zinc-200 hover:border-black'
         }`}
         title="إضافة كتلة جديدة"
       >
-        <Plus size={13} strokeWidth={3.5} className="text-white" />
+        <Plus size={13} strokeWidth={3.5} className="transition-colors duration-150" />
       </button>
 
       {/* Context-Aware Dropdown Menu */}

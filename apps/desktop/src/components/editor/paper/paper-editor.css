@@ -326,7 +326,7 @@
 
 .paper-line-number {
   position: absolute;
-  right: -36px;
+  right: -24px;
   top: 0;
   height: var(--paper-unit);
   line-height: var(--paper-unit);
@@ -337,5 +337,5 @@
   user-select: none;
   pointer-events: none;
   text-align: right;
-  width: 24px;
+  width: 20px;
 }
