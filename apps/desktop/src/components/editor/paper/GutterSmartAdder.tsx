@@ -364,14 +364,23 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
           e.stopPropagation();
           setIsMenuOpen((prev) => !prev);
         }}
+        style={{
+          backgroundColor: isMenuOpen ? '#000000' : undefined,
+          color: isMenuOpen ? '#ffffff' : undefined,
+          borderColor: isMenuOpen ? '#000000' : undefined,
+        }}
         className={`w-6 h-6 rounded-md flex items-center justify-center shadow-md border transition-all duration-150 cursor-pointer ${
           isMenuOpen
-            ? 'bg-zinc-950 border-zinc-950 text-white scale-110'
+            ? 'bg-black border-black text-white scale-110'
             : 'bg-white hover:bg-black text-black hover:text-white border-zinc-200 hover:border-black'
         }`}
-        title="إضافة كتلة جديدة"
+        title={isMenuOpen ? "إغلاق القائمة" : "إضافة كتلة جديدة"}
       >
-        <Plus size={13} strokeWidth={3.5} className="pointer-events-none transition-colors duration-150" />
+        <Plus 
+          size={13} 
+          strokeWidth={3.5} 
+          className={`pointer-events-none transition-transform duration-150 ${isMenuOpen ? 'rotate-45 text-white' : ''}`} 
+        />
       </button>
 
       {/* Context-Aware Dropdown Menu */}
