@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import Document from '@tiptap/extension-document';
 import Text from '@tiptap/extension-text';
@@ -71,6 +71,28 @@ export default function PaperEditor({
   const currentEpisode = episodes?.find(e => e.id === scene?.episode_id);
   const [menuPosition, setMenuPosition] = useState<any>(null);
   const debounceRef = useRef<any>(null);
+  const isDirtyRef = useRef(false);
+  const onUpdateBlocksRef = useRef(onUpdateBlocks);
+  onUpdateBlocksRef.current = onUpdateBlocks;
+  const charactersRef = useRef(characters);
+  charactersRef.current = characters;
+  const editorRef = useRef<any>(null);
+
+  const flushUpdate = useCallback(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    const currentEditor = editorRef.current;
+    if (currentEditor && isDirtyRef.current) {
+      isDirtyRef.current = false;
+      const json = currentEditor.getJSON();
+      const newBlocks = tiptapToBlocks(json, charactersRef.current);
+      if (onUpdateBlocksRef.current) {
+        onUpdateBlocksRef.current(newBlocks);
+      }
+    }
+  }, []);
 
   // States for interactive Scene Header dropdowns
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
@@ -157,21 +179,29 @@ export default function PaperEditor({
       // ONLY trigger update when the editor is actually focused by the user!
       // This strictly prevents false dirty state triggers during mount/normalization!
       if (!editor.isFocused) return;
+      isDirtyRef.current = true;
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
       
       debounceRef.current = setTimeout(() => {
-        const json = editor.getJSON();
-        const newBlocks = tiptapToBlocks(json, characters);
-        if (onUpdateBlocks) {
-          onUpdateBlocks(newBlocks);
+        if (isDirtyRef.current && editor) {
+          isDirtyRef.current = false;
+          const json = editor.getJSON();
+          const newBlocks = tiptapToBlocks(json, charactersRef.current);
+          if (onUpdateBlocksRef.current) {
+            onUpdateBlocksRef.current(newBlocks);
+          }
         }
-      }, 800);
+      }, 300);
+    },
+    onBlur: () => {
+      flushUpdate();
     },
     characters: characters,
     onAddCharacter: onAddCharacter,
   } as any);
+  editorRef.current = editor;
 
   // Sync characters list with editor options
   useEffect(() => {
@@ -210,9 +240,10 @@ export default function PaperEditor({
     
     return () => {
       clearTimeout(timer);
+      flushUpdate();
       if (editor) editor.destroy();
     };
-  }, [editor]);
+  }, [editor, flushUpdate]);
 
   const [totalPages, setTotalPages] = useState(1);
   const paperContentRef = useRef<HTMLDivElement>(null);

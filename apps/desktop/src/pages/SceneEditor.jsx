@@ -19,6 +19,7 @@ import { useCharactersQuery, useLocationsQuery, useEpisodesQuery, useCreateChara
 import { useCreateSnapshotMutation } from '../hooks/queries/useSnapshots';
 import SceneEditorModals from './editor/SceneEditorModals';
 import SceneEditorHeader from './editor/SceneEditorHeader';
+import { AutosaveQueue } from '../utils/AutosaveQueue';
 
 import { 
   useScenesQuery, 
@@ -99,6 +100,16 @@ export default function SceneEditor() {
     version: 1
   })
   const [blocks, setBlocks] = useState([])
+  const blocksRef = useRef(blocks)
+  blocksRef.current = blocks
+  const sceneRef = useRef(scene)
+  sceneRef.current = scene
+  const isMountedRef = useRef(true)
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, [])
+  const saveLockRef = useRef(Promise.resolve())
   const lastSavedBlocksJsonRef = useRef('')
   const lastSavedSceneJsonRef = useRef('')
   const isSavingRef = useRef(false)
@@ -133,11 +144,15 @@ export default function SceneEditor() {
     
     // Reset loaded state to avoid race conditions with old state
     setLoaded(false);
+    isSettledRef.current = false;
     
     if (!isNew && id) {
        fetchScene()
     } else if (isNew) {
        setLoaded(true)
+       setTimeout(() => {
+         isSettledRef.current = true;
+       }, 600);
     }
     
     // Fetch characters only if we have a scenario context
@@ -203,9 +218,11 @@ export default function SceneEditor() {
             if (!confirmed) {
               event.preventDefault();
             } else {
-              // Optionally take a desperate snapshot before dying
-              if (id && blocks.length > 0) {
-                 createSnapshotMutation.mutate({ sceneId: id, blocks, trigger: 'app_close_panic' });
+              if (autosaveQueueRef.current) {
+                autosaveQueueRef.current.flush().catch(() => {});
+              }
+              if (id && blocksRef.current.length > 0) {
+                 createSnapshotMutation.mutate({ sceneId: id, blocks: blocksRef.current, trigger: 'app_close_panic' });
               }
             }
           }
@@ -222,14 +239,20 @@ export default function SceneEditor() {
     };
   }, [saveStatus, id, blocks, createSnapshotMutation]);
 
-  // 4. Silent Flush on Route Exit / Unmount
+  // 4. Silent Flush on Route Exit / Unmount or Scene Switch
   useEffect(() => {
     return () => {
-      if (saveStatusRef.current === 'unsaved' && saveSceneRef.current) {
-        saveSceneRef.current().catch((e) => console.error('Unmount flush error:', e));
+      if (autosaveQueueRef.current) {
+        if (saveStatusRef.current === 'unsaved' && id && !isNew) {
+          autosaveQueueRef.current.enqueue({
+            id,
+            body: { scene: sceneRef.current, blocks: blocksRef.current }
+          });
+        }
+        autosaveQueueRef.current.flush().catch((e) => console.error('Unmount flush error:', e));
       }
     };
-  }, []);
+  }, [id, isNew]);
 
   // ==========================================
 
@@ -685,69 +708,81 @@ export default function SceneEditor() {
   }, [id, queryClient]);
 
   const saveScene = useCallback(async () => {
-    if (isSavingRef.current) return
-    isSavingRef.current = true
-    setSaving(true)
-    setSaveStatus('saving')
-    try {
-      const calculatedEighths = calculateSceneEighths(blocks, characters);
-      const mappedBlocks = blocks.map(b => ({
-        id: b.id,
-        type: b.type,
-        content: b.content,
-        character_id: b.character_id,
-        metadata: b.metadata
-      }));
-      const layoutNodes = expandBlocksToLayoutNodes(mappedBlocks, characters);
-      const { totalPages } = groupBlocksByPage(layoutNodes, { hasSceneHeader: true });
-      
-      const nextVersion = (scene.version || 0) + 1;
-      const sceneToSave = { 
-        ...scene, 
-        scenario_id: scene.scenario_id || activeScenarioId,
-        page_eighths: calculatedEighths, 
-        page_count: totalPages || 1,
-        version: nextVersion 
-      };
-
-      if (isNew) {
-        const created = await createSceneMutation.mutateAsync(sceneToSave);
-        await saveBlocksToDb(blocks, created.id);
-        const { updateScenarioPageNumbering } = await import('../utils/paginationCalculator');
-        await updateScenarioPageNumbering(activeScenarioId);
-        queryClient.invalidateQueries({ queryKey: ['pageNumbering', 'scenario', activeScenarioId] });
-        const finalSavedScene = { ...sceneToSave, id: created.id, version: created.version || nextVersion };
-        lastSavedSceneJsonRef.current = JSON.stringify(finalSavedScene);
-        setScene(finalSavedScene);
-        showToast('تم إنشاء المشهد بنجاح', 'success')
-        // fetchStats() removed
-        navigate(`/scene/${created.id}`, { replace: true })
-      } else {
-        await updateSceneMutation.mutateAsync({ id, data: sceneToSave });
-        await saveBlocksToDb(blocks, id);
-        const { updateScenarioPageNumbering } = await import('../utils/paginationCalculator');
-        await updateScenarioPageNumbering(activeScenarioId);
-        queryClient.invalidateQueries({ queryKey: ['pageNumbering', 'scenario', activeScenarioId] });
-        const finalSavedScene = { ...sceneToSave, version: nextVersion };
-        lastSavedSceneJsonRef.current = JSON.stringify(finalSavedScene);
-        setScene(finalSavedScene)
-        setSaveStatus('saved')
-        showToast('تم حفظ المشهد بنجاح', 'success')
-        // fetchStats() removed
-      }
-    } catch (err) { 
-      console.error('Manual save error details:', err)
-      setSaveStatus('error')
-      if (err.message && err.message.includes('CONFLICT')) {
-        showToast(err.message, 'error', 5000)
-      } else {
-        showToast('خطأ أثناء حفظ المشهد', 'error')
-      }
-    } finally {
-      isSavingRef.current = false;
-      setSaving(false)
+    if (autosaveQueueRef.current?.timer) {
+      clearTimeout(autosaveQueueRef.current.timer);
+      autosaveQueueRef.current.timer = null;
+      autosaveQueueRef.current.queue = [];
     }
-  }, [isNew, scene, blocks, id, navigate, showToast, setSaveStatus, createSceneMutation, updateSceneMutation, saveBlocksToDb, characters]);
+
+    const currentPromise = saveLockRef.current.catch(() => {}).then(async () => {
+      isSavingRef.current = true;
+      setSaving(true);
+      setSaveStatus('saving');
+      try {
+        const currentBlocks = blocksRef.current;
+        const currentScene = sceneRef.current;
+        const calculatedEighths = calculateSceneEighths(currentBlocks, characters);
+        const mappedBlocks = currentBlocks.map(b => ({
+          id: b.id,
+          type: b.type,
+          content: b.content,
+          character_id: b.character_id,
+          metadata: b.metadata
+        }));
+        const layoutNodes = expandBlocksToLayoutNodes(mappedBlocks, characters);
+        const { totalPages } = groupBlocksByPage(layoutNodes, { hasSceneHeader: true });
+        
+        const nextVersion = (currentScene.version || 0) + 1;
+        const sceneToSave = { 
+          ...currentScene, 
+          scenario_id: currentScene.scenario_id || activeScenarioId,
+          page_eighths: calculatedEighths, 
+          page_count: totalPages || 1,
+          version: nextVersion 
+        };
+
+        if (isNew) {
+          const created = await createSceneMutation.mutateAsync(sceneToSave);
+          await saveBlocksToDb(currentBlocks, created.id);
+          const { updateScenarioPageNumbering } = await import('../utils/paginationCalculator');
+          await updateScenarioPageNumbering(activeScenarioId);
+          queryClient.invalidateQueries({ queryKey: ['pageNumbering', 'scenario', activeScenarioId] });
+          const finalSavedScene = { ...sceneToSave, id: created.id, version: created.version || nextVersion };
+          lastSavedSceneJsonRef.current = JSON.stringify(finalSavedScene);
+          sceneRef.current = finalSavedScene;
+          setScene(finalSavedScene);
+          showToast('تم إنشاء المشهد بنجاح', 'success');
+          navigate(`/scene/${created.id}`, { replace: true });
+        } else {
+          await updateSceneMutation.mutateAsync({ id, data: sceneToSave });
+          await saveBlocksToDb(currentBlocks, id);
+          const { updateScenarioPageNumbering } = await import('../utils/paginationCalculator');
+          await updateScenarioPageNumbering(activeScenarioId);
+          queryClient.invalidateQueries({ queryKey: ['pageNumbering', 'scenario', activeScenarioId] });
+          const finalSavedScene = { ...sceneToSave, version: nextVersion };
+          lastSavedSceneJsonRef.current = JSON.stringify(finalSavedScene);
+          sceneRef.current = finalSavedScene;
+          setScene(finalSavedScene);
+          setSaveStatus('saved');
+          showToast('تم حفظ المشهد بنجاح', 'success');
+        }
+      } catch (err) { 
+        console.error('Manual save error details:', err);
+        setSaveStatus('error');
+        if (err.message && err.message.includes('CONFLICT')) {
+          showToast(err.message, 'error', 5000);
+        } else {
+          showToast('خطأ أثناء حفظ المشهد', 'error');
+        }
+      } finally {
+        isSavingRef.current = false;
+        setSaving(false);
+      }
+    });
+
+    saveLockRef.current = currentPromise;
+    return currentPromise;
+  }, [isNew, activeScenarioId, id, navigate, showToast, setSaveStatus, createSceneMutation, updateSceneMutation, saveBlocksToDb, characters, queryClient]);
 
   const handleExportPDF = useCallback(async () => {
     if (isNew) {
@@ -964,72 +999,97 @@ export default function SceneEditor() {
       .catch(() => console.error('Failed to save block order'))
   }
 
-  function handleSceneChange(field, value) {
-    setScene(prev => ({ ...prev, [field]: value }))
-    setSaveStatus('unsaved')
-  }
-
-  const debounceRef = useRef()
-  useEffect(() => {
-    if (!loaded || isNew || !id || saveStatus === 'saved') return
-
-    const currentSceneJson = JSON.stringify(scene)
-    const currentBlocksJson = JSON.stringify(blocks)
-
-    if (currentSceneJson === lastSavedSceneJsonRef.current && currentBlocksJson === lastSavedBlocksJsonRef.current) {
-      return
-    }
-
-    if (debounceRef.current) clearTimeout(debounceRef.current)
+  const performAutosave = useCallback(async (targetId, body) => {
+    if (!targetId || isNew) return;
     
-    debounceRef.current = setTimeout(async function runSave() {
-      if (isSavingRef.current) {
-        debounceRef.current = setTimeout(runSave, 500)
-        return
-      }
-      isSavingRef.current = true
-      setSaveStatus('saving')
+    const currentPromise = saveLockRef.current.catch(() => {}).then(async () => {
+      isSavingRef.current = true;
+      if (isMountedRef.current) setSaveStatus('saving');
       try {
-        const nextVersion = (scene.version || 0) + 1;
-        const calculatedEighths = calculateSceneEighths(blocks, characters);
-        const sceneToSave = { 
-          ...scene, 
-          scenario_id: scene.scenario_id || activeScenarioId,
-          page_eighths: calculatedEighths, 
-          version: nextVersion 
-        };
-        const currentSceneJsonWithEighths = JSON.stringify(sceneToSave);
+        const targetBlocks = (body && body.blocks) ? body.blocks : blocksRef.current;
+        const targetScene = (body && body.scene) ? body.scene : sceneRef.current;
 
+        const calculatedEighths = calculateSceneEighths(targetBlocks, characters);
+        const mappedBlocks = targetBlocks.map(b => ({
+          id: b.id,
+          type: b.type,
+          content: b.content,
+          character_id: b.character_id,
+          metadata: b.metadata
+        }));
+        const layoutNodes = expandBlocksToLayoutNodes(mappedBlocks, characters);
+        const { totalPages } = groupBlocksByPage(layoutNodes, { hasSceneHeader: true });
+
+        const nextVersion = (targetScene.version || 0) + 1;
+        const sceneToSave = {
+          ...targetScene,
+          scenario_id: targetScene.scenario_id || activeScenarioId,
+          page_eighths: calculatedEighths,
+          page_count: totalPages || 1,
+          version: nextVersion
+        };
+
+        const currentSceneJsonWithEighths = JSON.stringify(sceneToSave);
         if (currentSceneJsonWithEighths !== lastSavedSceneJsonRef.current) {
-          await updateSceneMutation.mutateAsync({ id, data: sceneToSave })
+          await updateSceneMutation.mutateAsync({ id: targetId, data: sceneToSave });
           const finalSavedScene = { ...sceneToSave, version: nextVersion };
           lastSavedSceneJsonRef.current = JSON.stringify(finalSavedScene);
-          setScene(finalSavedScene);
+          sceneRef.current = finalSavedScene;
+          if (isMountedRef.current) setScene(finalSavedScene);
         }
-        
-        if (currentBlocksJson !== lastSavedBlocksJsonRef.current) {
-          await saveBlocksToDb(blocks, id)
-        }
-        
-        setSaveStatus('saved')
-        showToast('تم الحفظ تلقائياً', 'success', 1000)
-      } catch (err) {
-        console.error('Auto-save error details:', err)
-        setSaveStatus('error')
-        if (err.message && err.message.includes('CONFLICT')) {
-          showToast(err.message, 'error', 5000)
-        } else {
-          showToast('فشل الحفظ التلقائي', 'error', 2000)
-        }
-      } finally {
-        isSavingRef.current = false
-      }
-    }, 1500)
 
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
+        const currentBlocksJson = JSON.stringify(targetBlocks);
+        if (currentBlocksJson !== lastSavedBlocksJsonRef.current) {
+          await saveBlocksToDb(targetBlocks, targetId);
+        }
+
+        if (isMountedRef.current) {
+          setSaveStatus('saved');
+          showToast('تم الحفظ تلقائياً', 'success', 1000);
+        }
+      } catch (err) {
+        console.error('Autosave error details:', err);
+        if (isMountedRef.current) {
+          setSaveStatus('error');
+          if (err.message && err.message.includes('CONFLICT')) {
+            showToast(err.message, 'error', 5000);
+          } else {
+            showToast('فشل الحفظ التلقائي', 'error', 2000);
+          }
+        }
+        throw err;
+      } finally {
+        isSavingRef.current = false;
+      }
+    });
+
+    saveLockRef.current = currentPromise;
+    return currentPromise;
+  }, [isNew, characters, activeScenarioId, updateSceneMutation, saveBlocksToDb, setSaveStatus, showToast]);
+
+  const performAutosaveRef = useRef(performAutosave);
+  performAutosaveRef.current = performAutosave;
+
+  const autosaveQueueRef = useRef(null);
+  if (!autosaveQueueRef.current) {
+    autosaveQueueRef.current = new AutosaveQueue(
+      (queueId, queueBody) => performAutosaveRef.current(queueId, queueBody),
+      1200
+    );
+  }
+
+  function handleSceneChange(field, value) {
+    const updatedScene = { ...sceneRef.current, [field]: value };
+    sceneRef.current = updatedScene;
+    setScene(updatedScene);
+    setSaveStatus('unsaved');
+    if (id && !isNew) {
+      autosaveQueueRef.current?.enqueue({
+        id,
+        body: { scene: updatedScene, blocks: blocksRef.current }
+      });
     }
-  }, [scene, blocks, loaded, isNew, id, saveBlocksToDb, setSaveStatus, showToast, characters, updateSceneMutation])
+  }
 
   const blockDebounceRef = useRef({})
   const debouncedUpdateBlock = useCallback((blockId, updates) => {
@@ -1077,12 +1137,22 @@ export default function SceneEditor() {
           onSelectScene={async (targetId) => {
             if (targetId === id) return;
             try {
-              if (saveStatus === 'unsaved') {
-                await saveSceneRef.current();
+              if (saveStatusRef.current === 'unsaved' || autosaveQueueRef.current?.queue.length > 0) {
+                if (autosaveQueueRef.current) {
+                  if (saveStatusRef.current === 'unsaved' && id && !isNew) {
+                    autosaveQueueRef.current.enqueue({
+                      id,
+                      body: { scene: sceneRef.current, blocks: blocksRef.current }
+                    });
+                  }
+                  await autosaveQueueRef.current.flush();
+                } else if (saveSceneRef.current) {
+                  await saveSceneRef.current();
+                }
               }
               // Snapshot before leaving if it was saved during this session
-              if (id && blocks.length > 0) {
-                createSnapshotMutation.mutate({ sceneId: id, blocks, trigger: 'scene_switch' });
+              if (id && blocksRef.current.length > 0) {
+                createSnapshotMutation.mutate({ sceneId: id, blocks: blocksRef.current, trigger: 'scene_switch' });
               }
               navigate(`/scene/${targetId}`);
             } catch (err) {
@@ -1102,23 +1172,26 @@ export default function SceneEditor() {
               onUpdateBlocks={(newBlocks) => {
                 // Ignore programmatic normalization during initial mount/settling phase
                 if (!isSettledRef.current) {
+                  blocksRef.current = newBlocks;
                   setBlocks(newBlocks);
                   lastSavedBlocksJsonRef.current = JSON.stringify(newBlocks);
                   return;
                 }
 
-                const cleanContent = (str) => String(str || '')
-                  .replace(/<[^>]*>/g, '')
-                  .replace(/&nbsp;/g, ' ')
-                  .replace(/&amp;/g, '&')
-                  .replace(/&lt;/g, '<')
-                  .replace(/&gt;/g, '>')
-                  .replace(/\s+/g, ' ')
-                  .trim();
+                const normalizeBlockContent = (str) => {
+                  if (!str) return '';
+                  const s = String(str)
+                    .replace(/&nbsp;/g, ' ')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+                  if (s === '<p></p>' || s === '<p><br></p>' || s === '<br>') return '';
+                  return s;
+                };
 
                 const normNewObj = (newBlocks || []).map(b => ({
+                  id: b.id,
                   type: String(b.type || '').toUpperCase(),
-                  content: cleanContent(b.content),
+                  content: normalizeBlockContent(b.content),
                   character_id: b.character_id ? String(b.character_id) : null
                 }));
                 const normNew = JSON.stringify(normNewObj);
@@ -1127,8 +1200,9 @@ export default function SceneEditor() {
                 try {
                   const parsedOld = JSON.parse(lastSavedBlocksJsonRef.current || '[]');
                   normOldObj = (parsedOld || []).map(b => ({
+                    id: b.id,
                     type: String(b.type || '').toUpperCase(),
-                    content: cleanContent(b.content),
+                    content: normalizeBlockContent(b.content),
                     character_id: b.character_id ? String(b.character_id) : null
                   }));
                 } catch(e) {}
@@ -1136,13 +1210,21 @@ export default function SceneEditor() {
 
                 // Prevent false 'unsaved' status when TipTap auto-injects an empty action block into an empty scene
                 if ((normOld === '[]' || normOld === '') && (normNew === '[{"type":"ACTION","content":"","character_id":null}]' || normNew === '[]')) {
+                  blocksRef.current = newBlocks;
                   setBlocks(newBlocks);
                   return;
                 }
 
-                if (normNew !== normOld && normOld !== '') {
+                if (normNew !== normOld) {
+                  blocksRef.current = newBlocks;
                   setBlocks(newBlocks);
                   setSaveStatus('unsaved');
+                  if (id && !isNew) {
+                    autosaveQueueRef.current?.enqueue({
+                      id,
+                      body: { scene: sceneRef.current, blocks: newBlocks }
+                    });
+                  }
                 }
               }}
               onUpdateScene={handleSceneChange}
