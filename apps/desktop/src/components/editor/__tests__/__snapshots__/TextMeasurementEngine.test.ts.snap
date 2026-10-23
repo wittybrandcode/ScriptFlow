@@ -89,16 +89,16 @@ exports[`TextMeasurementEngine (Phase 0 Baseline Shield) > groupBlocksByPage sho
         "textContent": "التركيز على حركة الكاميرا العشوائية لتعزيز شعور الارتباك.",
         "type": "DIRECTOR_NOTE",
       },
-    ],
-    "pageNumber": 1,
-  },
-  {
-    "blocks": [
       {
         "id": "b18",
         "textContent": "صوت بوق سيارة عالٍ",
         "type": "AUDIO",
       },
+    ],
+    "pageNumber": 1,
+  },
+  {
+    "blocks": [
       {
         "id": "b19",
         "textContent": "سارة تنظر إلى ساعتها بضيق ثم تبتسم ابتسامة خفيفة.",

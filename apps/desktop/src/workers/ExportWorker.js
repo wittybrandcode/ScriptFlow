@@ -41,10 +41,10 @@ const NODES_WITH_MARGIN = new Set([
 ]);
 
 const NARROW_WIDTH_FACTOR = {
-  dialogue: 0.68,
-  DIALOGUE: 0.68,
-  parenthetical: 0.60,
-  PARENTHETICAL: 0.60,
+  dialogue: 0.85,
+  DIALOGUE: 0.85,
+  parenthetical: 0.75,
+  PARENTHETICAL: 0.75,
 };
 
 let _ctx = null;

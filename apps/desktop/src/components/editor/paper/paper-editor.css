@@ -169,7 +169,7 @@
   font-size: 14px;
   /* ~0.9x base */
   text-align: right;
-  width: 60%;
+  width: 75%;
   margin-right: 48px !important;
   margin-left: auto !important;
   color: #555;
@@ -181,7 +181,7 @@
 .paper-node-dialogue {
   font-weight: 500;
   text-align: right;
-  width: 68%;
+  width: 85%;
   margin-right: 48px !important;
   margin-left: auto !important;
   text-wrap: pretty;
