@@ -235,7 +235,7 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
       className="absolute z-[999] select-none"
       style={{
         top: `${hoveredBlock.top}px`,
-        right: '56px',
+        right: '16px',
       }}
     >
       {/* Gutter '+' Trigger Button */}
