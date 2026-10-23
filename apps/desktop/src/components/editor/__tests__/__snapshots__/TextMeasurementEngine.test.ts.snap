@@ -84,16 +84,16 @@ exports[`TextMeasurementEngine (Phase 0 Baseline Shield) > groupBlocksByPage sho
         "textContent": "آسف جداً. زحمة السير كانت لا تطاق اليوم.",
         "type": "DIALOGUE",
       },
-    ],
-    "pageNumber": 1,
-  },
-  {
-    "blocks": [
       {
         "id": "b17",
         "textContent": "التركيز على حركة الكاميرا العشوائية لتعزيز شعور الارتباك.",
         "type": "DIRECTOR_NOTE",
       },
+    ],
+    "pageNumber": 1,
+  },
+  {
+    "blocks": [
       {
         "id": "b18",
         "textContent": "صوت بوق سيارة عالٍ",

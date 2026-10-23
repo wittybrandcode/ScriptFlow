@@ -69,8 +69,10 @@ export const NODES_WITH_MARGIN = new Set<string>([
 
 // Nodes that use narrower width
 const NARROW_WIDTH_FACTOR: Record<string, number> = {
-  dialogue: 0.60,
-  DIALOGUE: 0.60,
+  dialogue: 0.68,
+  DIALOGUE: 0.68,
+  parenthetical: 0.60,
+  PARENTHETICAL: 0.60,
 };
 
 // Singleton canvas for measurement (reused across calls)
