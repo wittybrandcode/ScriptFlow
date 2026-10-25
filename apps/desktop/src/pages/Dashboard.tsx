@@ -18,7 +18,6 @@ import ExportWizardModal from '../components/export/ExportWizardModal';
 import ConflictResolutionModal from '../components/dashboard/ConflictResolutionModal';
 import ConfirmModal from '../components/common/ConfirmModal';
 
-const SafeScenarioCard = ScenarioCard as React.ComponentType<any>;
 const SafeExportWizardModal = ExportWizardModal as React.ComponentType<any>;
 const SafeConflictResolutionModal = ConflictResolutionModal as React.ComponentType<any>;
 
@@ -458,7 +457,7 @@ export default function Dashboard() {
               >
                 {/* Virtual new scenario form card */}
                 {editingItem?.isNew && (
-                  <SafeScenarioCard
+                  <ScenarioCard
                     key="__new__"
                     scenario={{ id: '__new__', title: '', description: '', status: 'DRAFT', genre: '', notes: '', cover_image: '', cover_video: '' }}
                     editing={true}
@@ -467,10 +466,12 @@ export default function Dashboard() {
                     onSave={(title: string, desc: string, cover_image: string, status: any, genre: string, notes: string, cover_video: string) => updateScenario('__new__', title, desc, cover_image, status, genre, notes, cover_video)}
                     onDelete={() => setEditingItem(null)}
                     onOpen={() => {}}
+                    onExport={() => {}}
+                    onExportJSON={() => {}}
                   />
                 )}
                 {scenarios.map(scenario => (
-                  <SafeScenarioCard
+                  <ScenarioCard
                     key={scenario.id}
                     scenario={scenario}
                     editing={editingItem?.type === 'scenario' && editingItem?.id === scenario.id}

@@ -23,5 +23,6 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"],
+  "exclude": ["_quarantine_backups", "node_modules", "dist"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
