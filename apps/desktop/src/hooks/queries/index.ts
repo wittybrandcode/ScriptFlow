@@ -16,6 +16,7 @@ export * from './useSnapshots';
 export * from './useScenarios';
 export * from './useTimeline';
 export * from './usePageNumbering';
+export * from './useExport';
 
 export const queryKeys = {
   scenes: (scenarioId: string) => ['scenes', 'scenario', scenarioId] as const,
