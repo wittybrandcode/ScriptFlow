@@ -64,7 +64,7 @@ graph TD
 
 | المرحلة | النطاق الفني المستهدف | درجة الأهمية | عدد الملفات | حالة البرمجة | حالة الاعتماد |
 | :---: | :--- | :---: | :---: | :---: | :---: |
-| **المرحلة 1** | مكونات المحرر التفاعلي وعقد الكتابة السينمائية | 🔴 حرج للغاية | 18 ملفاً | `PLANNED` ⏳ | `PENDING` ⏳ |
+| **المرحلة 1** | مكونات المحرر التفاعلي وعقد الكتابة السينمائية | 🔴 حرج للغاية | 18 ملفاً | `COMPLETED` ✅ | `VERIFIED` ✅ |
 | **المرحلة 2** | نوافذ الحوار والمودالات والمكونات المشتركة | 🟠 مرتفع | 17 ملفاً | `PLANNED` ⏳ | `PENDING` ⏳ |
 | **المرحلة 3** | نظام الجدول الزمني وإدارة أيام التصوير | 🟠 مرتفع | 9 ملفات | `PLANNED` ⏳ | `PENDING` ⏳ |
 | **المرحلة 4** | شبكة العلاقات الأسرية ومحرك شجرة الأنساب | 🟡 متوسط | 14 ملفاً | `PLANNED` ⏳ | `PENDING` ⏳ |
@@ -77,32 +77,32 @@ graph TD
 
 ---
 
-### المرحلة 1: مكونات المحرر التفاعلي وعقد الكتابة السينمائية (The Editor Core Cluster)
+### المرحلة 1: مكونات المحرر التفاعلي وعقد الكتابة السينمائية (The Editor Core Cluster) - [مكتملة ومعتمدة ✅]
 > **الهدف:** استكمال تحويل المكونات الفرعية التابعة لمحرر المشاهد الورقي والذكي، مع الحفاظ الصارم على قياسات الصفحات والتقطيع ودقة الكتابة التلقائية.
 
 #### 📌 الملفات المستهدفة:
 1. **مكونات المحرر الفرعية (`apps/desktop/src/components/editor/`):**
-   - [ ] [`SmartEditor.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/SmartEditor.jsx) ➔ `SmartEditor.tsx` (ضبط أنواع الكتل والاختصارات والتنقل).
-   - [ ] [`SceneNavigator.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/SceneNavigator.jsx) ➔ `SceneNavigator.tsx` (ضبط مصغرات المشاهد ومؤشرات الصفحات المحسوبة).
-   - [ ] [`SceneMetadataForm.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/SceneMetadataForm.jsx) ➔ `SceneMetadataForm.tsx` (ضبط حقول المشهد وتحديد المواقع والشخصيات).
-   - [ ] [`SceneTasksBoard.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/SceneTasksBoard.jsx) ➔ `SceneTasksBoard.tsx` (إدارة مهام الإنتاج الخاصة بالمشهد).
-   - [ ] [`SceneRemindersModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/SceneRemindersModal.jsx) ➔ `SceneRemindersModal.tsx`.
-   - [ ] [`ToneSelector.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/ToneSelector.jsx) ➔ `ToneSelector.tsx`.
-   - [ ] [`WorkspaceCanvas.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/WorkspaceCanvas.jsx) ➔ `WorkspaceCanvas.tsx`.
-   - [ ] [`paper/TabMenu.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/paper/TabMenu.jsx) ➔ `TabMenu.tsx`.
-   - [ ] [`paper/extensions/CharacterNodeView.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/paper/extensions/CharacterNodeView.jsx) ➔ `CharacterNodeView.tsx`.
+   - [x] [`SmartEditor.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/SmartEditor.jsx) ➔ `SmartEditor.tsx` (ضبط أنواع الكتل والاختصارات والتنقل).
+   - [x] [`SceneNavigator.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/SceneNavigator.jsx) ➔ `SceneNavigator.tsx` (ضبط مصغرات المشاهد ومؤشرات الصفحات المحسوبة).
+   - [x] [`SceneMetadataForm.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/SceneMetadataForm.jsx) ➔ `SceneMetadataForm.tsx` (ضبط حقول المشهد وتحديد المواقع والشخصيات).
+   - [x] [`SceneTasksBoard.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/SceneTasksBoard.jsx) ➔ `SceneTasksBoard.tsx` (إدارة مهام الإنتاج الخاصة بالمشهد).
+   - [x] [`SceneRemindersModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/SceneRemindersModal.jsx) ➔ `SceneRemindersModal.tsx`.
+   - [x] [`ToneSelector.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/ToneSelector.jsx) ➔ `ToneSelector.tsx`.
+   - [x] [`WorkspaceCanvas.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/WorkspaceCanvas.jsx) ➔ `WorkspaceCanvas.tsx`.
+   - [x] [`paper/TabMenu.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/paper/TabMenu.jsx) ➔ `TabMenu.tsx`.
+   - [x] [`paper/extensions/CharacterNodeView.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/editor/paper/extensions/CharacterNodeView.jsx) ➔ `CharacterNodeView.tsx`.
 2. **عقد TipTap وملحقات التنسيق (`apps/desktop/src/components/editor/paper/extensions/*.js`):**
-   - [ ] `ActionNode.js` ➔ `ActionNode.ts`
-   - [ ] `DialogueNode.js` ➔ `DialogueNode.ts`
-   - [ ] `CharacterNode.js` ➔ `CharacterNode.ts`
-   - [ ] `ParentheticalNode.js` ➔ `ParentheticalNode.ts`
-   - [ ] `TransitionNode.js` ➔ `TransitionNode.ts`
-   - [ ] `ShotNode.js` ➔ `ShotNode.ts`
-   - [ ] `DirectorNoteNode.js` ➔ `DirectorNoteNode.ts`
-   - [ ] `AudioNode.js` ➔ `AudioNode.ts`
-   - [ ] `TextNode.js` ➔ `TextNode.ts`
-   - [ ] `PaginationExtension.js` ➔ `PaginationExtension.ts`
-   - [ ] `TabMenuExtension.js` ➔ `TabMenuExtension.ts`
+   - [x] `ActionNode.js` ➔ `ActionNode.ts`
+   - [x] `DialogueNode.js` ➔ `DialogueNode.ts`
+   - [x] `CharacterNode.js` ➔ `CharacterNode.ts`
+   - [x] `ParentheticalNode.js` ➔ `ParentheticalNode.ts`
+   - [x] `TransitionNode.js` ➔ `TransitionNode.ts`
+   - [x] `ShotNode.js` ➔ `ShotNode.ts`
+   - [x] `DirectorNoteNode.js` ➔ `DirectorNoteNode.ts`
+   - [x] `AudioNode.js` ➔ `AudioNode.ts`
+   - [x] `TextNode.js` ➔ `TextNode.ts`
+   - [x] `PaginationExtension.js` ➔ `PaginationExtension.ts`
+   - [x] `TabMenuExtension.js` ➔ `TabMenuExtension.ts`
 
 ---
 
@@ -123,7 +123,7 @@ graph TD
 - [ ] [`InteractiveMapPicker.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/InteractiveMapPicker.jsx) ➔ `InteractiveMapPicker.tsx`
 - [ ] [`MapDisplay.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/MapDisplay.jsx) ➔ `MapDisplay.tsx`
 - [ ] [`WeatherWidget.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/WeatherWidget.jsx) ➔ `WeatherWidget.tsx`
-- [ ] [`SortableItem.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/SortableItem.jsx) ➔ `SortableItem.tsx`
+- [x] [`SortableItem.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/SortableItem.jsx) ➔ `SortableItem.tsx` (تم إنجازه مع المرحلة 1 لضبط كتابة كتل المحرر)
 - [ ] [`Toast.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/Toast.jsx) ➔ `Toast.tsx`
 - [ ] [`FallbackLoader.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/FallbackLoader.jsx) ➔ `FallbackLoader.tsx`
 - [ ] [`ui/AdvancedFilterBar.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/ui/AdvancedFilterBar.jsx) ➔ `AdvancedFilterBar.tsx`
