@@ -25,54 +25,25 @@ interface ActionCardProps {
   icon: React.ComponentType<{ size?: number; className?: string }>;
   title: string;
   statLine: string;
-  variant?: 'primary' | 'card';
   onClick?: () => void;
 }
 
-const ActionCard: React.FC<ActionCardProps> = ({ icon: Icon, title, statLine, variant = 'card', onClick }) => {
-  const isClickable = !!onClick;
-  return (
-    <button 
-      type="button"
-      onClick={onClick}
-      disabled={!isClickable}
-      className={`group relative flex items-center gap-4 p-4 rounded-2xl text-right transition-all duration-300 w-full overflow-hidden font-sans border ${
-        isClickable ? 'cursor-pointer' : 'cursor-default'
-      } ${
-        variant === 'primary' 
-          ? 'bg-primary text-primary-foreground border-primary shadow-md hover:bg-primary/90 hover:scale-[1.02]' 
-          : isClickable 
-            ? 'bg-card border-border/80 hover:border-primary/40 hover:shadow-md hover:-translate-y-0.5'
-            : 'bg-card/70 border-border/60'
-      }`}
-    >
-      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 ${
-        isClickable ? 'group-hover:scale-110' : ''
-      } ${
-        variant === 'primary' 
-          ? 'bg-white/10 text-white' 
-          : isClickable
-            ? 'bg-secondary text-foreground group-hover:bg-primary/10 group-hover:text-primary'
-            : 'bg-secondary/70 text-muted-foreground'
-      }`}>
-        <Icon size={22} />
-      </div>
-      
-      <div className="flex-1 min-w-0">
-        <h3 className={`font-black text-base truncate tracking-tight ${
-          variant === 'primary' ? 'text-white' : 'text-foreground'
-        }`}>
-          {title}
-        </h3>
-        <p className={`text-xs font-bold truncate mt-0.5 ${
-          variant === 'primary' ? 'text-white/70' : 'text-muted-foreground'
-        }`}>
-          {statLine}
-        </p>
-      </div>
-    </button>
-  );
-};
+const ActionCard: React.FC<ActionCardProps> = ({ icon: Icon, title, statLine, onClick }) => (
+  <button 
+    type="button"
+    onClick={onClick}
+    className="group relative flex flex-col items-center justify-center p-6 bg-card border border-border rounded-2xl text-center hover:bg-primary transition-all duration-400 overflow-hidden font-sans w-full"
+  >
+    <div className="flex flex-col items-center gap-3">
+      <Icon size={32} className="text-foreground group-hover:text-white transition-colors duration-400" />
+      <h3 className="font-black text-lg text-foreground group-hover:text-white transition-colors duration-400 tracking-tight">{title}</h3>
+    </div>
+    
+    <p className="text-[11px] font-bold text-muted-foreground mt-3 group-hover:text-white/70 transition-colors duration-400 uppercase tracking-wider">
+      {statLine}
+    </p>
+  </button>
+);
 
 interface EditingItemState {
   type: 'scenario';
@@ -120,7 +91,6 @@ export default function Dashboard() {
       rightActions: [
         { 
           id: 'import-json', 
-          label: 'استيراد JSON', 
           title: 'استيراد JSON', 
           icon: FileUp, 
           variant: 'outline', 
@@ -128,19 +98,17 @@ export default function Dashboard() {
         },
         { 
           id: 'import-zip', 
-          label: 'استيراد حزمة SFLOW', 
-          title: 'استيراد حزمة ZIP / SFLOW', 
-          icon: FileDown, 
+          title: 'استيراد حزمة ZIP', 
+          icon: FileUp, 
           variant: 'outline', 
           onClick: () => document.getElementById('hidden-import-zip')?.click() 
         },
         { 
           id: 'new-project', 
-          label: 'مشروع جديد', 
           title: 'إنشاء مشروع جديد', 
           icon: Plus, 
           variant: 'primary', 
-          onClick: openNewScenarioForm 
+          onClick: () => document.getElementById('hidden-create-scenario')?.click() 
         }
       ]
     });
@@ -540,7 +508,6 @@ export default function Dashboard() {
                     icon={Plus}
                     title="مشروع جديد"
                     statLine="إنشاء سيناريو"
-                    variant="primary"
                     onClick={openNewScenarioForm}
                   />
                   <ActionCard 
