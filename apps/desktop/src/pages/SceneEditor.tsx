@@ -1110,43 +1110,83 @@ export default function SceneEditor() {
 
   return (
     <div className="flex flex-col animate-in fade-in duration-500 h-full overflow-hidden">
-      <div className="flex-1 flex overflow-hidden flex-row-reverse">
+      <div className="flex-1 flex overflow-hidden flex-row">
         
-        {/* Scene Navigator - The PDF-like thumbnails rail (Far Left) */}
-        <SceneNavigator 
-          scenes={allScenes as any}
-          activeSceneId={id}
-          drafts={draftScenes as any}
-          onImportDraft={importFromDrafts}
-          currentEpisodeId={scene.episode_id}
-          pageNumbering={pageNumbering as any}
-          onSelectScene={async (targetId: string) => {
-            if (targetId === id) return;
-            try {
-              if (saveStatusRef.current === 'unsaved' || (autosaveQueueRef.current?.queue.length ?? 0) > 0) {
-                if (autosaveQueueRef.current) {
-                  if (saveStatusRef.current === 'unsaved' && id && !isNew) {
-                    autosaveQueueRef.current.enqueue({
-                      id,
-                      body: { scene: sceneRef.current, blocks: blocksRef.current }
-                    });
-                  }
-                  await autosaveQueueRef.current.flush();
-                } else if (saveSceneRef.current) {
-                  await saveSceneRef.current();
-                }
-              }
-              // Snapshot before leaving if it was saved during this session
-              if (id && blocksRef.current.length > 0) {
-                createSnapshotMutation.mutate({ sceneId: id, blocks: blocksRef.current, trigger: 'scene_switch' });
-              }
-              navigate(`/scene/${targetId}`);
-            } catch (err) {
-              console.error('Failed to auto-save scene before switching:', err);
-              showToast('تعذر الانتقال: حدث خطأ أثناء حفظ المشهد', 'error');
-            }
-          }}
-        />
+        {/* Professional Editing Sidebar (Form & Tools) - Right Side in RTL */}
+        <div className="w-[420px] shrink-0 border-l border-border bg-card flex flex-col h-full shadow-2xl relative z-10">
+          
+          <SceneEditorHeader
+            scene={scene}
+            id={id}
+            isNew={isNew}
+            allScenes={allScenes as any}
+            characters={characters as any}
+            handleSceneChange={handleSceneChange}
+            saveScene={saveScene}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            showSceneMenu={showSceneMenu}
+            setShowSceneMenu={setShowSceneMenu}
+            showCharMenu={showCharMenu}
+            setShowCharMenu={setShowCharMenu}
+            charSearch={charSearch}
+            setCharSearch={setCharSearch}
+            setShowCharModal={setShowCharModal}
+            setShowRemindersModal={setShowRemindersModal}
+            addBlock={addBlock}
+            getInsertIndex={getInsertIndex}
+            quickAddCharacter={quickAddCharacter}
+            onRestoreSnapshot={(snapshotBlocks: any[]) => {
+              setBlocks(snapshotBlocks);
+              setSaveStatus('unsaved');
+              showToast('تم استعادة النسخة، اضغط حفظ لتأكيد التغييرات', 'info', 3000);
+            }}
+          />
+
+          {/* Scrollable Content Area */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar px-2 pt-1.5 pb-16 relative">
+            {activeTab === 'metadata' ? (
+              <SceneMetadataForm 
+                scene={scene} 
+                onSceneChange={handleSceneChange} 
+                locations={locations as any}
+                characters={characters as any}
+                episodes={episodes as any}
+                onEditLocation={(locId: string) => {
+                  setEditingLocationId(locId);
+                  setShowLocationModal(true);
+                }}
+                onAddLocation={() => {
+                  setEditingLocationId(null);
+                  setShowLocationModal(true);
+                }}
+              />
+            ) : activeTab === 'tasks' ? (
+              <SceneTasksBoard sceneId={id} />
+            ) : (
+              <div className="flex flex-col min-h-full relative">
+                <SmartEditor 
+                  key={scene.id || id}
+                  blocks={blocks}
+                  setBlocks={setBlocks}
+                  onAddBlock={addBlock}
+                  onUpdateBlock={debouncedUpdateBlock}
+                  onDeleteBlock={deleteBlock}
+                  onReorderBlocks={handleReorderBlocks}
+                  characters={characters as any}
+                  onShowCharModal={() => setShowCharModal(true)}
+                  onOpenReminders={() => setShowRemindersModal(true)}
+                  onQuickAddCharacter={quickAddCharacter}
+                  scene={scene}
+                  onSceneChange={handleSceneChange}
+                  activeBlockId={activeBlockId}
+                  setActiveBlockId={setActiveBlockId}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Cinematic Page Preview (PDF Identity) - Middle Area / Split Mode */}
         <WorkspaceCanvas>
            <PaperEditor 
@@ -1234,80 +1274,41 @@ export default function SceneEditor() {
           )}
         </WorkspaceCanvas>
 
-        {/* Professional Editing Sidebar (Form) - Right Side */}
-        <div className="w-[420px] shrink-0 border-l border-border bg-card flex flex-col h-full shadow-2xl relative z-10">
-          
-          <SceneEditorHeader
-            scene={scene}
-            id={id}
-            isNew={isNew}
-            allScenes={allScenes as any}
-            characters={characters as any}
-            handleSceneChange={handleSceneChange}
-            saveScene={saveScene}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            showSceneMenu={showSceneMenu}
-            setShowSceneMenu={setShowSceneMenu}
-            showCharMenu={showCharMenu}
-            setShowCharMenu={setShowCharMenu}
-            charSearch={charSearch}
-            setCharSearch={setCharSearch}
-            setShowCharModal={setShowCharModal}
-            setShowRemindersModal={setShowRemindersModal}
-            addBlock={addBlock}
-            getInsertIndex={getInsertIndex}
-            quickAddCharacter={quickAddCharacter}
-            onRestoreSnapshot={(snapshotBlocks: any[]) => {
-              setBlocks(snapshotBlocks);
-              setSaveStatus('unsaved');
-              showToast('تم استعادة النسخة، اضغط حفظ لتأكيد التغييرات', 'info', 3000);
-            }}
-          />
-
-          {/* Scrollable Content Area */}
-          <div className="flex-1 overflow-y-auto custom-scrollbar px-2 pt-1.5 pb-16 relative">
-            {activeTab === 'metadata' ? (
-              <SceneMetadataForm 
-                scene={scene} 
-                onSceneChange={handleSceneChange} 
-                locations={locations as any}
-                characters={characters as any}
-                episodes={episodes as any}
-                onEditLocation={(locId: string) => {
-                  setEditingLocationId(locId);
-                  setShowLocationModal(true);
-                }}
-                onAddLocation={() => {
-                  setEditingLocationId(null);
-                  setShowLocationModal(true);
-                }}
-              />
-            ) : activeTab === 'tasks' ? (
-              <SceneTasksBoard sceneId={id} />
-            ) : (
-              <div className="flex flex-col min-h-full relative">
-                <SmartEditor 
-                  key={scene.id || id}
-                  blocks={blocks}
-                  setBlocks={setBlocks}
-                  onAddBlock={addBlock}
-                  onUpdateBlock={debouncedUpdateBlock}
-                  onDeleteBlock={deleteBlock}
-                  onReorderBlocks={handleReorderBlocks}
-                  characters={characters as any}
-                  onShowCharModal={() => setShowCharModal(true)}
-                  onOpenReminders={() => setShowRemindersModal(true)}
-                  onQuickAddCharacter={quickAddCharacter}
-                  scene={scene}
-                  onSceneChange={handleSceneChange}
-                  activeBlockId={activeBlockId}
-                  setActiveBlockId={setActiveBlockId}
-                />
-              </div>
-            )}
-          </div>
-        </div>
+        {/* Scene Navigator - The PDF-like thumbnails rail (Far Left in RTL) */}
+        <SceneNavigator 
+          scenes={allScenes as any}
+          activeSceneId={id}
+          drafts={draftScenes as any}
+          onImportDraft={importFromDrafts}
+          currentEpisodeId={scene.episode_id}
+          pageNumbering={pageNumbering as any}
+          onSelectScene={async (targetId: string) => {
+            if (targetId === id) return;
+            try {
+              if (saveStatusRef.current === 'unsaved' || (autosaveQueueRef.current?.queue.length ?? 0) > 0) {
+                if (autosaveQueueRef.current) {
+                  if (saveStatusRef.current === 'unsaved' && id && !isNew) {
+                    autosaveQueueRef.current.enqueue({
+                      id,
+                      body: { scene: sceneRef.current, blocks: blocksRef.current }
+                    });
+                  }
+                  await autosaveQueueRef.current.flush();
+                } else if (saveSceneRef.current) {
+                  await saveSceneRef.current();
+                }
+              }
+              // Snapshot before leaving if it was saved during this session
+              if (id && blocksRef.current.length > 0) {
+                createSnapshotMutation.mutate({ sceneId: id, blocks: blocksRef.current, trigger: 'scene_switch' });
+              }
+              navigate(`/scene/${targetId}`);
+            } catch (err) {
+              console.error('Failed to auto-save scene before switching:', err);
+              showToast('تعذر الانتقال: حدث خطأ أثناء حفظ المشهد', 'error');
+            }
+          }}
+        />
 
       </div>
 

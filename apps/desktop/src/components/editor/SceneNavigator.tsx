@@ -94,7 +94,7 @@ const SceneNavigatorComponent: React.FC<SceneNavigatorProps> = ({
   };
 
   return (
-    <div className={`border-l border-border bg-card/10 backdrop-blur-md flex flex-col h-screen animate-in slide-in-from-left duration-500 relative shrink-0 z-[100] transition-all ${isCollapsed ? 'w-[60px]' : 'w-[250px]'}`}>
+    <div className={`border-r border-border bg-card/10 backdrop-blur-md flex flex-col h-screen animate-in slide-in-from-left duration-500 relative shrink-0 z-[100] transition-all ${isCollapsed ? 'w-[60px]' : 'w-[250px]'}`}>
       <div className={`h-16 px-5 border-b border-border/50 bg-secondary/20 flex items-center shrink-0 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
         {!isCollapsed && (
           <div className="flex items-center gap-3">
