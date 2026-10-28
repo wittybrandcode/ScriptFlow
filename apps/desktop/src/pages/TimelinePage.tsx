@@ -31,13 +31,6 @@ import ShootDayModal from '../components/timeline/ShootDayModal';
 import ConfirmModal from '../components/common/ConfirmModal';
 import { Plus, Printer, HelpCircle, Columns, Calendar as CalendarIcon, CalendarDays, CalendarRange, Activity, AlignJustify } from 'lucide-react';
 
-const SafeTimelineBoard = TimelineBoard as any;
-const SafeStripBoard = StripBoard as any;
-const SafeDailyView = DailyView as any;
-const SafeWeeklyCalendar = WeeklyCalendar as any;
-const SafeYearlyHeatmap = YearlyHeatmap as any;
-const SafeCompactSceneCard = CompactSceneCard as any;
-const SafeShootDayModal = ShootDayModal as any;
 
 export default function TimelinePage() {
   const navigate = useNavigate();
@@ -137,8 +130,8 @@ export default function TimelinePage() {
 
   const [dayToDelete, setDayToDelete] = useState<string | null>(null);
 
-  const handleDeleteDay = (id: string) => {
-    setDayToDelete(id);
+  const handleDeleteDay = (id: string | number) => {
+    setDayToDelete(String(id));
   };
 
   const confirmDeleteDay = () => {
@@ -227,7 +220,7 @@ export default function TimelinePage() {
 
           {/* Tab Views */}
           {activeTab === 'board' && (
-            <SafeTimelineBoard 
+            <TimelineBoard 
               shootDays={localShootDays} 
               characters={characters}
               onDeleteDay={handleDeleteDay}
@@ -237,7 +230,7 @@ export default function TimelinePage() {
             />
           )}
           {activeTab === 'stripboard' && (
-            <SafeStripBoard 
+            <StripBoard 
               shootDays={localShootDays} 
               characters={characters} 
               scenario={activeScenario} 
@@ -245,7 +238,7 @@ export default function TimelinePage() {
             />
           )}
           {activeTab === 'daily' && (
-            <SafeDailyView 
+            <DailyView 
               shootDays={localShootDays} 
               characters={characters} 
               initialSelectedDayId={selectedDailyDayId}
@@ -253,7 +246,7 @@ export default function TimelinePage() {
             />
           )}
           {activeTab === 'weekly' && (
-            <SafeWeeklyCalendar 
+            <WeeklyCalendar 
               shootDays={localShootDays} 
               onCreateShootDay={(dateStr: string) => {
                 if (activeScenarioId) {
@@ -277,10 +270,10 @@ export default function TimelinePage() {
             />
           )}
           {activeTab === 'yearly' && (
-            <SafeYearlyHeatmap 
+            <YearlyHeatmap 
               shootDays={localShootDays} 
-              onDayClick={(dayId: string) => {
-                setSelectedDailyDayId(dayId);
+              onDayClick={(dayId: string | number) => {
+                setSelectedDailyDayId(String(dayId));
                 setActiveTab('daily');
               }}
             />
@@ -288,7 +281,7 @@ export default function TimelinePage() {
         </div>
 
           <DragOverlay dropAnimation={{ sideEffects: defaultDropAnimationSideEffects({ styles: { active: { opacity: '0.4' } } }) }}>
-            {activeId && activeScene ? <SafeCompactSceneCard scene={activeScene} isOverlay /> : null}
+            {activeId && activeScene ? <CompactSceneCard scene={activeScene} isOverlay /> : null}
           </DragOverlay>
         </DndContext>
       </div>
@@ -303,7 +296,7 @@ export default function TimelinePage() {
 
       {/* Shoot Day Editing Modal */}
       {editingDay && (
-        <SafeShootDayModal 
+        <ShootDayModal 
           day={editingDay}
           onClose={() => setEditingDay(null)}
           onSave={(data: any) => {

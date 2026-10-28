@@ -135,15 +135,20 @@ graph TD
 > **الهدف:** تعزيز استقرار محرك جدولة الإنتاج وحسابات أوقات المشاهد والسحب والإفلات عبر `@dnd-kit`.
 
 #### 📌 الملفات المستهدفة:
-- [ ] [`components/timeline/TimelineBoard.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/TimelineBoard.jsx) ➔ `TimelineBoard.tsx`
-- [ ] [`components/timeline/TimelineAgenda.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/TimelineAgenda.jsx) ➔ `TimelineAgenda.tsx`
-- [ ] [`components/timeline/TimelineSidebar.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/TimelineSidebar.jsx) ➔ `TimelineSidebar.tsx`
-- [ ] [`components/timeline/TimelineStats.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/TimelineStats.jsx) ➔ `TimelineStats.tsx`
-- [ ] [`components/timeline/ShootDayModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/ShootDayModal.jsx) ➔ `ShootDayModal.tsx`
-- [ ] [`components/timeline/ShootDayColumn.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/ShootDayColumn.jsx) ➔ `ShootDayColumn.tsx`
-- [ ] [`components/timeline/ScenePreviewModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/ScenePreviewModal.jsx) ➔ `ScenePreviewModal.tsx`
-- [ ] [`components/timeline/ContinuityPanel.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/ContinuityPanel.jsx) ➔ `ContinuityPanel.tsx`
-- [ ] [`hooks/queries/useTimelineReordering.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/hooks/queries/useTimelineReordering.js) ➔ `useTimelineReordering.ts`
+- [x] [`components/timeline/TimelineBoard.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/TimelineBoard.jsx) ➔ `TimelineBoard.tsx`
+- [x] [`components/timeline/TimelineAgenda.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/TimelineAgenda.jsx) ➔ `TimelineAgenda.tsx`
+- [x] [`components/timeline/TimelineSidebar.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/TimelineSidebar.jsx) ➔ `TimelineSidebar.tsx`
+- [x] [`components/timeline/TimelineStats.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/TimelineStats.jsx) ➔ `TimelineStats.tsx`
+- [x] [`components/timeline/ShootDayModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/ShootDayModal.jsx) ➔ `ShootDayModal.tsx`
+- [x] [`components/timeline/ShootDayColumn.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/ShootDayColumn.jsx) ➔ `ShootDayColumn.tsx`
+- [x] [`components/timeline/ScenePreviewModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/ScenePreviewModal.jsx) ➔ `ScenePreviewModal.tsx`
+- [x] [`components/timeline/CompactSceneCard.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/CompactSceneCard.jsx) ➔ `CompactSceneCard.tsx`
+- [x] [`components/timeline/ContinuityPanel.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/ContinuityPanel.jsx) ➔ `ContinuityPanel.tsx`
+- [x] [`components/timeline/views/DailyView.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/views/DailyView.jsx) ➔ `DailyView.tsx`
+- [x] [`components/timeline/views/StripBoard.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/views/StripBoard.jsx) ➔ `StripBoard.tsx`
+- [x] [`components/timeline/views/WeeklyCalendar.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/views/WeeklyCalendar.jsx) ➔ `WeeklyCalendar.tsx`
+- [x] [`components/timeline/views/YearlyHeatmap.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/timeline/views/YearlyHeatmap.jsx) ➔ `YearlyHeatmap.tsx`
+- [x] [`hooks/queries/useTimelineReordering.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/hooks/queries/useTimelineReordering.js) ➔ `useTimelineReordering.ts`
 
 ---
 
