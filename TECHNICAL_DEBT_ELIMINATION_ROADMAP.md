@@ -65,7 +65,7 @@ graph TD
 | المرحلة | النطاق الفني المستهدف | درجة الأهمية | عدد الملفات | حالة البرمجة | حالة الاعتماد |
 | :---: | :--- | :---: | :---: | :---: | :---: |
 | **المرحلة 1** | مكونات المحرر التفاعلي وعقد الكتابة السينمائية | 🔴 حرج للغاية | 18 ملفاً | `COMPLETED` ✅ | `VERIFIED` ✅ |
-| **المرحلة 2** | نوافذ الحوار والمودالات والمكونات المشتركة | 🟠 مرتفع | 17 ملفاً | `PLANNED` ⏳ | `PENDING` ⏳ |
+| **المرحلة 2** | نوافذ الحوار والمودالات والمكونات المشتركة | 🟠 مرتفع | 17 ملفاً | `COMPLETED` ✅ | `VERIFIED` ✅ |
 | **المرحلة 3** | نظام الجدول الزمني وإدارة أيام التصوير | 🟠 مرتفع | 9 ملفات | `PLANNED` ⏳ | `PENDING` ⏳ |
 | **المرحلة 4** | شبكة العلاقات الأسرية ومحرك شجرة الأنساب | 🟡 متوسط | 14 ملفاً | `PLANNED` ⏳ | `PENDING` ⏳ |
 | **المرحلة 5** | الخدمات، المخازن العامة، والعمال الخلفيون (Workers) | 🟢 وقائي | 16 ملفاً | `PLANNED` ⏳ | `PENDING` ⏳ |
@@ -106,28 +106,28 @@ graph TD
 
 ---
 
-### المرحلة 2: نوافذ الحوار والمكونات المشتركة (Shared Dialogs & UI Modals)
+### المرحلة 2: نوافذ الحوار والمكونات المشتركة (Shared Dialogs & UI Modals) - [مكتملة ومعتمدة ✅]
 > **الهدف:** توحيد كافة النوافذ المنبثقة المستخدمة في إدارة الشخصيات والمواقع والحلقات والمشاهد، مع إلزامية دعم الأنواع الصارمة لبيانات الإدخال ونظام التحقق.
 
 #### 📌 الملفات المستهدفة:
-- [ ] [`CharacterModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/CharacterModal.jsx) ➔ `CharacterModal.tsx`
-- [ ] [`LocationModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/LocationModal.jsx) ➔ `LocationModal.tsx`
-- [ ] [`LocationPreviewModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/LocationPreviewModal.jsx) ➔ `LocationPreviewModal.tsx`
-- [ ] [`CrewModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/CrewModal.jsx) ➔ `CrewModal.tsx`
-- [ ] [`CrewPreviewModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/CrewPreviewModal.jsx) ➔ `CrewPreviewModal.tsx`
-- [ ] [`CrewAssignmentModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/CrewAssignmentModal.jsx) ➔ `CrewAssignmentModal.tsx`
-- [ ] [`AddEpisodeModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/AddEpisodeModal.jsx) ➔ `AddEpisodeModal.tsx`
-- [ ] [`QuickAddSceneModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/QuickAddSceneModal.jsx) ➔ `QuickAddSceneModal.tsx`
-- [ ] [`QuickEditSceneModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/QuickEditSceneModal.jsx) ➔ `QuickEditSceneModal.tsx`
-- [ ] [`CloneSceneModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/CloneSceneModal.jsx) ➔ `CloneSceneModal.tsx`
-- [ ] [`InteractiveMapPicker.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/InteractiveMapPicker.jsx) ➔ `InteractiveMapPicker.tsx`
-- [ ] [`MapDisplay.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/MapDisplay.jsx) ➔ `MapDisplay.tsx`
-- [ ] [`WeatherWidget.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/WeatherWidget.jsx) ➔ `WeatherWidget.tsx`
+- [x] [`CharacterModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/CharacterModal.jsx) ➔ `CharacterModal.tsx`
+- [x] [`LocationModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/LocationModal.jsx) ➔ `LocationModal.tsx`
+- [x] [`LocationPreviewModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/LocationPreviewModal.jsx) ➔ `LocationPreviewModal.tsx`
+- [x] [`CrewModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/CrewModal.jsx) ➔ `CrewModal.tsx`
+- [x] [`CrewPreviewModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/CrewPreviewModal.jsx) ➔ `CrewPreviewModal.tsx`
+- [x] [`CrewAssignmentModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/CrewAssignmentModal.jsx) ➔ `CrewAssignmentModal.tsx`
+- [x] [`AddEpisodeModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/AddEpisodeModal.jsx) ➔ `AddEpisodeModal.tsx`
+- [x] [`QuickAddSceneModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/QuickAddSceneModal.jsx) ➔ `QuickAddSceneModal.tsx`
+- [x] [`QuickEditSceneModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/QuickEditSceneModal.jsx) ➔ `QuickEditSceneModal.tsx`
+- [x] [`CloneSceneModal.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/CloneSceneModal.jsx) ➔ `CloneSceneModal.tsx`
+- [x] [`InteractiveMapPicker.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/InteractiveMapPicker.jsx) ➔ `InteractiveMapPicker.tsx`
+- [x] [`MapDisplay.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/MapDisplay.jsx) ➔ `MapDisplay.tsx`
+- [x] [`WeatherWidget.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/WeatherWidget.jsx) ➔ `WeatherWidget.tsx`
 - [x] [`SortableItem.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/SortableItem.jsx) ➔ `SortableItem.tsx` (تم إنجازه مع المرحلة 1 لضبط كتابة كتل المحرر)
-- [ ] [`Toast.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/Toast.jsx) ➔ `Toast.tsx`
-- [ ] [`FallbackLoader.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/FallbackLoader.jsx) ➔ `FallbackLoader.tsx`
-- [ ] [`ui/AdvancedFilterBar.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/ui/AdvancedFilterBar.jsx) ➔ `AdvancedFilterBar.tsx`
-- [ ] [`ui/InlineFieldError.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/ui/InlineFieldError.jsx) ➔ `InlineFieldError.tsx`
+- [x] [`Toast.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/Toast.jsx) ➔ `Toast.tsx`
+- [x] [`FallbackLoader.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/FallbackLoader.jsx) ➔ `FallbackLoader.tsx`
+- [x] [`ui/AdvancedFilterBar.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/ui/AdvancedFilterBar.jsx) ➔ `AdvancedFilterBar.tsx`
+- [x] [`ui/InlineFieldError.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/components/ui/InlineFieldError.jsx) ➔ `InlineFieldError.tsx`
 
 ---
 

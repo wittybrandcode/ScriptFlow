@@ -1,0 +1,110 @@
+import React, { useState } from 'react';
+import { X, Plus, Save } from 'lucide-react';
+
+export interface QuickAddSceneFormData {
+  title: string;
+  description: string;
+}
+
+export interface QuickAddSceneModalProps {
+  onClose: () => void;
+  onSubmit: (data: QuickAddSceneFormData) => Promise<void> | void;
+}
+
+export default function QuickAddSceneModal({ onClose, onSubmit }: QuickAddSceneModalProps): React.JSX.Element {
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!title.trim() && !description.trim()) return;
+    
+    setIsSubmitting(true);
+    try {
+      await onSubmit({ title, description });
+      onClose();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+      <div className="bg-card w-full max-w-md rounded-2xl shadow-xl border border-border flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-border/50 bg-secondary/30">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+              <Plus size={16} />
+            </div>
+            <h3 className="font-bold text-foreground">إضافة مشهد بسرعة</h3>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-xl transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-foreground flex items-center gap-2">
+              عنوان المشهد
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="مثال: لقاء غير متوقع..."
+              className="w-full bg-background border border-input rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              autoFocus
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-foreground flex items-center gap-2">
+              شرح المشهد (اختياري)
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="شرح موجز للمشهد..."
+              rows={3}
+              className="w-full bg-background border border-input rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+            />
+          </div>
+
+          {/* Footer */}
+          <div className="pt-2 flex gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 rounded-xl border border-input bg-background hover:bg-secondary text-foreground text-sm font-bold transition-colors"
+            >
+              إلغاء
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting || (!title.trim() && !description.trim())}
+              className="flex-1 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white text-sm font-bold shadow-md shadow-primary/20 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {isSubmitting ? (
+                <span className="animate-pulse">جاري الإضافة...</span>
+              ) : (
+                <>
+                  <Save size={16} />
+                  إضافة سريعة
+                </>
+              )}
+            </button>
+          </div>
+        </form>
+
+      </div>
+    </div>
+  );
+}
