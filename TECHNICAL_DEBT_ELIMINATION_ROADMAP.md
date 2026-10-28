@@ -152,27 +152,27 @@ graph TD
 
 ---
 
-### المرحلة 4: شبكة العلاقات ومحرك شجرة الأنساب (Relationships & Pedigree Graph)
+### المرحلة 4: شبكة العلاقات ومحرك شجرة الأنساب (Relationships & Pedigree Graph) - [مكتملة ومعتمدة ✅]
 > **الهدف:** تأمين واجهة رسم الشبكات التفاعلية ومحاذاة المخططات والتكامل مع حزمة الفقه والمواريث `@scriptflow/nasab`.
 
 #### 📌 الملفات المستهدفة:
 1. **الصفحة والمكونات الرئيسية (`features/relationships/`):**
-   - [ ] [`RelationshipsPage.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/features/relationships/RelationshipsPage.jsx) ➔ `RelationshipsPage.tsx`
-   - [ ] [`components/RelationshipsToolbar.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/features/relationships/components/RelationshipsToolbar.jsx) ➔ `RelationshipsToolbar.tsx`
-   - [ ] [`components/CustomRelationshipEdge.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/features/relationships/components/CustomRelationshipEdge.jsx) ➔ `CustomRelationshipEdge.tsx`
-   - [ ] [`components/EdgeList.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/features/relationships/components/EdgeList.jsx) ➔ `EdgeList.tsx`
-   - [ ] [`components/PartnerSelects.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/features/relationships/components/PartnerSelects.jsx) ➔ `PartnerSelects.tsx`
+   - [x] [`RelationshipsPage.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/features/relationships/RelationshipsPage.jsx) ➔ `RelationshipsPage.tsx`
+   - [x] [`components/RelationshipsToolbar.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/features/relationships/components/RelationshipsToolbar.jsx) ➔ `RelationshipsToolbar.tsx`
+   - [x] [`components/CustomRelationshipEdge.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/features/relationships/components/CustomRelationshipEdge.jsx) ➔ `CustomRelationshipEdge.tsx`
+   - [x] [`components/EdgeList.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/features/relationships/components/EdgeList.jsx) ➔ `EdgeList.tsx`
+   - [x] [`components/PartnerSelects.jsx`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/features/relationships/components/PartnerSelects.jsx) ➔ `PartnerSelects.tsx`
 2. **نوافذ العلاقات والمواريث (`features/relationships/components/modals/`):**
-   - [ ] `CharacterRPGPanel.jsx` ➔ `CharacterRPGPanel.tsx`
-   - [ ] `CoParentPopup.jsx` ➔ `CoParentPopup.tsx`
-   - [ ] `ErrorModal.jsx` ➔ `ErrorModal.tsx`
-   - [ ] `InheritanceModal.jsx` ➔ `InheritanceModal.tsx`
-   - [ ] `InheritancePanel.jsx` ➔ `InheritancePanel.tsx`
-   - [ ] `ManualLinkPopup.jsx` ➔ `ManualLinkPopup.tsx`
+   - [x] `CharacterRPGPanel.jsx` ➔ `CharacterRPGPanel.tsx`
+   - [x] `CoParentPopup.jsx` ➔ `CoParentPopup.tsx`
+   - [x] `ErrorModal.jsx` ➔ `ErrorModal.tsx`
+   - [x] `InheritanceModal.jsx` ➔ `InheritanceModal.tsx`
+   - [x] `InheritancePanel.jsx` ➔ `InheritancePanel.tsx`
+   - [x] `ManualLinkPopup.jsx` ➔ `ManualLinkPopup.tsx`
 3. **الخطافات والمساعدات الحسابية (`features/relationships/hooks/` & `utils/`):**
-   - [ ] `useRelationshipActions.js` ➔ `useRelationshipActions.ts`
-   - [ ] `useRelationshipGraph.js` ➔ `useRelationshipGraph.ts`
-   - [ ] `dagreLayout.js`, `edgeUtils.js`, `gedcomUtils.js`, `graphTransformers.js`, `typeRegistry.js` ➔ تحويلها إلى `.ts`.
+   - [x] `useRelationshipActions.js` ➔ `useRelationshipActions.ts`
+   - [x] `useRelationshipGraph.js` ➔ `useRelationshipGraph.ts`
+   - [x] `dagreLayout.js`, `edgeUtils.js`, `gedcomUtils.js`, `graphTransformers.js`, `typeRegistry.js` ➔ تحويلها إلى `.ts`.
 
 ---
 
