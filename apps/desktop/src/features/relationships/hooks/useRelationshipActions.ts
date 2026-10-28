@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { generateId } from '@scriptflow/core';
 
 export function useRelationshipActions(
-  scenarioId: string | undefined,
+  scenarioId: string | undefined | null,
   _rawGraphData: React.MutableRefObject<any>,
   setErrorModalMessage: (msg: any) => void,
   loadGraph: () => Promise<void>

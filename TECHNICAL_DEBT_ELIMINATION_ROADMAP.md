@@ -176,26 +176,26 @@ graph TD
 
 ---
 
-### المرحلة 5: الخدمات، المخازن العامة، والعمال الخلفيون (Services, Stores & Web Workers)
+### المرحلة 5: الخدمات، المخازن العامة، والعمال الخلفيون (Services, Stores & Web Workers) - [مكتملة ومعتمدة ✅]
 > **الهدف:** تعزيز استقرار البنية التحتية لمعالجة العمليات الثقيلة (Multithreading Workers) والتخزين والاتصال.
 
 #### 📌 الملفات المستهدفة:
 1. **عمال الويب (Web Workers & Factory):**
-   - [ ] [`workers/ExportWorker.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/workers/ExportWorker.js) ➔ `ExportWorker.ts`
-   - [ ] [`workers/StatsWorker.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/workers/StatsWorker.ts)
-   - [ ] [`workers/WorkerFactory.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/workers/WorkerFactory.ts)
-   - [ ] [`hooks/useExportWorker.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/hooks/useExportWorker.ts)
-   - [ ] [`hooks/useStatsWorker.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/hooks/useStatsWorker.ts)
+   - [x] [`workers/ExportWorker.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/workers/ExportWorker.js) ➔ `ExportWorker.ts`
+   - [x] [`workers/StatsWorker.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/workers/StatsWorker.ts) ➔ `StatsWorker.ts`
+   - [x] [`workers/WorkerFactory.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/workers/WorkerFactory.ts) ➔ `WorkerFactory.ts`
+   - [x] [`hooks/useExportWorker.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/hooks/useExportWorker.ts) ➔ `useExportWorker.ts`
+   - [x] [`hooks/useStatsWorker.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/hooks/useStatsWorker.ts) ➔ `useStatsWorker.ts`
 2. **المخازن والخدمات العامة:**
-   - [ ] [`store/useUIStore.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/store/useUIStore.ts)
-   - [ ] [`hooks/useKeyboard.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/hooks/useKeyboard.ts)
-   - [ ] [`hooks/useToast.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/hooks/useToast.ts)
-   - [ ] [`hooks/useTheme.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/hooks/useTheme.ts)
-   - [ ] [`services/exportStrategies.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/services/exportStrategies.ts)
-   - [ ] [`services/BackupService.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/services/BackupService.ts)
-   - [ ] [`services/api/packageService.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/services/api/packageService.ts)
-   - [ ] [`lib/queryClient.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/lib/queryClient.ts)
-   - [ ] أدوات `utils/*.js` المتبقية (`AutosaveQueue.js`, `continuityAnalyzer.js`, `dagreLayout.js`, `dateUtils.js`, `htmlUtils.js`, `PromiseQueue.js`, `validation.js`, `sceneConstants.js`).
+   - [x] [`store/useUIStore.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/store/useUIStore.ts) ➔ `useUIStore.ts`
+   - [x] [`hooks/useKeyboard.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/hooks/useKeyboard.ts) ➔ `useKeyboard.ts`
+   - [x] [`hooks/useToast.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/hooks/useToast.ts) ➔ `useToast.ts`
+   - [x] [`hooks/useTheme.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/hooks/useTheme.ts) ➔ `useTheme.ts`
+   - [x] [`services/exportStrategies.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/services/exportStrategies.ts) ➔ `exportStrategies.ts`
+   - [x] [`services/BackupService.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/services/BackupService.ts) ➔ `BackupService.ts`
+   - [x] [`services/api/packageService.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/services/api/packageService.ts) ➔ `packageService.ts`
+   - [x] [`lib/queryClient.js`](file:///d:/SCRIPTFLOW%20Pro/SCRIPTFLOW%20ENREPRISE/apps/desktop/src/lib/queryClient.ts) ➔ `queryClient.ts`
+   - [x] أدوات `utils/*.js` و `constants/*.js` (`AutosaveQueue.ts`, `continuityAnalyzer.ts`, `dagreLayout.ts`, `dateUtils.ts`, `htmlUtils.ts`, `PromiseQueue.ts`, `validation.ts`, `sceneConstants.ts`).
 
 ---
 

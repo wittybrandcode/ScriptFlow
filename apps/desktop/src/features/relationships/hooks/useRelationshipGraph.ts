@@ -9,7 +9,7 @@ export interface NasabMetadata {
   warnings: string[];
 }
 
-export function useRelationshipGraph(scenarioId: string | undefined, viewMode: string) {
+export function useRelationshipGraph(scenarioId: string | undefined | null, viewMode: string) {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [nasabMetadata, setNasabMetadata] = useState<NasabMetadata>({ warnings: [] });

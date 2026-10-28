@@ -35,7 +35,7 @@ export interface UseTimelineReorderingParams {
   shootDays?: ShootDayTimelineItem[];
   unscheduledScenes?: TimelineSceneItem[];
   assignScene: (scenarioId: string, sceneId: string, destDayId: string | null, newOrder?: number) => void;
-  activeScenarioId: string;
+  activeScenarioId: string | null;
   columnViewModes?: Record<string | number, string>;
 }
 
@@ -182,7 +182,9 @@ export function useTimelineReordering({
     const destDayId = overContainer === 'bank' ? null : String(overContainer);
 
     // Trigger API call
-    assignScene(activeScenarioId, sceneId, destDayId, newOrder);
+    if (activeScenarioId) {
+      assignScene(activeScenarioId, sceneId, destDayId, newOrder);
+    }
   };
 
   return {

@@ -11,7 +11,7 @@ export interface SceneTasksBoardProps {
 export default function SceneTasksBoard({ sceneId }: SceneTasksBoardProps) {
   const { activeScenarioId } = useUIStore();
   const { data: crew = [] } = useCrewQuery(activeScenarioId || '');
-  const { data: tasks = [], isLoading: loading } = useSceneTasksQuery(activeScenarioId, sceneId ? String(sceneId) : undefined);
+  const { data: tasks = [], isLoading: loading } = useSceneTasksQuery(activeScenarioId || undefined, sceneId ? String(sceneId) : undefined);
   const createTaskMutation = useCreateSceneTaskMutation();
   const updateTaskStatusMutation = useUpdateSceneTaskStatusMutation();
 
