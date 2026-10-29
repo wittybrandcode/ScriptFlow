@@ -49,3 +49,6 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
+
+# Legacy Quarantine Archives (Local Only)
+*_quarantine_backups*
