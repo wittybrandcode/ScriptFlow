@@ -1,11 +1,10 @@
-import React from 'react';
 
 export interface PageFooterProps {
   scenarioName?: string;
-  pageNumber?: number | null;
+  pageNumber?: number | string | null;
 }
 
-const PageFooter = React.memo(({ scenarioName, pageNumber }: PageFooterProps) => {
+export default function PageFooter({ scenarioName, pageNumber }: PageFooterProps) {
   if (pageNumber === undefined || pageNumber === null) return null;
   
   return (
@@ -19,6 +18,4 @@ const PageFooter = React.memo(({ scenarioName, pageNumber }: PageFooterProps) =>
       </div>
     </div>
   );
-});
-
-export default PageFooter;
+}

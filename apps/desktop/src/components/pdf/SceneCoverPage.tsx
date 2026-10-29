@@ -1,7 +1,7 @@
 import { formatDate } from '../../utils/dateUtils';
 import PageFooter from './PageFooter';
 
-const REVISION_COLORS_MAP: Record<string, { bg: string; text: string }> = {
+export const REVISION_COLORS_MAP: Record<string, { bg: string; text: string }> = {
   WHITE: { bg: '#FFFFFF', text: '#000' },
   BLUE: { bg: '#CCEEFF', text: '#003366' },
   PINK: { bg: '#FFD6E0', text: '#660033' },
@@ -16,18 +16,18 @@ const REVISION_COLORS_MAP: Record<string, { bg: string; text: string }> = {
 export interface SceneCoverPageProps {
   scenarioTitle?: string;
   directorName?: string;
-  episodeNumber?: number | string;
+  episodeNumber?: string | number;
   episodeTitle?: string;
-  sceneNumber?: number | string;
+  sceneNumber?: string | number;
   sceneTitle?: string;
   writerName?: string;
   productionCompany?: string;
   revisionColor?: string;
   revisionDate?: string;
   revisionDraft?: string;
-  itemId?: string;
+  itemId?: string | number;
   itemType?: string;
-  pageNumber?: number | null;
+  pageNumber?: number | string | null;
 }
 
 export default function SceneCoverPage({ 
@@ -47,7 +47,7 @@ export default function SceneCoverPage({
   pageNumber
 }: SceneCoverPageProps) {
   const revision = REVISION_COLORS_MAP[revisionColor] || REVISION_COLORS_MAP.WHITE;
-  const hasRevisionInfo = revisionDate || revisionDraft;
+  const hasRevisionInfo = Boolean(revisionDate || revisionDraft);
   
   return (
     <div className="cover-page" style={{ backgroundColor: revision.bg }} data-item-id={itemId} data-item-type={itemType}>

@@ -1,10 +1,26 @@
 import { formatDate } from '../../utils/dateUtils';
 
+export interface CallSheetSettings {
+  callSheetDate?: string;
+  callSheetCallTime?: string;
+  callSheetWrapTime?: string;
+  callSheetCrewNotes?: string;
+  directorName?: string;
+  productionCompany?: string;
+  shootDayData?: {
+    day_type?: string;
+    week_number?: number | string;
+    production_phase?: string;
+    title?: string;
+    weather_forecast?: string;
+  };
+}
+
 export interface CallSheetPageProps {
   scenarioTitle?: string;
   scenes?: any[];
   characters?: any[];
-  settings?: Record<string, any>;
+  settings?: CallSheetSettings;
 }
 
 /**
@@ -32,7 +48,9 @@ export default function CallSheetPage({
   scenes.forEach(scene => {
     try {
       const ids = JSON.parse(scene.present_characters || '[]');
-      ids.forEach((id: any) => presentCharIds.add(String(id)));
+      if (Array.isArray(ids)) {
+        ids.forEach(id => presentCharIds.add(String(id)));
+      }
     } catch (e) {
       console.warn('Failed to parse present_characters in CallSheetPage', e);
     }
@@ -41,7 +59,7 @@ export default function CallSheetPage({
   const presentChars = characters.filter(c => presentCharIds.has(String(c.id)));
 
   // Collect unique locations
-  const locationMap: Record<string, { name: string; type: string; sceneNumbers: (number | string)[] }> = {};
+  const locationMap: Record<string, { name: string; type: string; sceneNumbers: (string | number)[] }> = {};
   scenes.forEach(scene => {
     const locKey = scene.location_name || 'غير محدد';
     if (!locationMap[locKey]) {
@@ -106,67 +124,95 @@ export default function CallSheetPage({
           </div>
         </div>
 
-        <div className="border-t border-gray-300 pt-4 mb-6">
-          <h2 className="text-sm font-black text-gray-600 mb-2 uppercase tracking-wider">جدول مشاهد اليوم ({scenes.length} مشهد)</h2>
-          <table className="w-full text-xs text-right border-collapse">
+        <div className="h-[1px] bg-gray-300 w-full mb-4" />
+
+        {/* Scenes Table */}
+        <div className="mb-5">
+          <h2 className="text-sm font-black text-gray-700 mb-2 uppercase tracking-wider">المشاهد المطلوبة</h2>
+          <table className="w-full text-xs border-collapse">
             <thead>
-              <tr className="border-b-2 border-black bg-gray-100">
-                <th className="p-1.5 font-black">#</th>
-                <th className="p-1.5 font-black">العنوان</th>
-                <th className="p-1.5 font-black">المكان</th>
-                <th className="p-1.5 font-black">التوقيت</th>
-                <th className="p-1.5 font-black">الحالة</th>
+              <tr className="bg-gray-200">
+                <th className="border border-gray-300 px-2 py-1.5 text-right font-black">رقم</th>
+                <th className="border border-gray-300 px-2 py-1.5 text-right font-black">العنوان</th>
+                <th className="border border-gray-300 px-2 py-1.5 text-center font-black">INT/EXT</th>
+                <th className="border border-gray-300 px-2 py-1.5 text-right font-black">الموقع</th>
+                <th className="border border-gray-300 px-2 py-1.5 text-center font-black">الوقت</th>
+                <th className="border border-gray-300 px-2 py-1.5 text-center font-black">الحالة</th>
               </tr>
             </thead>
             <tbody>
-              {scenes.map((s, idx) => (
-                <tr key={s.id || idx} className="border-b border-gray-200">
-                  <td className="p-1.5 font-bold">{s.scene_number}</td>
-                  <td className="p-1.5">{s.title || '—'}</td>
-                  <td className="p-1.5">{s.location_type || 'INT'} / {s.location_name || '—'}</td>
-                  <td className="p-1.5">{s.time_of_day || 'DAY'}</td>
-                  <td className="p-1.5">{s.status || 'DRAFT'}</td>
+              {scenes.map((scene, i) => (
+                <tr key={scene.id || i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                  <td className="border border-gray-300 px-2 py-1.5 text-center font-black">{scene.scene_number}</td>
+                  <td className="border border-gray-300 px-2 py-1.5 font-bold">{scene.title || '—'}</td>
+                  <td className="border border-gray-300 px-2 py-1.5 text-center font-bold uppercase">{scene.location_type}</td>
+                  <td className="border border-gray-300 px-2 py-1.5 font-medium">{scene.location_name || '—'}</td>
+                  <td className="border border-gray-300 px-2 py-1.5 text-center font-medium">{scene.time_of_day}</td>
+                  <td className="border border-gray-300 px-2 py-1.5 text-center font-bold uppercase text-[10px]">{scene.status || 'DRAFT'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        <div className="grid grid-cols-2 gap-6 mb-6">
-          <div>
-            <h2 className="text-sm font-black text-gray-600 mb-2 uppercase tracking-wider">الشخصيات المطلوبة ({presentChars.length})</h2>
-            <div className="space-y-1 text-xs">
-              {presentChars.map(c => (
-                <div key={c.id} className="flex justify-between border-b border-gray-100 py-1">
-                  <span className="font-bold">{c.name}</span>
-                  <span className="text-gray-500">{c.role || 'ممثل'}</span>
+        {/* Locations */}
+        {locations.length > 0 && (
+          <div className="mb-5">
+            <h2 className="text-sm font-black text-gray-700 mb-2 uppercase tracking-wider">المواقع</h2>
+            <div className="flex flex-wrap gap-2">
+              {locations.map((loc, i) => (
+                <div key={i} className="bg-white border border-gray-300 rounded px-3 py-1.5 text-xs flex items-center gap-2">
+                  <span className="font-black">{loc.type}</span>
+                  <span className="font-bold">{loc.name}</span>
+                  <span className="text-gray-400 font-medium">(مشهد {loc.sceneNumbers.join(', ')})</span>
                 </div>
               ))}
-              {presentChars.length === 0 && <div className="text-gray-400 italic">لا توجد شخصيات محددة</div>}
             </div>
-          </div>
-
-          <div>
-            <h2 className="text-sm font-black text-gray-600 mb-2 uppercase tracking-wider">مواقع التصوير</h2>
-            <div className="space-y-1 text-xs">
-              {locations.map((loc, idx) => (
-                <div key={idx} className="border-b border-gray-100 py-1">
-                  <div className="font-bold">{loc.type} / {loc.name}</div>
-                  <div className="text-gray-400 text-[10px]">المشاهد: {loc.sceneNumbers.join(', ')}</div>
-                </div>
-              ))}
-              {locations.length === 0 && <div className="text-gray-400 italic">لا توجد أماكن محددة</div>}
-            </div>
-          </div>
-        </div>
-
-        {callSheetCrewNotes && (
-          <div className="border-t border-gray-300 pt-3">
-            <h2 className="text-xs font-black text-gray-600 mb-1">ملاحظات الطاقم والتعليمات:</h2>
-            <p className="text-xs text-gray-700 whitespace-pre-wrap">{callSheetCrewNotes}</p>
           </div>
         )}
 
+        {/* Cast */}
+        {presentChars.length > 0 && (
+          <div className="mb-5">
+            <h2 className="text-sm font-black text-gray-700 mb-2 uppercase tracking-wider">الممثلون المطلوبون</h2>
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="bg-gray-200">
+                  <th className="border border-gray-300 px-2 py-1.5 text-center font-black w-8">#</th>
+                  <th className="border border-gray-300 px-2 py-1.5 text-right font-black">اسم الشخصية</th>
+                  <th className="border border-gray-300 px-2 py-1.5 text-right font-black">الدور</th>
+                  <th className="border border-gray-300 px-2 py-1.5 text-center font-black">ساعة الحضور</th>
+                </tr>
+              </thead>
+              <tbody>
+                {presentChars.map((char, i) => (
+                  <tr key={char.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                    <td className="border border-gray-300 px-2 py-1.5 text-center font-bold">{i + 1}</td>
+                    <td className="border border-gray-300 px-2 py-1.5 font-black">{char.name}</td>
+                    <td className="border border-gray-300 px-2 py-1.5 font-medium">{char.role || '—'}</td>
+                    <td className="border border-gray-300 px-2 py-1.5 text-center font-bold">{callSheetCallTime || '07:00'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* Crew Notes */}
+        {callSheetCrewNotes && (
+          <div className="mb-4">
+            <h2 className="text-sm font-black text-gray-700 mb-2 uppercase tracking-wider">ملاحظات للطاقم</h2>
+            <div className="bg-white border border-gray-300 rounded p-3 text-xs font-medium whitespace-pre-wrap leading-relaxed">
+              {callSheetCrewNotes}
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="mt-auto pt-4 border-t border-gray-300 flex items-center justify-between text-[10px] text-gray-400">
+          <span>SCRIPTFLOW PRO — CALL SHEET</span>
+          <span>{formattedDate}</span>
+        </div>
       </div>
     </div>
   );

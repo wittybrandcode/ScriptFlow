@@ -1,0 +1,31 @@
+import React from 'react';
+
+export interface StatCardProps {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  label: string;
+  value: string | number;
+  color?: string;
+  lightBg?: string;
+  textColor?: string;
+}
+
+/**
+ * StatCard component for dashboard metrics display.
+ */
+export default function StatCard({ 
+  icon: Icon, 
+  label, 
+  value, 
+  lightBg = 'bg-primary/10', 
+  textColor = 'text-primary' 
+}: StatCardProps): React.JSX.Element {
+  return (
+    <div className="bg-card border border-border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all">
+      <div className={`w-12 h-12 rounded-xl ${lightBg} flex items-center justify-center mb-4`}>
+        <Icon size={24} className={textColor} />
+      </div>
+      <div className="text-2xl font-black text-foreground tabular-nums">{value}</div>
+      <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-1">{label}</div>
+    </div>
+  );
+}
