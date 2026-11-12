@@ -8,7 +8,7 @@ on:
 
 jobs:
   quality-gates:
-    name: Type Check & Tests
+    name: Build, Type Check & Test Pipeline
     runs-on: ubuntu-latest
 
     strategy:
@@ -25,11 +25,35 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      - name: Install Dependencies
+      - name: Install Linux GUI & WebKit Dependencies (Tauri Linux Support)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf libjavascriptcoregtk-4.1-dev libsoup-3.0-dev
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust Build Artifacts
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+
+      - name: Install Node Dependencies
         run: npm ci
 
-      - name: TypeScript Type Check
-        run: npx tsc --noEmit --project apps/desktop/tsconfig.json
+      - name: Build All Monorepo Packages
+        run: npm run build
 
-      - name: Run Test Suite
-        run: npm run test
+      - name: TypeScript Type Check (Core, DB, App, Nasab, Desktop)
+        run: |
+          npx tsc --noEmit --project packages/core/tsconfig.json
+          npx tsc --noEmit --project packages/database/tsconfig.json
+          npx tsc --noEmit --project packages/application/tsconfig.json
+          npx tsc --noEmit --project packages/nasab/tsconfig.json
+          npx tsc --noEmit --project apps/desktop/tsconfig.json
+
+      - name: Run Workspace Tests
+        run: npm test --workspaces --if-present
+
+      - name: Cargo Check Tauri Backend
+        run: cargo check --manifest-path apps/desktop/src-tauri/Cargo.toml

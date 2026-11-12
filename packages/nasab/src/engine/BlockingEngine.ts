@@ -31,11 +31,11 @@ export class BlockingEngine {
       ['FULL_BROTHER', 'FULL_SISTER', 'AGNATIC_BROTHER', 'AGNATIC_SISTER', 'UTERINE_BROTHER', 'UTERINE_SISTER', 'FULL_BROTHER_SON', 'AGNATIC_BROTHER_SON', 'FULL_UNCLE', 'AGNATIC_UNCLE'].forEach(t => blockTarget(t, blockerId));
     }
 
-    // Rule 3: Father blocks Grandfather, All Brothers/Sisters, All Nephews, All Uncles
+    // Rule 3: Father blocks Grandfather, Paternal Grandmother, All Brothers/Sisters, All Nephews, All Uncles
     const fathers = getByType('FATHER');
     if (fathers.length > 0) {
       const blockerId = fathers[0].id;
-      ['GRANDFATHER', 'FULL_BROTHER', 'FULL_SISTER', 'AGNATIC_BROTHER', 'AGNATIC_SISTER', 'UTERINE_BROTHER', 'UTERINE_SISTER', 'FULL_BROTHER_SON', 'AGNATIC_BROTHER_SON', 'FULL_UNCLE', 'AGNATIC_UNCLE'].forEach(t => blockTarget(t, blockerId));
+      ['GRANDFATHER', 'GRANDMOTHER_P', 'FULL_BROTHER', 'FULL_SISTER', 'AGNATIC_BROTHER', 'AGNATIC_SISTER', 'UTERINE_BROTHER', 'UTERINE_SISTER', 'FULL_BROTHER_SON', 'AGNATIC_BROTHER_SON', 'FULL_UNCLE', 'AGNATIC_UNCLE'].forEach(t => blockTarget(t, blockerId));
     }
 
     // Rule 4: Mother blocks All Grandmothers

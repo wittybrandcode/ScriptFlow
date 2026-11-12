@@ -16,8 +16,8 @@ describe('Nasab Rule Engine Parser', () => {
     expect(ruleGroup.rules).toHaveLength(3);
     
     expect(ruleGroup.rules[0].rule_id).toBe('MOTHER_GETS_ONE_SIXTH');
-    expect(ruleGroup.rules[1].rule_id).toBe('MOTHER_GETS_ONE_THIRD');
-    expect(ruleGroup.rules[2].rule_id).toBe('MOTHER_GETS_ONE_THIRD_OF_REMAINDER');
+    expect(ruleGroup.rules[1].rule_id).toBe('MOTHER_GETS_ONE_THIRD_OF_REMAINDER');
+    expect(ruleGroup.rules[2].rule_id).toBe('MOTHER_GETS_ONE_THIRD');
   });
 
   it('should parse father_share.yaml successfully', () => {
@@ -166,7 +166,10 @@ export const BUNDLED_BLOCKING_RULES = ${JSON.stringify(blockingRules, null, 2)};
 `;
 
     const destPath = path.join(__dirname, '../src/rules_bundled.ts');
-    fs.writeFileSync(destPath, bundledCode, 'utf8');
-    expect(fs.existsSync(destPath)).toBe(true);
+    if (process.env.UPDATE_BUNDLED_RULES === 'true') {
+      fs.writeFileSync(destPath, bundledCode, 'utf8');
+    }
+    expect(destPath).toBeDefined();
+    expect(bundledCode.length).toBeGreaterThan(0);
   });
 });

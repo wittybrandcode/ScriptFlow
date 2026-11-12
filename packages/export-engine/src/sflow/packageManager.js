@@ -60,8 +60,9 @@ export async function exportPackage(data, fileName = 'Project.sflow') {
   // and completely removes the dangerous offline CDN dependency.
   await new Promise(resolve => setTimeout(resolve, 10)); // Yield event loop
   
+  const outputType = (typeof window !== 'undefined' && typeof Blob !== 'undefined') ? 'blob' : 'nodebuffer';
   const blob = await zip.generateAsync({
-    type: 'blob',
+    type: outputType,
     compression: 'DEFLATE',
     compressionOptions: { level: 6 }
   });
@@ -84,15 +85,19 @@ export async function parsePackage(file) {
     throw new Error('الملف لا يحتوي على project.json. قد لا يكون حزمة ScriptFlow صالحة.');
   }
 
-  const jsonString = await projectFile.async('string');
-  const data = JSON.parse(jsonString);
+  let data;
+  try {
+    data = JSON.parse(jsonString);
+  } catch (e) {
+    throw new Error('فشل قراءة محتوى project.json: تنسيق JSON غير صالح.');
+  }
 
   // Structural Schema Validation
   if (!data || typeof data !== 'object') {
     throw new Error('محتوى project.json غير صالح: يجب أن يكون كائناً مجسماً.');
   }
 
-  if (data.scenario && typeof data.scenario !== 'object') {
+  if (!data.scenario || typeof data.scenario !== 'object') {
     throw new Error('بيانات السيناريو الرئيسية في project.json غير صالحة.');
   }
 
@@ -141,12 +146,16 @@ function processReferenceImages(obj, field, prefix, mediaFolder) {
 
     const processed = images.map((img, idx) => {
       if (img && typeof img === 'string' && img.startsWith('data:')) {
-        const mimeMatch = img.match(/data:([a-zA-Z0-9]+\/[a-zA-Z0-9\-.+]+).*,/);
+        const commaIdx = img.indexOf(',');
+        if (commaIdx === -1) return img;
+        const header = img.slice(0, commaIdx);
+        const base64Data = img.slice(commaIdx + 1);
+
+        const mimeMatch = header.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9\-.+]+)/);
         const mime = mimeMatch ? mimeMatch[1] : 'image/png';
         let ext = mime.split('/')[1] || 'png';
         if (ext === 'jpeg') ext = 'jpg';
 
-        const base64Data = img.split(',')[1];
         const filename = `${prefix}_${obj.id}_ref${idx}.${ext}`;
         mediaFolder.file(filename, base64Data, { base64: true });
         return { path: `media/${filename}`, mime };

@@ -91,11 +91,36 @@ export const transformMarriages = (nodes: any[], edges: any[]): TransformResult 
     }
   });
 
+  // Index parents of each child to resolve exact marriage node in case of multiple marriages
+  const parentsOfChild: Record<string, string[]> = {};
+  edges.forEach((edge: any) => {
+    if (isParentChildEdge(edge)) {
+      const childId = edge.target;
+      const parentId = edge.source;
+      if (!parentsOfChild[childId]) parentsOfChild[childId] = [];
+      if (!parentsOfChild[childId].includes(parentId)) {
+        parentsOfChild[childId].push(parentId);
+      }
+    }
+  });
+
   // ━━━ Pass 2: Rewire parent→child edges to originate from marriage node ━━━
   const rewiredEdges = newEdges.map((edge: any) => {
     if (isParentChildEdge(edge)) {
       const parentId = edge.source;
-      const mId = spouseOf[parentId];
+      const childId = edge.target;
+      const parents = parentsOfChild[childId] || [];
+      const otherParent = parents.find(p => p !== parentId);
+
+      let mId: string | undefined;
+      if (otherParent) {
+        const sortedPair = [parentId, otherParent].sort();
+        const key = `${sortedPair[0]}-${sortedPair[1]}`;
+        mId = marriageMap[key];
+      }
+      if (!mId) {
+        mId = spouseOf[parentId];
+      }
       
       if (mId) {
         // This parent has a marriage node — rewire child to come from marriage center

@@ -22,8 +22,44 @@ export function useRelationshipActions(
     if (!p1 || !p2 || !rType || !scenarioId) return false;
 
     try {
-      const { CharacterRelationshipRepository } = await import('@scriptflow/database');
+      const { CharacterRelationshipRepository, CharacterRepository } = await import('@scriptflow/database');
       const relRepo = new CharacterRelationshipRepository();
+      const charRepo = new CharacterRepository();
+
+      // Check KinshipValidator if not bypassing
+      if (!isBypass) {
+        try {
+          const { KinshipValidator } = await import('nasab');
+          const dbNodes = await charRepo.getByScenarioId(scenarioId);
+          const dbEdges = await relRepo.getByScenarioId(scenarioId);
+          const nasabNodes = dbNodes.map(n => ({
+            id: String(n.id),
+            name: n.name,
+            gender: n.gender?.toUpperCase() === 'FEMALE' ? 'FEMALE' : 'MALE',
+            birthDate: n.birth_date,
+            deathDate: n.death_date,
+            isDeceased: Boolean(n.is_deceased)
+          }));
+          const nasabEdges = dbEdges.map(e => ({
+            sourceId: String(e.character_id),
+            targetId: String(e.partner_id),
+            type: e.relationship_type as any
+          }));
+          const valRes = KinshipValidator.validate(String(p1), String(p2), rType as any, nasabNodes as any, nasabEdges as any, 'DRAMATIC');
+          if (valRes.status === 'ERROR') {
+            setErrorModalMessage({
+              message: valRes.error?.message || 'علاقة بيولوجية مستحيلة أو متعارضة مع شجرة النسب.',
+              partner1: p1,
+              partner2: p2,
+              relType: rType
+            });
+            return false;
+          }
+        } catch (valErr) {
+          console.warn('Kinship validation check bypassed due to error:', valErr);
+        }
+      }
+
       await relRepo.insert({
         id: generateId('rel'),
         scenario_id: scenarioId,
@@ -32,6 +68,13 @@ export function useRelationshipActions(
         relationship_type: rType,
         relationship_category: 'BIOLOGICAL'
       });
+
+      // Synchronize father_id / mother_id on character
+      if (rType === 'PARENT_MALE' || rType === 'FATHER') {
+        await charRepo.update(String(p2), { father_id: String(p1) as any });
+      } else if (rType === 'PARENT_FEMALE' || rType === 'MOTHER') {
+        await charRepo.update(String(p2), { mother_id: String(p1) as any });
+      }
 
       if (isBypass) setErrorModalMessage(null);
       await loadGraph();

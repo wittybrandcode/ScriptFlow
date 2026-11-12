@@ -18,10 +18,9 @@ export function useCreateProductionTaskMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: Partial<ProductionTask> & { id: string }) => repo.insert(data),
-    onSuccess: (_, variables) => {
-      if (variables.scenario_id) {
-        queryClient.invalidateQueries({ queryKey: ['production_tasks', variables.scenario_id] });
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['production_tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['scene_tasks'] });
     },
   });
 }
@@ -30,10 +29,9 @@ export function useUpdateProductionTaskMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<ProductionTask> }) => repo.update(id, data),
-    onSuccess: (_, variables) => {
-      if (variables.data.scenario_id) {
-        queryClient.invalidateQueries({ queryKey: ['production_tasks', variables.data.scenario_id] });
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['production_tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['scene_tasks'] });
     },
   });
 }
@@ -43,8 +41,8 @@ export function useDeleteProductionTaskMutation() {
   return useMutation({
     mutationFn: (id: string) => repo.delete(id),
     onSuccess: () => {
-      // Invalidate all tasks queries since we don't know the scenarioId here
       queryClient.invalidateQueries({ queryKey: ['production_tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['scene_tasks'] });
     },
   });
 }

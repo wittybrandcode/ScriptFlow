@@ -13,10 +13,11 @@ function getMimeType(fileName: string): string {
 }
 
 function uint8ArrayToBase64(uint8: Uint8Array): string {
+  const CHUNK_SIZE = 0x8000; // 32KB chunks to prevent call-stack overflow and main thread freezing
   let binary = '';
-  const len = uint8.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(uint8[i]);
+  for (let i = 0; i < uint8.length; i += CHUNK_SIZE) {
+    const chunk = uint8.subarray(i, i + CHUNK_SIZE);
+    binary += String.fromCharCode.apply(null, chunk as unknown as number[]);
   }
   return btoa(binary);
 }
@@ -62,6 +63,52 @@ async function prepareDataForExport(data: any): Promise<any> {
               item[field] = `data:${getMimeType(fileName)};base64,${base64}`;
             }
           }
+
+          // Handle character reference_images
+          if (entity === 'characters' && item.reference_images) {
+            try {
+              const refImgs = typeof item.reference_images === 'string'
+                ? JSON.parse(item.reference_images)
+                : item.reference_images;
+              if (Array.isArray(refImgs)) {
+                const converted: string[] = [];
+                for (const refUri of refImgs) {
+                  if (typeof refUri === 'string' && refUri.startsWith('project-media://')) {
+                    const absPath = getAbsoluteFilePath(refUri);
+                    if (absPath && await exists(absPath)) {
+                      const bytes = await readFile(absPath);
+                      const base64 = uint8ArrayToBase64(bytes);
+                      const fn = refUri.split('/').pop() || 'ref.png';
+                      converted.push(`data:${getMimeType(fn)};base64,${base64}`);
+                      continue;
+                    }
+                  }
+                  converted.push(refUri);
+                }
+                item.reference_images = typeof item.reference_images === 'string' ? JSON.stringify(converted) : converted;
+              }
+            } catch (e) {
+              console.warn('Failed to convert character reference_images for export', e);
+            }
+          }
+        }
+      }
+    }
+
+    // Handle standalone location_images table if present
+    if (Array.isArray(cleanData.location_images)) {
+      for (const locImg of cleanData.location_images) {
+        const val = locImg.image_path || locImg.image_url;
+        if (val && typeof val === 'string' && val.startsWith('project-media://')) {
+          const absPath = getAbsoluteFilePath(val);
+          if (absPath && await exists(absPath)) {
+            const bytes = await readFile(absPath);
+            const base64 = uint8ArrayToBase64(bytes);
+            const fileName = val.split('/').pop() || 'loc.png';
+            const dataUri = `data:${getMimeType(fileName)};base64,${base64}`;
+            if (locImg.image_path) locImg.image_path = dataUri;
+            if (locImg.image_url) locImg.image_url = dataUri;
+          }
         }
       }
     }
@@ -83,13 +130,17 @@ export const packageService = {
     const blob = result?.blob || result;
     const outFileName = result?.fileName || fileName;
     
-    // Download logic in the UI layer
+    // Download logic in the UI layer with safe deferred revocation
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = outFileName;
+    document.body.appendChild(a);
     a.click();
-    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+    }, 15000);
   },
 
   /**

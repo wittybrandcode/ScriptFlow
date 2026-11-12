@@ -89,7 +89,7 @@ export class GraphEngine {
   static calculateCOI(personId: string, edges: Relation[]): number {
     // تبسيط: حساب مسارات القرابة (Path Method by Sewall Wright)
     // نبحث عن الآباء مباشرة
-    const parents = edges.filter(e => {
+    const parentIdsRaw = edges.filter(e => {
         const type = normalizeType(e.type);
         return (e.targetId === personId && (type === RelationType.PARENT_MALE || type === RelationType.PARENT_FEMALE)) ||
                (e.sourceId === personId && (type === RelationType.CHILD_MALE || type === RelationType.CHILD_FEMALE));
@@ -98,6 +98,7 @@ export class GraphEngine {
         return type === RelationType.PARENT_MALE || type === RelationType.PARENT_FEMALE ? e.sourceId : e.targetId;
     });
 
+    const parents = Array.from(new Set(parentIdsRaw));
     if (parents.length !== 2) return 0; // إذا لم يُعرف الوالدان فلا يوجد COI محسوب
 
     const [fatherId, motherId] = parents;

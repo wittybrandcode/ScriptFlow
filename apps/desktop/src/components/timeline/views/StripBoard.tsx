@@ -193,7 +193,7 @@ function DayStripGroup({
         scenario,
         scenes: day.scenes,
         characters,
-        episodes: []
+        episodes: episodes || []
       }, {
         exportType: 'CALL_SHEET',
         exportSettings: {

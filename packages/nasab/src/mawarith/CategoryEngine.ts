@@ -49,15 +49,47 @@ export class CategoryEngine {
     const maternalBrothers = getRelatives([RelationType.SIBLING_MATERNAL_MALE]);
     const maternalSisters = getRelatives([RelationType.SIBLING_MATERNAL_FEMALE]);
     
-    const grandsons = getRelatives([RelationType.GRANDCHILD_MALE]); 
-    const granddaughters = getRelatives([RelationType.GRANDCHILD_FEMALE]);
-    const grandfathers = getRelatives([RelationType.GRANDPARENT_MALE]); 
+    const allGrandsons = getRelatives([RelationType.GRANDCHILD_MALE]); 
+    const allGranddaughters = getRelatives([RelationType.GRANDCHILD_FEMALE]);
+    const allGrandfathers = getRelatives([RelationType.GRANDPARENT_MALE]); 
     const grandmothers = getRelatives([RelationType.GRANDPARENT_FEMALE]);
+
+    // عزل أولاد البنات عن فروع البنين (أولاد البنات من ذوي الأرحام لا يرثون بالفرض أو التعصيب)
+    const daughterIds = new Set(daughters.map(d => d.id));
+    const sonIds = new Set(sons.map(s => s.id));
+    const uterineGrandchildIds = new Set<string>();
+
+    for (const e of allEdges) {
+      if (daughterIds.has(e.targetId) && (e.type === RelationType.CHILD_MALE || e.type === RelationType.CHILD_FEMALE)) {
+        uterineGrandchildIds.add(e.sourceId);
+      }
+      if (daughterIds.has(e.sourceId) && (e.type === RelationType.PARENT_MALE || e.type === RelationType.PARENT_FEMALE)) {
+        uterineGrandchildIds.add(e.targetId);
+      }
+    }
+
+    const grandsons = allGrandsons.filter(g => !uterineGrandchildIds.has(g.id));
+    const granddaughters = allGranddaughters.filter(g => !uterineGrandchildIds.has(g.id));
+    const uterineGrandchildren = [...allGrandsons, ...allGranddaughters].filter(g => uterineGrandchildIds.has(g.id));
+
+    // عزل الجد لأم (أبو الأم) عن الجد الصحيح (أبو الأب)
+    const motherIds = new Set(mothers.map(m => m.id));
+    const uterineGrandfatherIds = new Set<string>();
+    for (const e of allEdges) {
+      if (motherIds.has(e.targetId) && e.type === RelationType.PARENT_MALE) {
+        uterineGrandfatherIds.add(e.sourceId);
+      }
+    }
+    const grandfathers = allGrandfathers.filter(g => !uterineGrandfatherIds.has(g.id));
+    const uterineGrandfathers = allGrandfathers.filter(g => uterineGrandfatherIds.has(g.id));
     
-    const uncles = getRelatives([RelationType.UNCLE_PATERNAL_MALE, RelationType.UNCLE_MATERNAL_MALE]);
-    const aunts = getRelatives([RelationType.UNCLE_PATERNAL_FEMALE, RelationType.UNCLE_MATERNAL_FEMALE]);
-    const nephews = getRelatives([RelationType.NEPHEW_PATERNAL_MALE, RelationType.NEPHEW_MATERNAL_MALE]);
-    const nieces = getRelatives([RelationType.NEPHEW_PATERNAL_FEMALE, RelationType.NEPHEW_MATERNAL_FEMALE]);
+    // الأعمام وبنو الإخوة: العصبة بالنفس هم الأشقاء ولأب فقط، أما الأخوال وبنو الأخوات فذوو أرحام
+    const uncles = getRelatives([RelationType.UNCLE_FULL_MALE, RelationType.UNCLE_PATERNAL_MALE]);
+    const maternalUncles = getRelatives([RelationType.UNCLE_MATERNAL_MALE]);
+    const aunts = getRelatives([RelationType.UNCLE_FULL_FEMALE, RelationType.UNCLE_PATERNAL_FEMALE, RelationType.UNCLE_MATERNAL_FEMALE]);
+    const nephews = getRelatives([RelationType.NEPHEW_FULL_MALE, RelationType.NEPHEW_PATERNAL_MALE]);
+    const maternalNephews = getRelatives([RelationType.NEPHEW_MATERNAL_MALE]);
+    const nieces = getRelatives([RelationType.NEPHEW_FULL_FEMALE, RelationType.NEPHEW_PATERNAL_FEMALE, RelationType.NEPHEW_MATERNAL_FEMALE]);
 
     const hasMaleDescendant = sons.length > 0 || grandsons.length > 0;
     const hasFemaleDescendant = daughters.length > 0 || granddaughters.length > 0;
@@ -75,7 +107,8 @@ export class CategoryEngine {
       relatives: {
         spouses, fathers, mothers, sons, daughters, fullBrothers, fullSisters,
         paternalBrothers, paternalSisters, maternalBrothers, maternalSisters,
-        grandsons, granddaughters, grandfathers, grandmothers, uncles, aunts, nephews, nieces
+        grandsons, granddaughters, grandfathers, grandmothers, uncles, aunts, nephews, nieces,
+        maternalUncles, maternalNephews, uterineGrandchildren, uterineGrandfathers
       },
       heirs: [],
       fardShares: new Map(),

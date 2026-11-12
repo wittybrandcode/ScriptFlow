@@ -8,6 +8,7 @@ import BoldExtension from '@tiptap/extension-bold';
 import ItalicExtension from '@tiptap/extension-italic';
 import Underline from '@tiptap/extension-underline';
 import Highlight from '@tiptap/extension-highlight';
+import { HistoryExtension } from './extensions/HistoryExtension';
 import { ChevronDown } from 'lucide-react';
 
 import { ActionNode } from './extensions/ActionNode';
@@ -135,6 +136,7 @@ export default function PaperEditor({
           class: 'bg-yellow-200/90 text-yellow-950',
         },
       }),
+      HistoryExtension,
       ActionNode,
       CharacterNode,
       DialogueNode,

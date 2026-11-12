@@ -4,19 +4,30 @@ export type Theme = 'light' | 'dark';
 
 export function useTheme() {
   const [theme, setTheme] = useState<Theme>(() => {
-    // Check localStorage or system preference
-    const savedTheme = localStorage.getItem('scriptflow-theme') as Theme | null;
+    // Default to clean studio light theme unless explicitly chosen by user
+    const savedTheme = localStorage.getItem('scriptflow-theme-v2') as Theme | null;
     if (savedTheme === 'light' || savedTheme === 'dark') {
       return savedTheme;
     }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    // Clean up any stale forced dark mode from previous sessions
+    try {
+      localStorage.removeItem('scriptflow-theme');
+      localStorage.setItem('scriptflow-theme-v2', 'light');
+    } catch {
+      // Ignore storage errors in non-browser environments
+    }
+    return 'light';
   });
 
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
-    localStorage.setItem('scriptflow-theme', theme);
+    try {
+      localStorage.setItem('scriptflow-theme-v2', theme);
+    } catch {
+      // Ignore storage errors
+    }
   }, [theme]);
 
   const toggleTheme = () => {

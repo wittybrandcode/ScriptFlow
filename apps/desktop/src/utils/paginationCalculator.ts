@@ -16,9 +16,24 @@ const scenarioRepo = new ScenarioRepository();
 const blockRepo = new ScriptBlockRepository();
 const characterRepo = new CharacterRepository();
 
+const inFlightPaginationUpdates = new Map<string, Promise<void>>();
+
 export async function updateScenarioPageNumbering(scenarioId: string): Promise<void> {
   if (!scenarioId) return;
 
+  const existing = inFlightPaginationUpdates.get(scenarioId);
+  if (existing) {
+    return existing;
+  }
+
+  const promise = doUpdateScenarioPageNumbering(scenarioId).finally(() => {
+    inFlightPaginationUpdates.delete(scenarioId);
+  });
+  inFlightPaginationUpdates.set(scenarioId, promise);
+  return promise;
+}
+
+async function doUpdateScenarioPageNumbering(scenarioId: string): Promise<void> {
   try {
     // 1. Fetch scenario settings
     const scenario = await scenarioRepo.findById(scenarioId);

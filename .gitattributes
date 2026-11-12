@@ -1,2 +1,26 @@
+# Auto detect text files and perform LF normalization on checkout
+* text=auto eol=lf
+
 # Ensure all migration SQL files maintain LF line endings to preserve SHA-384 sqlx checksums
 *.sql text eol=lf
+
+# Windows-specific scripts keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.sqlite binary
+*.db binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary

@@ -1,4 +1,4 @@
-import { dbSelect, dbExecute, TransactionContext } from './client.js';
+import { dbSelect, dbExecute, withTransaction, TransactionContext } from './client.js';
 
 /**
  * BaseRepository defines the standard CRUD operations
@@ -18,14 +18,15 @@ export abstract class BaseRepository<T extends { id: string }> {
   protected readonly allowedColumns: string[] | null = null;
 
   /**
-   * فلترة الحقول المدخلة مقابل القائمة المسموح بها.
-   * يزيل أي حقل غير موجود في الجدول فعلياً لمنع أخطاء SQL.
+   * فلترة الحقول المدخلة مقابل القائمة المسموح بها، والتحقق الصارم من صحة المعرّف.
    */
   private sanitizeEntries(entries: [string, any][]): [string, any][] {
+    const validIdPattern = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+    const safeEntries = entries.filter(([key]) => validIdPattern.test(key));
     if (!this.allowedColumns || this.allowedColumns.length === 0) {
-      return entries;
+      return safeEntries;
     }
-    return entries.filter(([key]) => this.allowedColumns!.includes(key));
+    return safeEntries.filter(([key]) => this.allowedColumns!.includes(key));
   }
 
   // ── READ ──────────────────────────────────────────
@@ -43,6 +44,9 @@ export abstract class BaseRepository<T extends { id: string }> {
    * Find multiple records by matching a specific column.
    */
   async findAllBy(column: string, value: any, tx?: TransactionContext): Promise<T[]> {
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(column)) {
+      throw new Error(`Invalid column identifier: ${column}`);
+    }
     const query = `SELECT * FROM ${this.tableName} WHERE ${column} = $1`;
     return tx ? await tx.select<T>(query, [value]) : await dbSelect<T>(query, [value]);
   }
@@ -51,6 +55,9 @@ export abstract class BaseRepository<T extends { id: string }> {
    * Find active (non-deleted) records by a specific column, ordered.
    */
   async findActiveBy(column: string, value: any, orderBy: string = 'created_at DESC', tx?: TransactionContext): Promise<T[]> {
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(column)) {
+      throw new Error(`Invalid column identifier: ${column}`);
+    }
     const query = `SELECT * FROM ${this.tableName} WHERE ${column} = $1 AND deleted_at IS NULL ORDER BY ${orderBy}`;
     return tx ? await tx.select<T>(query, [value]) : await dbSelect<T>(query, [value]);
   }
@@ -76,7 +83,6 @@ export abstract class BaseRepository<T extends { id: string }> {
   /**
    * Generic insert. Accepts a partial record with at least an `id`.
    * Dynamically builds the INSERT query from the object's keys.
-   * الحقول تُفلتر تلقائياً مقابل allowedColumns إن كانت معرّفة.
    */
   async insert(record: Partial<T> & { id: string }, tx?: TransactionContext): Promise<void> {
     const rawEntries = Object.entries(record).filter(([_, v]) => v !== undefined);
@@ -97,25 +103,28 @@ export abstract class BaseRepository<T extends { id: string }> {
 
   /**
    * Bulk insert multiple records inside a single transaction.
-   * This is much more efficient than separate inserts.
    */
-  async bulkInsert(records: Array<Partial<T> & { id: string }>): Promise<void> {
+  async bulkInsert(records: Array<Partial<T> & { id: string }>, tx?: TransactionContext): Promise<void> {
     if (!records || records.length === 0) return;
     
-    const { withTransaction } = await import('./client.js');
-    await withTransaction(async (tx) => {
+    if (tx) {
       for (const record of records) {
         await this.insert(record, tx);
       }
-    });
+    } else {
+      await withTransaction(async (innerTx) => {
+        for (const record of records) {
+          await this.insert(record, innerTx);
+        }
+      });
+    }
   }
 
   /**
    * Generic update. Accepts an ID and a partial record of fields to update.
-   * Dynamically builds the UPDATE SET clause.
-   * الحقول تُفلتر تلقائياً مقابل allowedColumns إن كانت معرّفة.
+   * Supports optional optimistic locking if expectedVersion is provided.
    */
-  async update(id: string, fields: Partial<T>, tx?: TransactionContext): Promise<void> {
+  async update(id: string, fields: Partial<T>, tx?: TransactionContext, expectedVersion?: number): Promise<void> {
     const rawEntries = Object.entries(fields).filter(
       ([k, v]) => v !== undefined && k !== 'id'
     );
@@ -124,13 +133,19 @@ export abstract class BaseRepository<T extends { id: string }> {
 
     const setClauses = entries.map(([k], i) => `${k} = $${i + 1}`).join(', ');
     const values = entries.map(([_, v]) => v);
-    values.push(id); // last param
+    values.push(id); // param id
 
-    const query = `UPDATE ${this.tableName} SET ${setClauses} WHERE id = $${values.length}`;
-    if (tx) {
-      await tx.execute(query, values);
+    let query: string;
+    if (expectedVersion !== undefined) {
+      values.push(expectedVersion);
+      query = `UPDATE ${this.tableName} SET ${setClauses} WHERE id = $${values.length - 1} AND version = $${values.length}`;
     } else {
-      await dbExecute(query, values);
+      query = `UPDATE ${this.tableName} SET ${setClauses} WHERE id = $${values.length}`;
+    }
+
+    const result = tx ? await tx.execute(query, values) : await dbExecute(query, values);
+    if (expectedVersion !== undefined && result && result.rowsAffected === 0) {
+      throw new Error(`CONFLICT: Version mismatch or record not found for id ${id}`);
     }
   }
 
@@ -149,7 +164,22 @@ export abstract class BaseRepository<T extends { id: string }> {
   }
 
   /**
-   * Hard delete a record by ID.
+   * Soft delete all records matching a specific column.
+   */
+  async softDeleteAllBy(column: string, value: any, tx?: TransactionContext): Promise<void> {
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(column)) {
+      throw new Error(`Invalid column identifier: ${column}`);
+    }
+    const query = `UPDATE ${this.tableName} SET deleted_at = CURRENT_TIMESTAMP WHERE ${column} = $1`;
+    if (tx) {
+      await tx.execute(query, [value]);
+    } else {
+      await dbExecute(query, [value]);
+    }
+  }
+
+  /**
+   * Hard delete a record by ID (permanent removal).
    */
   async delete(id: string, tx?: TransactionContext): Promise<void> {
     const query = `DELETE FROM ${this.tableName} WHERE id = $1`;
@@ -161,9 +191,12 @@ export abstract class BaseRepository<T extends { id: string }> {
   }
 
   /**
-   * Hard delete all records matching a column value.
+   * Hard delete all records matching a specific column.
    */
   async deleteAllBy(column: string, value: any, tx?: TransactionContext): Promise<void> {
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(column)) {
+      throw new Error(`Invalid column identifier: ${column}`);
+    }
     const query = `DELETE FROM ${this.tableName} WHERE ${column} = $1`;
     if (tx) {
       await tx.execute(query, [value]);

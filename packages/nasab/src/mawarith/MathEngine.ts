@@ -21,12 +21,23 @@ export class MathEngine {
       fardFractions.set(id, new Fraction(val));
     });
 
-    // Handle multiple holders of same fard (e.g. 4 wives sharing 1/8)
-    // Group by relation to detect shared fards
+    // Handle multiple holders of same fard (e.g. 4 wives sharing 1/8, or maternal siblings sharing 1/3)
+    // Group by normalized relation to detect shared fards accurately
+    const normalizeRelationGroup = (rel: string): string => {
+      if (rel === 'أخ لأم' || rel === 'أخت لأم' || rel === 'إخوة لأم') return 'إخوة لأم';
+      if (rel === 'زوجة') return 'زوجات';
+      if (rel === 'ابنة') return 'بنات';
+      if (rel === 'حفيدة' || rel === 'حفيدة (بنت ابن)') return 'حفيدات';
+      if (rel === 'أخت شقيقة') return 'أخوات شقيقات';
+      if (rel === 'أخت لأب') return 'أخوات لأب';
+      if (rel === 'جدة') return 'جدات';
+      return rel;
+    };
+
     const relationGroups = new Map<string, { ids: string[]; fard: Fraction }>();
     ctx.heirs.forEach(h => {
       if (!h.isBlocked && fardFractions.has(h.person.id)) {
-        const key = h.relation;
+        const key = normalizeRelationGroup(h.relation);
         if (!relationGroups.has(key)) {
           relationGroups.set(key, { ids: [], fard: fardFractions.get(h.person.id)! });
         }

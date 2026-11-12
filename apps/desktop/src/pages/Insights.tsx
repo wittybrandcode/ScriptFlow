@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useUIStore } from '../store/useUIStore';
 import { useScenarioQuery, useScenarioStatsQuery } from '../hooks/queries/useScenarios';
 import { useEpisodesQuery } from '../hooks/queries/useEpisodes';
-import { useRemindersQuery } from '../hooks/queries/useScenes';
+import { useAllRemindersQuery } from '../hooks/queries/useScenes';
 import { 
   Users, CheckCircle2, ArrowLeft, MapPin, FileText, LayoutDashboard,
   Tv, Briefcase, CalendarDays, GitBranch, Bell, X, FileOutput, type LucideIcon
@@ -60,7 +60,7 @@ export default function Insights() {
   const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
 
   const { data: episodes = [] } = useEpisodesQuery(activeScenarioId || '');
-  const { data: rawNotesList = [], isLoading: isLoadingNotes } = useRemindersQuery(activeScenarioId || '');
+  const { data: rawNotesList = [], isLoading: isLoadingNotes } = useAllRemindersQuery(activeScenarioId || '');
   const notesList = rawNotesList as ReminderItem[];
 
   const { setTopBarConfig, setSidebarContext, clearSidebarContext, setSidebarExpanded } = useUIStore();

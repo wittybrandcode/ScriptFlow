@@ -47,7 +47,7 @@ export class MedicalPedigreeEngine {
                  ? memo.get(person.fatherId)!.get(condition.id)! 
                  : this.getFounderCopies(condition, 'MALE');
                  
-             copies = this.calculateChildCopies(momCopies, dadCopies, pattern(condition.inheritancePattern), person.gender);
+             copies = this.calculateChildCopies(momCopies, dadCopies, condition.inheritancePattern, person.gender);
           }
         }
         

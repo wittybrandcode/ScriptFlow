@@ -82,11 +82,11 @@ export class RuleEvaluator {
       case 'not_exists':
         return !context.exists(params);
       case 'count_greater_or_equal':
-        return context.count(params) >= (params.count || 1);
+        return context.count(params) >= (params.count ?? 1);
       case 'count_strictly_less':
-        return context.count(params) < (params.count || 1);
+        return context.count(params) < (params.count ?? 1);
       case 'count_equals':
-        return context.count(params) === (params.count || 1);
+        return context.count(params) === (params.count ?? 1);
       case 'node_has':
         return context.nodeHas(context.targetNodeId, params);
       default:

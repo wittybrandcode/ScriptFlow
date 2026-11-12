@@ -103,8 +103,12 @@ export class JSONExportStrategy implements IExportStrategy {
     const a = document.createElement('a');
     a.href = url;
     a.download = `${scenario?.title || 'scenario'}_export.json`;
+    document.body.appendChild(a);
     a.click();
-    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    setTimeout(() => {
+      window.URL.revokeObjectURL(url);
+    }, 15000);
     return true;
   }
 }

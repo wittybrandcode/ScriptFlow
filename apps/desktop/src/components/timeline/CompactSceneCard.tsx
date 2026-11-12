@@ -58,7 +58,7 @@ const CompactSceneCard = memo(function CompactSceneCard({
     let dur = scene.estimated_duration;
     if (!dur || dur <= 0) {
       if (scene.page_count) {
-        dur = scene.page_count * 60;
+        dur = Math.max(1, Math.round(scene.page_count));
       } else if (scene.line_count) {
         dur = Math.ceil(scene.line_count / 8);
       } else if (scene.content) {

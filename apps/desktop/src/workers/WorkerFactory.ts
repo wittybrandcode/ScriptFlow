@@ -9,29 +9,49 @@ class WorkerFactory {
     [key: string]: any;
   } = {};
 
+  private rawWorkers: {
+    export?: Worker;
+    stats?: Worker;
+    [key: string]: Worker | undefined;
+  } = {};
+
   getExportWorker(): Comlink.Remote<IExportWorker> {
     if (!this.workers.export) {
-      const worker = new Worker(new URL('./ExportWorker.ts', import.meta.url), { type: 'module' });
-      this.workers.export = Comlink.wrap<IExportWorker>(worker);
+      const rawWorker = new Worker(new URL('./ExportWorker.ts', import.meta.url), { type: 'module' });
+      this.rawWorkers.export = rawWorker;
+      this.workers.export = Comlink.wrap<IExportWorker>(rawWorker);
     }
     return this.workers.export;
   }
 
   getStatsWorker(): Comlink.Remote<IStatsWorker> {
     if (!this.workers.stats) {
-      const worker = new Worker(new URL('./StatsWorker.ts', import.meta.url), { type: 'module' });
-      this.workers.stats = Comlink.wrap<IStatsWorker>(worker);
+      const rawWorker = new Worker(new URL('./StatsWorker.ts', import.meta.url), { type: 'module' });
+      this.rawWorkers.stats = rawWorker;
+      this.workers.stats = Comlink.wrap<IStatsWorker>(rawWorker);
     }
     return this.workers.stats;
   }
 
   terminateAll(): void {
     Object.values(this.workers).forEach(w => {
-      if (w && w[Comlink.releaseProxy]) {
-        w[Comlink.releaseProxy]();
+      try {
+        if (w && w[Comlink.releaseProxy]) {
+          w[Comlink.releaseProxy]();
+        }
+      } catch (err) {
+        console.warn('Failed to release proxy', err);
+      }
+    });
+    Object.values(this.rawWorkers).forEach(rw => {
+      try {
+        rw?.terminate();
+      } catch (err) {
+        console.warn('Failed to terminate raw worker', err);
       }
     });
     this.workers = {};
+    this.rawWorkers = {};
   }
 }
 

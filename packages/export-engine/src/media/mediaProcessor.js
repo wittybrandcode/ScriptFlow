@@ -4,6 +4,8 @@
  * and restores them on import.
  */
 
+const SAFE_MIME = /^[a-zA-Z0-9]+\/[a-zA-Z0-9\-.+]+$/;
+
 /**
  * Extract a Base64 data URI from an object field, returning the binary data
  * and replacing the field with a relative media path.
@@ -14,19 +16,26 @@
  * @returns {{ filename: string, base64Data: string } | null} Extracted media or null
  */
 export function extractMedia(obj, field, prefix) {
-  if (!obj[field] || typeof obj[field] !== 'string' || !obj[field].startsWith('data:')) {
+  if (!obj || !obj[field] || typeof obj[field] !== 'string' || !obj[field].startsWith('data:')) {
     return null;
   }
 
   const dataUri = obj[field];
-  const mimeMatch = dataUri.match(/data:([a-zA-Z0-9]+\/[a-zA-Z0-9\-.+]+).*,/);
-  const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+  const commaIdx = dataUri.indexOf(',');
+  if (commaIdx === -1) {
+    return null;
+  }
+
+  const header = dataUri.slice(0, commaIdx);
+  const base64Data = dataUri.slice(commaIdx + 1);
+
+  const mimeMatch = header.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9\-.+]+)/);
+  const mime = mimeMatch && SAFE_MIME.test(mimeMatch[1]) ? mimeMatch[1] : 'application/octet-stream';
 
   let ext = mime.split('/')[1] || 'bin';
   if (ext.includes('+')) ext = ext.split('+')[0];
   if (ext === 'jpeg') ext = 'jpg';
 
-  const base64Data = dataUri.split(',')[1];
   const filename = `${prefix}_${obj.id || 'main'}.${ext}`;
 
   // Mutate the object: replace data URI with relative path
@@ -44,15 +53,19 @@ export function extractMedia(obj, field, prefix) {
  * @param {Function} readFileAsBase64 - Async function(path) => base64 string
  */
 export async function restoreMedia(obj, field, readFileAsBase64) {
+  if (!obj) return;
   const mediaPath = obj[field];
-  if (!mediaPath || typeof mediaPath !== 'string' || !mediaPath.startsWith('media/')) {
+  const mimeKey = `${field}_mime`;
+  const mime = obj[mimeKey] || 'application/octet-stream';
+  delete obj[mimeKey]; // Always delete temporary *_mime field to prevent SQL insertion failure
+
+  if (!mediaPath || typeof mediaPath !== 'string' || !mediaPath.startsWith('media/') || mediaPath.includes('..')) {
     return;
   }
 
   const base64Data = await readFileAsBase64(mediaPath);
   if (base64Data) {
-    const mime = obj[`${field}_mime`] || 'application/octet-stream';
-    obj[field] = `data:${mime};base64,${base64Data}`;
-    delete obj[`${field}_mime`];
+    const safeMime = SAFE_MIME.test(mime) ? mime : 'application/octet-stream';
+    obj[field] = `data:${safeMime};base64,${base64Data}`;
   }
 }

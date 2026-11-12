@@ -27,6 +27,11 @@ export class KinshipGraph {
     return this.nodes.get(id);
   }
 
+  /** الحصول على جميع العقد في الرسم البياني */
+  public getAllNodes(): Map<UUID, Person> {
+    return this.nodes;
+  }
+
   /** إضافة علاقة (حافة) بين شخصين */
   public addEdge(edge: KinshipEdge): void {
     if (!this.nodes.has(edge.sourceId)) {

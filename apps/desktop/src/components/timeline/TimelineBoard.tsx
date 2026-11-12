@@ -119,7 +119,7 @@ function ActiveDayColumn({
       let duration = s.estimated_duration;
       if (!duration || duration <= 0) {
         if (s.page_count) {
-          duration = s.page_count * 60; // 60 seconds per page
+          duration = Math.max(1, Math.round(s.page_count)); // 1 minute per page
         } else if (s.line_count) {
           duration = Math.ceil(s.line_count / 8); // 1 minute per 8 script lines
         } else if (s.content) {
@@ -321,8 +321,8 @@ function ActiveDayColumn({
                 <div className="p-2 flex flex-col gap-1.5">
                   {groupedByLocation[locName].map((scene: any) => (
                     <div key={scene.id} className="flex items-center gap-2 text-[11px] bg-secondary/20 p-2 rounded-lg border border-border/50">
-                      <span className={`px-1.5 py-0.5 rounded font-black leading-none text-[10px] ${scene.setting === 'INT' ? 'bg-amber-500/10 text-amber-600' : 'bg-blue-500/10 text-blue-600'}`}>
-                        {scene.setting || 'INT'}
+                      <span className={`px-1.5 py-0.5 rounded font-black leading-none text-[10px] ${(scene.location_type || scene.setting || 'INT').toUpperCase() === 'INT' ? 'bg-amber-500/10 text-amber-600' : 'bg-blue-500/10 text-blue-600'}`}>
+                        {(scene.location_type || scene.setting || 'INT').toUpperCase()}
                       </span>
                       <span className="font-bold truncate text-muted-foreground flex-1">
                         {scene.scene_number}. {scene.title || 'بدون عنوان'}

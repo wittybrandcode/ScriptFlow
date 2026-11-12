@@ -38,9 +38,12 @@ function buildTree(dirPath, prefix = '') {
     const fullPath = path.join(dirPath, item);
     let stat;
     try {
-      stat = fs.statSync(fullPath);
+      stat = fs.lstatSync(fullPath);
     } catch (e) {
       return false; // ignore broken symlinks or locked files
+    }
+    if (stat.isSymbolicLink()) {
+      return false; // ignore symlinks to prevent circular traversal
     }
     if (stat.isDirectory()) {
       return !IGNORE_DIRS.includes(item);
@@ -53,8 +56,10 @@ function buildTree(dirPath, prefix = '') {
   items.sort((a, b) => {
     const aPath = path.join(dirPath, a);
     const bPath = path.join(dirPath, b);
-    const aIsDir = fs.statSync(aPath).isDirectory();
-    const bIsDir = fs.statSync(bPath).isDirectory();
+    let aIsDir = false;
+    let bIsDir = false;
+    try { aIsDir = fs.lstatSync(aPath).isDirectory(); } catch (e) {}
+    try { bIsDir = fs.lstatSync(bPath).isDirectory(); } catch (e) {}
     if (aIsDir && !bIsDir) return -1;
     if (!aIsDir && bIsDir) return 1;
     return a.localeCompare(b);

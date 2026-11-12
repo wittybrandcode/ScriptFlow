@@ -4,6 +4,7 @@ import { dbSelect, withTransaction } from './client.js';
 
 export class ScriptBlockRepository extends BaseRepository<IScriptBlock> {
   protected readonly tableName = 'script_blocks';
+  protected readonly allowedColumns = ['id', 'scene_id', 'type', 'content', 'character_id', 'sort_order', 'notes', 'metadata', 'created_at'];
 
   async getBySceneId(sceneId: string): Promise<IScriptBlock[]> {
     return this.findAllBy('scene_id', sceneId);

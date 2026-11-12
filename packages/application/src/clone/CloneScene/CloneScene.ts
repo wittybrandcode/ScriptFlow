@@ -28,27 +28,32 @@ export class CloneScene {
         }
 
         const newSceneId = generateId('scn');
+        const { created_at: _ca, deleted_at: _da, ...restOriginal } = original as any;
         const clonedData = {
-          ...original,
+          ...restOriginal,
           id: newSceneId,
           title: `${original.title || ''} (${request.cloneType})`,
           episode_id: request.targetEpisodeId || null,
+          shoot_day_id: null,
+          planned_shoot_date: '',
+          shoot_order: null,
           source_scene_id: request.originalSceneId,
           clone_type: request.cloneType,
           status: 'DRAFT',
         };
 
-        await this.sceneRepo.insert(clonedData as any, tx);
+        await this.sceneRepo.insert(clonedData, tx);
 
         const blocks = await this.blockRepo.getSceneBlocks(request.originalSceneId);
         
         for (const block of blocks) {
+          const { character_name: _cn, ...cleanBlock } = block as any;
           const blockData = {
-            ...(block as any),
+            ...cleanBlock,
             id: generateId('blk'),
             scene_id: newSceneId,
           };
-          await this.blockRepo.insert(blockData as any, tx);
+          await this.blockRepo.insert(blockData, tx);
         }
 
         return Outcome.ok(clonedData);

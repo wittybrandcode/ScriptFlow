@@ -11,6 +11,19 @@ let isSanitizing = false;
 const isTauri = typeof window !== 'undefined' && !!(window as any).__TAURI_INTERNALS__;
 
 /**
+ * Strict path sanitization to prevent directory traversal attacks (CWE-22)
+ */
+function sanitizePathSegment(segment: string): string {
+  if (!segment) return '';
+  return segment.replace(/[^a-zA-Z0-9_-]/g, '');
+}
+
+function sanitizeFileName(fileName: string): string {
+  if (!fileName) return '';
+  return fileName.replace(/^.*[\\\/]/, '').replace(/[^a-zA-Z0-9_.-]/g, '_');
+}
+
+/**
  * Initialize paths and modules.
  */
 export async function initMediaStorage() {
@@ -111,7 +124,14 @@ export async function saveMediaFile(
   }
 
   try {
-    const projectDir = await pathModule.join(projectsBaseDir, scenarioId, 'media');
+    const safeScenarioId = sanitizePathSegment(scenarioId);
+    const safeFileName = sanitizeFileName(fileName);
+    if (!safeScenarioId || !safeFileName) {
+      console.warn('[MediaStorage] Invalid characters in scenarioId or fileName, aborting save');
+      return '';
+    }
+
+    const projectDir = await pathModule.join(projectsBaseDir, safeScenarioId, 'media');
     
     // Create directory if not exists
     const dirExists = await fsModule.exists(projectDir);
@@ -119,7 +139,7 @@ export async function saveMediaFile(
       await fsModule.mkdir(projectDir, { recursive: true });
     }
 
-    const filePath = await pathModule.join(projectDir, fileName);
+    const filePath = await pathModule.join(projectDir, safeFileName);
 
     let bytes: Uint8Array;
     if (typeof fileData === 'string') {
@@ -168,8 +188,9 @@ export function resolveMediaUrl(uri: string): string {
 
     const cleanUri = uri.replace('project-media://', '');
     const parts = cleanUri.split('/');
-    const scenarioId = parts[0];
-    const fileName = parts.slice(1).join('/');
+    const scenarioId = sanitizePathSegment(parts[0] || '');
+    const fileName = sanitizeFileName(parts.slice(1).join('/'));
+    if (!scenarioId || !fileName) return '';
 
     // Construct the absolute path
     let absolutePath = `${activeBase}/${scenarioId}/media/${fileName}`;
@@ -224,8 +245,10 @@ export function getAbsoluteFilePath(uri: string): string | null {
   }
   const cleanUri = uri.replace('project-media://', '');
   const parts = cleanUri.split('/');
-  const scenarioId = parts[0];
-  const fileName = parts.slice(1).join('/');
+  const scenarioId = sanitizePathSegment(parts[0] || '');
+  const fileName = sanitizeFileName(parts.slice(1).join('/'));
+  if (!scenarioId || !fileName) return null;
+
   let absolutePath = `${projectsBaseDir}/${scenarioId}/media/${fileName}`;
   if (projectsBaseDir.includes('\\')) {
     absolutePath = absolutePath.replace(/\//g, '\\');
@@ -276,7 +299,11 @@ export async function deleteMediaFile(scenarioId: string, fileName: string): Pro
   if (!isTauri || !fsModule || !pathModule || !projectsBaseDir) return;
 
   try {
-    const filePath = await pathModule.join(projectsBaseDir, scenarioId, 'media', fileName);
+    const safeScenarioId = sanitizePathSegment(scenarioId);
+    const safeFileName = sanitizeFileName(fileName);
+    if (!safeScenarioId || !safeFileName) return;
+
+    const filePath = await pathModule.join(projectsBaseDir, safeScenarioId, 'media', safeFileName);
     const fileExists = await fsModule.exists(filePath);
     if (fileExists) {
       await fsModule.remove(filePath);

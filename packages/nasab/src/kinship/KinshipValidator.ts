@@ -80,8 +80,23 @@ export class KinshipValidator {
 
     const parseYear = (dateStr?: string | number) => {
       if (!dateStr) return null;
-      const parsed = parseInt(String(dateStr), 10);
-      return isNaN(parsed) ? (new Date(String(dateStr)).getFullYear() || null) : parsed;
+      const str = String(dateStr).trim();
+      if (/^\d{4}$/.test(str)) {
+        return parseInt(str, 10);
+      }
+      if (/^\d{4}-\d{2}-\d{2}/.test(str)) {
+        return parseInt(str.substring(0, 4), 10);
+      }
+      const match = str.match(/\b(18|19|20|21)\d{2}\b/);
+      if (match) {
+        return parseInt(match[0], 10);
+      }
+      const d = new Date(str);
+      if (!isNaN(d.getTime())) {
+        return d.getFullYear();
+      }
+      const parsed = parseInt(str, 10);
+      return isNaN(parsed) ? null : parsed;
     };
 
     const sourceBirth = parseYear(sourceNode.birthDate);
@@ -122,21 +137,22 @@ export class KinshipValidator {
     }
     
     // حد الحمل بعد الوفاة (أو الطلاق لو توفرت تواريخ أدق، نكتفي بالوفاة هنا)
-    if (type === RelationType.PARENT_MALE || type === RelationType.PARENT_FEMALE) {
-      const parentDeath = sourceDeath;
-      const childBirth = targetBirth;
-      if (parentDeath && childBirth) {
-        if (childBirth - parentDeath > maxPregnancyYears) {
-          return handleError(new NasabError(ErrorCode.TIME_PARADOX, `مدة حمل مستحيلة: لا يمكن أن يولد الابن (${targetName}) بعد وفاة والده/والدته (${sourceName}) بأكثر من ${maxPregnancyYears} سنة.`, [sourceId, targetId]));
-        }
+    if (type === RelationType.PARENT_FEMALE) {
+      if (sourceDeath && targetBirth && targetBirth > sourceDeath) {
+        return handleError(new NasabError(ErrorCode.TIME_PARADOX, `مستحيل بيولوجياً: لا يمكن أن يولد الابن (${targetName}) بعد وفاة أمه (${sourceName}).`, [sourceId, targetId]));
+      }
+    } else if (type === RelationType.PARENT_MALE) {
+      if (sourceDeath && targetBirth && targetBirth - sourceDeath > maxPregnancyYears) {
+        return handleError(new NasabError(ErrorCode.TIME_PARADOX, `مدة حمل مستحيلة: لا يمكن أن يولد الابن (${targetName}) بعد وفاة والده (${sourceName}) بأكثر من ${maxPregnancyYears} سنة.`, [sourceId, targetId]));
       }
     }
     if (type === RelationType.CHILD_MALE || type === RelationType.CHILD_FEMALE) {
-      const parentDeath = targetDeath;
-      const childBirth = sourceBirth;
-      if (parentDeath && childBirth) {
-        if (childBirth - parentDeath > maxPregnancyYears) {
-          return handleError(new NasabError(ErrorCode.TIME_PARADOX, `مدة حمل مستحيلة: لا يمكن أن يولد الابن (${sourceName}) بعد وفاة والده/والدته (${targetName}) بأكثر من ${maxPregnancyYears} سنة.`, [sourceId, targetId]));
+      const targetIsMother = targetGender === Gender.FEMALE;
+      if (targetDeath && sourceBirth) {
+        if (targetIsMother && sourceBirth > targetDeath) {
+          return handleError(new NasabError(ErrorCode.TIME_PARADOX, `مستحيل بيولوجياً: لا يمكن أن يولد الابن (${sourceName}) بعد وفاة أمه (${targetName}).`, [sourceId, targetId]));
+        } else if (!targetIsMother && sourceBirth - targetDeath > maxPregnancyYears) {
+          return handleError(new NasabError(ErrorCode.TIME_PARADOX, `مدة حمل مستحيلة: لا يمكن أن يولد الابن (${sourceName}) بعد وفاة والده (${targetName}) بأكثر من ${maxPregnancyYears} سنة.`, [sourceId, targetId]));
         }
       }
     }
@@ -159,19 +175,27 @@ export class KinshipValidator {
         const wifeId = sourceGender === Gender.FEMALE ? sourceId : targetId;
         const wifeName = sourceGender === Gender.FEMALE ? sourceName : targetName;
 
-        const husbandWives = existingEdges.filter(e => {
+        const activeHusbandWives = existingEdges.filter(e => {
             const eType = normalizeType(e.type);
             const isSpouse = currentMarriageTypes.includes(eType);
-            return isSpouse && (e.sourceId === husbandId || e.targetId === husbandId);
+            if (!isSpouse) return false;
+            const otherId = e.sourceId === husbandId ? e.targetId : e.sourceId;
+            if (otherId === wifeId) return false;
+            const otherNode = nodeMap.get(otherId);
+            return otherNode && !otherNode.isDeceased;
         });
 
-        const wifeHusbands = existingEdges.filter(e => {
+        const activeWifeHusbands = existingEdges.filter(e => {
             const eType = normalizeType(e.type);
             const isSpouse = currentMarriageTypes.includes(eType);
-            return isSpouse && (e.sourceId === wifeId || e.targetId === wifeId);
+            if (!isSpouse) return false;
+            const otherId = e.sourceId === wifeId ? e.targetId : e.sourceId;
+            if (otherId === husbandId) return false;
+            const otherNode = nodeMap.get(otherId);
+            return otherNode && !otherNode.isDeceased;
         });
 
-        if (options?.allowPolygamy !== true && wifeHusbands.length >= 1) {
+        if (options?.allowPolygamy !== true && activeWifeHusbands.length >= 1) {
             return handleError(new NasabError(ErrorCode.POLYGAMY_VIOLATION, `لا يمكن لـ (${wifeName}) أن تتزوج بأكثر من رجل في نفس الوقت.`, [wifeId]));
         }
 
@@ -180,7 +204,7 @@ export class KinshipValidator {
            maxWives = mode === 'ISLAMIC_LAW' ? 4 : (mode === 'CIVIL_LAW_WESTERN' ? 1 : Infinity);
         }
 
-        if (options?.allowPolygamy !== true && husbandWives.length >= maxWives) {
+        if (options?.allowPolygamy !== true && activeHusbandWives.length >= maxWives) {
             return handleError(new NasabError(ErrorCode.POLYGAMY_VIOLATION, `تجاوز الحد المسموح به من الزوجات لـ (${husbandName}) وهو ${maxWives}.`, [husbandId]));
         }
       }

@@ -1,4 +1,5 @@
 import Database from "@tauri-apps/plugin-sql";
+import { invoke } from "@tauri-apps/api/core";
 
 /**
  * We create an interface for our Database Client so we can
@@ -13,14 +14,14 @@ export interface IDatabaseClient {
 let dbInstance: IDatabaseClient | null = null;
 let initDbPromise: Promise<void> | null = null;
 
-/**
- * Initialize the database. If running in Vitest, we can inject a mock.
- */
-import { invoke } from "@tauri-apps/api/core";
-
 export async function initDb(mockClient?: IDatabaseClient): Promise<void> {
   if (mockClient) {
     dbInstance = mockClient;
+    try {
+      await mockClient.execute("PRAGMA foreign_keys=ON;");
+    } catch {
+      // Mock may ignore pragmas
+    }
     return;
   }
   
@@ -40,18 +41,12 @@ export async function initDb(mockClient?: IDatabaseClient): Promise<void> {
       
       // Apply production optimizations & concurrency locks
       try {
+        await tauriDb.execute("PRAGMA foreign_keys=ON;");
         await tauriDb.execute("PRAGMA journal_mode=WAL;");
         await tauriDb.execute("PRAGMA busy_timeout=5000;");
         await tauriDb.execute("PRAGMA synchronous=NORMAL;");
-
-        // Ensure key performance indexes exist
-        await tauriDb.execute("CREATE INDEX IF NOT EXISTS idx_script_blocks_scene_id ON script_blocks(scene_id);");
-        await tauriDb.execute("CREATE INDEX IF NOT EXISTS idx_scenes_scenario_id ON scenes(scenario_id);");
-        await tauriDb.execute("CREATE INDEX IF NOT EXISTS idx_scenes_episode_id ON scenes(episode_id);");
-        await tauriDb.execute("CREATE INDEX IF NOT EXISTS idx_characters_scenario_id ON characters(scenario_id);");
-        await tauriDb.execute("CREATE INDEX IF NOT EXISTS idx_shoot_days_scenario_id ON shoot_days(scenario_id);");
       } catch (pErr) {
-        console.warn("PRAGMA/Index optimization warning:", pErr);
+        console.warn("PRAGMA optimization warning:", pErr);
       }
       
       dbInstance = tauriDb;
@@ -138,7 +133,7 @@ async function processQueue() {
       if (item.isTransactionCallback && item.callback) {
         let transactionBegan = false;
         try {
-          await safeExecute("BEGIN TRANSACTION");
+          await safeExecute("BEGIN IMMEDIATE");
           transactionBegan = true;
           const txContext: TransactionContext = {
             execute: async (q: string, b: any[] = []) => await safeExecute(q, b),
@@ -195,7 +190,7 @@ export async function dbSelect<T>(query: string, bindValues: any[] = []): Promis
 
 /**
  * Execute a transaction block. 
- * Prevents queue interleaving and guarantees atomicity.
+ * Enqueues into sequential write queue to guarantee strict atomicity and serialization.
  */
 export async function withTransaction<T>(fn: (tx: TransactionContext) => Promise<T>): Promise<T> {
   if (!dbInstance) throw new Error("Database not initialized. Call initDb() first.");
@@ -215,6 +210,9 @@ export async function withTransaction<T>(fn: (tx: TransactionContext) => Promise
  * Safely vacuum database into a destination file.
  */
 export async function vacuumDatabase(destPath: string): Promise<void> {
+  if (destPath.includes('\0')) {
+    throw new Error('Invalid path: contains null character');
+  }
   const normalized = destPath.replace(/\\/g, '/');
   const safePath = normalized.replace(/'/g, "''");
   await dbExecute(`VACUUM INTO '${safePath}'`);
@@ -226,4 +224,3 @@ export async function vacuumDatabase(destPath: string): Promise<void> {
 export async function vacuumInPlace(): Promise<void> {
   await dbExecute('VACUUM');
 }
-

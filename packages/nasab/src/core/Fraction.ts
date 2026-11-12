@@ -1,41 +1,60 @@
+function parseDecimal(val: string | number | bigint): { n: bigint; d: bigint } {
+  if (typeof val === 'bigint') {
+    return { n: val, d: 1n };
+  }
+  if (typeof val === 'number') {
+    if (Number.isInteger(val)) {
+      return { n: BigInt(val), d: 1n };
+    }
+    val = val.toString();
+  }
+  const str = String(val).trim();
+  if (str.includes('/')) {
+    const [numPart, denPart] = str.split('/');
+    const parsedNum = parseDecimal(numPart);
+    const parsedDen = parseDecimal(denPart);
+    return {
+      n: parsedNum.n * parsedDen.d,
+      d: parsedNum.d * parsedDen.n
+    };
+  }
+  if (str.includes('.')) {
+    const isNegative = str.startsWith('-');
+    const cleanStr = isNegative ? str.slice(1) : str;
+    const [intPart, decPart] = cleanStr.split('.');
+    const decLen = decPart.length;
+    const denominator = 10n ** BigInt(decLen);
+    const numerator = BigInt(intPart || '0') * denominator + BigInt(decPart || '0');
+    return {
+      n: isNegative ? -numerator : numerator,
+      d: denominator
+    };
+  }
+  return { n: BigInt(str || '0'), d: 1n };
+}
+
 export class Fraction {
   n: bigint;
   d: bigint;
 
-  constructor(num: string | number | bigint | Fraction, den?: number | string | bigint) {
+  constructor(num?: string | number | bigint | Fraction | null, den?: number | string | bigint | null) {
     if (num instanceof Fraction) {
       this.n = num.n;
       this.d = num.d;
       return;
     }
     
-    if (typeof num === 'string' && den === undefined) {
-      if (num.includes('/')) {
-        const parts = num.split('/');
-        this.n = BigInt(parts[0]);
-        this.d = BigInt(parts[1]);
-      } else {
-        this.n = BigInt(Math.floor(Number(num)));
-        this.d = 1n;
-      }
-    } else {
-       // if num is undefined etc.
-       if (num === undefined || num === null) {
-          this.n = 0n;
-       } else if (typeof num === 'number') {
-          this.n = BigInt(Math.floor(num));
-       } else {
-          this.n = BigInt(num);
-       }
-       
-       if (den === undefined || den === null) {
-          this.d = 1n;
-       } else if (typeof den === 'number') {
-          this.d = BigInt(Math.floor(den));
-       } else {
-          this.d = BigInt(den);
-       }
+    if (num === undefined || num === null) {
+      this.n = 0n;
+      this.d = 1n;
+      return;
     }
+
+    const parsedNum = parseDecimal(num);
+    const parsedDen = den !== undefined && den !== null ? parseDecimal(den) : { n: 1n, d: 1n };
+
+    this.n = parsedNum.n * parsedDen.d;
+    this.d = parsedNum.d * parsedDen.n;
 
     if (this.d === 0n) {
       throw new Error("Division by zero");
@@ -72,7 +91,9 @@ export class Fraction {
 
   static lcm(a: bigint, b: bigint): bigint {
     if (a === 0n || b === 0n) return 0n;
-    return (a * b) / Fraction.gcd(a, b);
+    const absA = a < 0n ? -a : a;
+    const absB = b < 0n ? -b : b;
+    return (absA * absB) / Fraction.gcd(absA, absB);
   }
 
   add(other: Fraction | string | number | bigint): Fraction {

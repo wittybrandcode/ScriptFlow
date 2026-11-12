@@ -41,8 +41,16 @@ export default function YearlyHeatmap({
     return 'bg-amber-600 border-amber-700 text-white shadow-xl scale-[1.06] font-black z-20';
   };
 
-  const totalShootingDays = shootDays.length;
-  const totalScenes = shootDays.reduce((acc, day) => acc + (day.scenes?.length || 0), 0);
+  const shootDaysInCurrentYear = useMemo(() => {
+    return shootDays.filter(day => {
+      if (!day.shoot_date) return false;
+      const yr = new Date(day.shoot_date.split('T')[0]).getFullYear();
+      return yr === currentYear;
+    });
+  }, [shootDays, currentYear]);
+
+  const totalShootingDays = shootDaysInCurrentYear.length;
+  const totalScenes = shootDaysInCurrentYear.reduce((acc, day) => acc + (day.scenes?.length || 0), 0);
 
   return (
     <div className="flex-1 flex flex-col bg-background h-full overflow-hidden" dir="rtl">
@@ -130,25 +138,18 @@ export default function YearlyHeatmap({
 
               {/* Grid */}
               <div className="flex-1 flex flex-col gap-3 pt-6 overflow-x-auto custom-scrollbar pb-6 relative">
-                {/* Day names header (vertical) */}
+                {/* Day numbers header */}
                 <div 
                   className="min-w-max pb-2" 
                   style={{ display: 'grid', gridTemplateColumns: 'repeat(31, minmax(42px, 1fr))', gap: '0.375rem' }}
                 >
-                  {Array.from({ length: 31 }).map((_, dayIndex) => {
-                    const sampleDay = new Date(currentYear, 0, dayIndex + 1); // Using January to get the starting weekday of the year
-                    const weekdayName = formatDate(sampleDay, 'EEEE');
-                    return (
-                      <div key={dayIndex} className="flex items-end justify-center h-16">
-                        <span 
-                          className="text-[10px] font-black text-muted-foreground/60 select-none whitespace-nowrap tracking-widest"
-                          style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
-                        >
-                          {weekdayName}
-                        </span>
-                      </div>
-                    );
-                  })}
+                  {Array.from({ length: 31 }).map((_, dayIndex) => (
+                    <div key={dayIndex} className="flex items-center justify-center h-8">
+                      <span className="text-xs font-black text-muted-foreground/70 select-none">
+                        {dayIndex + 1}
+                      </span>
+                    </div>
+                  ))}
                 </div>
 
                 {Array.from({ length: 12 }).map((_, monthIndex) => {

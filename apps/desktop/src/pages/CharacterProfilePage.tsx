@@ -13,6 +13,7 @@ import {
   Loader2, Save, Plus, X, Camera, Edit3 
 } from 'lucide-react';
 import RichTextEditor from '../components/ui/RichTextEditor';
+import DOMPurify from 'dompurify';
 import { saveMediaFile, resolveMediaUrl } from '../services/mediaStorage';
 import type { IScene, ICrewMember } from '@scriptflow/core';
 
@@ -183,7 +184,8 @@ export default function CharacterProfilePage() {
           const firstChildId = children[0].character_id === currentId ? children[0].partner_id : children[0].character_id;
           const firstChild = allCharacters.find(c => c.id === firstChildId);
           if (firstChild) {
-            const prefix = characterDetail.role === 'FEMALE' ? 'أم' : 'أبو';
+            const isFemale = characterDetail.gender === 'FEMALE' || characterDetail.gender === 'female' || characterDetail.gender === 'أنثى' || characterDetail.role === 'FEMALE';
+            const prefix = isFemale ? 'أم' : 'أبو';
             kunya = `${prefix} ${firstChild.name.split(' ')[0]}`;
           }
         }
@@ -730,7 +732,7 @@ export default function CharacterProfilePage() {
                 {formData[activeTab] ? (
                   <div 
                     className="text-lg leading-relaxed text-foreground"
-                    dangerouslySetInnerHTML={{ __html: String(formData[activeTab]) }}
+                    dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(String(formData[activeTab] || '')) }}
                   />
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-muted-foreground opacity-60 pt-20">
@@ -763,7 +765,7 @@ export default function CharacterProfilePage() {
             ) : (
               <div className="text-sm text-muted-foreground leading-relaxed">
                 {formData.description ? (
-                  <div dangerouslySetInnerHTML={{ __html: formData.description }} />
+                  <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formData.description || '') }} />
                 ) : (
                   'لا يوجد وصف.'
                 )}

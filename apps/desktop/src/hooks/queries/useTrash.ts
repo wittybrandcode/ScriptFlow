@@ -23,14 +23,15 @@ export function useRestoreItemMutation() {
       await manageTrash.restoreItem(type, id);
       return { type, id };
     },
-    onSuccess: ({ type }) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: trashKeys.all });
-      // Invalidate specific domain queries so they refresh
-      if (type === 'scenario') queryClient.invalidateQueries({ queryKey: ['scenarios'] });
-      if (type === 'scene') queryClient.invalidateQueries({ queryKey: ['scenes'] });
-      if (type === 'location') queryClient.invalidateQueries({ queryKey: ['locations'] });
-      if (type === 'character') queryClient.invalidateQueries({ queryKey: ['characters'] });
-      if (type === 'crew') queryClient.invalidateQueries({ queryKey: ['crew'] });
+      queryClient.invalidateQueries({ queryKey: ['scenarios'] });
+      queryClient.invalidateQueries({ queryKey: ['scenes'] });
+      queryClient.invalidateQueries({ queryKey: ['timeline'] });
+      queryClient.invalidateQueries({ queryKey: ['episodes'] });
+      queryClient.invalidateQueries({ queryKey: ['locations'] });
+      queryClient.invalidateQueries({ queryKey: ['characters'] });
+      queryClient.invalidateQueries({ queryKey: ['crew'] });
     },
   });
 }

@@ -100,10 +100,14 @@ export class AnimalBreedingEngine {
    */
   private static getAncestorPaths(startId: string, animalMap: Map<string, Animal>): Map<string, number[]> {
       const paths = new Map<string, number[]>();
+      const visiting = new Set<string>();
       
       // DFS function
       // pathLength is number of generations
       const dfs = (currentId: string, pathLength: number) => {
+          if (visiting.has(currentId)) return; // Prevent cycle
+          visiting.add(currentId);
+
           if (!paths.has(currentId)) {
               paths.set(currentId, []);
           }
@@ -114,6 +118,7 @@ export class AnimalBreedingEngine {
               if (animal.sireId) dfs(animal.sireId, pathLength + 1);
               if (animal.damId) dfs(animal.damId, pathLength + 1);
           }
+          visiting.delete(currentId);
       };
 
       dfs(startId, 0);
@@ -222,14 +227,19 @@ export class AnimalBreedingEngine {
   private static topologicalSort(ids: Set<string>, animalMap: Map<string, Animal>): string[] {
       const sorted: string[] = [];
       const visited = new Set<string>();
+      const visiting = new Set<string>();
 
       const visit = (id: string) => {
           if (visited.has(id)) return;
+          if (visiting.has(id)) return; // Prevent cycle
+          visiting.add(id);
+
           const a = animalMap.get(id);
           if (a) {
               if (a.sireId && ids.has(a.sireId)) visit(a.sireId);
               if (a.damId && ids.has(a.damId)) visit(a.damId);
           }
+          visiting.delete(id);
           visited.add(id);
           sorted.push(id);
       };

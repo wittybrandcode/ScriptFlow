@@ -20,6 +20,14 @@ export function analyzeContinuity(shootDays: any[] = [], characters: any[] = [])
   
   if (!shootDays || !Array.isArray(shootDays)) return [];
 
+  function parseSafeDate(rawDate?: string | null): Date | null {
+    if (!rawDate) return null;
+    const datePart = rawDate.split('T')[0];
+    if (!datePart) return null;
+    const d = new Date(datePart + 'T00:00:00Z');
+    return isNaN(d.getTime()) ? null : d;
+  }
+
   characters.forEach(c => { 
     if (c && c.id) {
       charMap[c.id] = c.name; 
@@ -28,8 +36,8 @@ export function analyzeContinuity(shootDays: any[] = [], characters: any[] = [])
 
   // Sort shoot days by date
   const sortedDays = [...shootDays].sort((a, b) => {
-    const dateA = a.shoot_date ? new Date(a.shoot_date + 'T00:00:00Z').getTime() : 0;
-    const dateB = b.shoot_date ? new Date(b.shoot_date + 'T00:00:00Z').getTime() : 0;
+    const dateA = parseSafeDate(a.shoot_date)?.getTime() || 0;
+    const dateB = parseSafeDate(b.shoot_date)?.getTime() || 0;
     return dateA - dateB;
   });
 
@@ -37,7 +45,8 @@ export function analyzeContinuity(shootDays: any[] = [], characters: any[] = [])
     const scenes = day.scenes || [];
     if (scenes.length === 0) return;
 
-    const formattedDate = formatDate(new Date((day.shoot_date || '') + 'T00:00:00Z'), 'EEEE, d MMMM yyyy');
+    const parsedCurrDate = parseSafeDate(day.shoot_date);
+    const formattedDate = parsedCurrDate ? formatDate(parsedCurrDate, 'EEEE, d MMMM yyyy') : 'تاريخ غير محدد';
 
     // 1. Check actor double booking / locations on same day
     const charLocations: Record<string, Set<string>> = {};
@@ -111,33 +120,42 @@ export function analyzeContinuity(shootDays: any[] = [], characters: any[] = [])
       });
     }
 
-    // 4. Day/Night turnaround conflict between consecutive days
+    // 4. Day/Night turnaround conflict between strictly consecutive days
     if (index < sortedDays.length - 1) {
       const nextDay = sortedDays[index + 1];
+      const parsedNextDate = parseSafeDate(nextDay.shoot_date);
       const nextDayScenes = nextDay.scenes || [];
-      if (nextDayScenes.length > 0) {
-        const lastScene = scenes[scenes.length - 1];
-        const nextFirstScene = nextDayScenes[0];
+      
+      if (parsedCurrDate && parsedNextDate && nextDayScenes.length > 0) {
+        // Calculate difference in calendar days (in UTC)
+        const msPerDay = 1000 * 60 * 60 * 24;
+        const diffDays = Math.round((parsedNextDate.getTime() - parsedCurrDate.getTime()) / msPerDay);
 
-        const lastTod = (lastScene?.time_of_day || '').toUpperCase();
-        const nextTod = (nextFirstScene?.time_of_day || '').toUpperCase();
+        // Only enforce 12-hour turnaround check if the shoot days are consecutive (1 day apart)
+        if (diffDays === 1) {
+          const lastScene = scenes[scenes.length - 1];
+          const nextFirstScene = nextDayScenes[0];
 
-        const isLastNight = lastTod === 'NIGHT' || lastTod === 'ليل';
-        const isNextDay = nextTod === 'DAY' || nextTod === 'نهار';
+          const lastTod = (lastScene?.time_of_day || '').toUpperCase();
+          const nextTod = (nextFirstScene?.time_of_day || '').toUpperCase();
 
-        if (isLastNight && isNextDay) {
-          const nextFormattedDate = formatDate(new Date((nextDay.shoot_date || '') + 'T00:00:00Z'), 'd MMM');
-          const currFormattedDate = formatDate(new Date((day.shoot_date || '') + 'T00:00:00Z'), 'd MMM');
+          const isLastNight = lastTod === 'NIGHT' || lastTod === 'ليل';
+          const isNextDay = nextTod === 'DAY' || nextTod === 'نهار';
 
-          warnings.push({
-            id: `turnaround-conflict-${day.id}-${nextDay.id}`,
-            type: 'error',
-            category: 'turnaround',
-            title: `تضارب فترة الراحة (Turnaround)`,
-            description: `تصوير مشهد ليلي في نهاية يوم ${currFormattedDate} متبوع مباشرة بمشهد نهاري في بداية يوم ${nextFormattedDate}. لا توجد فترة راحة كافية (12 ساعة) لطاقم العمل.`,
-            dayId: day.id,
-            nextDayId: nextDay.id
-          });
+          if (isLastNight && isNextDay) {
+            const nextFormattedDate = formatDate(parsedNextDate, 'd MMM');
+            const currFormattedDate = formatDate(parsedCurrDate, 'd MMM');
+
+            warnings.push({
+              id: `turnaround-conflict-${day.id}-${nextDay.id}`,
+              type: 'error',
+              category: 'turnaround',
+              title: `تضارب فترة الراحة (Turnaround)`,
+              description: `تصوير مشهد ليلي في نهاية يوم ${currFormattedDate} متبوع مباشرة بمشهد نهاري في بداية يوم ${nextFormattedDate}. لا توجد فترة راحة كافية (12 ساعة) لطاقم العمل.`,
+              dayId: day.id,
+              nextDayId: nextDay.id
+            });
+          }
         }
       }
     }

@@ -78,8 +78,8 @@ export default function CallSheetPage({
     : 'غير محدد';
 
   return (
-    <div className="cover-page" style={{ backgroundColor: '#FAFAFA', justifyContent: 'flex-start', paddingTop: '48px' }}>
-      <div className="w-full px-12 text-black" style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}>
+    <div className="callsheet-page" style={{ backgroundColor: '#FAFAFA', justifyContent: 'flex-start', paddingTop: '48px' }}>
+      <div className="w-full text-black" style={{ fontFamily: "'IBM Plex Sans Arabic', sans-serif" }}>
         
         {/* Call Sheet Header */}
         <div className="text-center mb-6 relative">

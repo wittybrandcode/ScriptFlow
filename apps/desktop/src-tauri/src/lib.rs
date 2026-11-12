@@ -16,11 +16,6 @@ pub struct DbDiagnosticInfo {
 }
 
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
-
-#[tauri::command]
 fn get_app_root(app: tauri::AppHandle) -> String {
     let base_dir = app.path().app_data_dir().unwrap_or_else(|_| std::env::current_dir().unwrap_or_default());
     
@@ -70,7 +65,7 @@ fn get_db_diagnostic_info(app: tauri::AppHandle) -> DbDiagnosticInfo {
         }
     }
 
-    let status = if exists && size >= 400_000 {
+    let status = if exists && size > 4096 {
         "HEALTHY".to_string()
     } else if exists {
         "INITIALIZING_OR_EMPTY".to_string()
@@ -92,6 +87,10 @@ fn get_db_diagnostic_info(app: tauri::AppHandle) -> DbDiagnosticInfo {
 #[tauri::command]
 fn open_app_data_folder(app: tauri::AppHandle) -> Result<String, String> {
     let root = get_app_root(app);
+    let path = PathBuf::from(&root);
+    if !path.exists() {
+        return Err(format!("App data folder does not exist: {}", root));
+    }
     #[cfg(target_os = "windows")]
     {
         std::process::Command::new("explorer")
@@ -119,6 +118,16 @@ fn restore_safety_backup(app: tauri::AppHandle) -> Result<String, String> {
 
     if target_db.exists() {
         let _ = std::fs::copy(&target_db, current_dir.join("scriptflow_corrupted_archive.db"));
+    }
+
+    // Clean up stale WAL and SHM files to prevent corruption when reopening the restored database
+    let wal_file = current_dir.join("scriptflow.db-wal");
+    let shm_file = current_dir.join("scriptflow.db-shm");
+    if wal_file.exists() {
+        let _ = std::fs::remove_file(wal_file);
+    }
+    if shm_file.exists() {
+        let _ = std::fs::remove_file(shm_file);
     }
 
     std::fs::copy(&safety_copy, &target_db)
@@ -150,14 +159,16 @@ fn auto_migrate_and_protect_db(app: &tauri::AppHandle) {
     }
 
     let target_db = current_dir.join("scriptflow.db");
-    let current_size = if target_db.exists() {
+    let target_exists = target_db.exists();
+    let current_size = if target_exists {
         std::fs::metadata(&target_db).map(|m| m.len()).unwrap_or(0)
     } else {
         0
     };
 
-    // If database doesn't exist or is an unpopulated skeleton (< 400KB), check legacy paths
-    if current_size < 400_000 {
+    // Safe migration: ONLY check legacy paths if the target DB does NOT exist or has 0 bytes.
+    // NEVER overwrite an existing database that has user data!
+    if !target_exists || current_size == 0 {
         let appdata = std::env::var("APPDATA").unwrap_or_default();
         if !appdata.is_empty() {
             let legacy_candidates = vec![
@@ -169,9 +180,9 @@ fn auto_migrate_and_protect_db(app: &tauri::AppHandle) {
                 let candidate_db = candidate_dir.join("scriptflow.db");
                 if candidate_db.exists() {
                     let cand_size = std::fs::metadata(&candidate_db).map(|m| m.len()).unwrap_or(0);
-                    if cand_size > current_size {
+                    if cand_size > 0 {
                         println!("[ScriptFlow Auto-Migration] Found legacy database ({:?}, {} bytes). Migrating to {:?}...", candidate_db, cand_size, target_db);
-                        if target_db.exists() {
+                        if target_exists {
                             let _ = std::fs::copy(&target_db, current_dir.join("scriptflow_pre_migration.db.bak"));
                         }
                         if let Ok(_) = std::fs::copy(&candidate_db, &target_db) {
@@ -189,10 +200,10 @@ fn auto_migrate_and_protect_db(app: &tauri::AppHandle) {
         }
     }
 
-    // Pre-launch safety backup: if db exists and is populated (>= 400KB)
+    // Pre-launch safety backup: if db exists and has valid data (> 4KB, standard SQLite page)
     if target_db.exists() {
         let size = std::fs::metadata(&target_db).map(|m| m.len()).unwrap_or(0);
-        if size >= 400_000 {
+        if size > 4096 {
             let backups_dir = current_dir.join("backups");
             if !backups_dir.exists() {
                 let _ = std::fs::create_dir_all(&backups_dir);
@@ -272,6 +283,18 @@ pub fn run() {
             sql: include_str!("../migrations/011_create_scene_reminders.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 12,
+            description: "fix_scene_snapshots_text_ids",
+            sql: include_str!("../migrations/012_fix_scene_snapshots_text_ids.sql"),
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 13,
+            description: "fix_tones_and_schema_constraints",
+            sql: include_str!("../migrations/013_fix_tones_and_schema_constraints.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     let connection_string = "sqlite:scriptflow.db".to_string();
@@ -291,7 +314,6 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            greet, 
             get_app_root, 
             get_db_path,
             check_db_health,

@@ -5,6 +5,19 @@ export const DirectorNoteNode = Node.create({
   group: 'block',
   content: 'inline*',
 
+  addAttributes() {
+    return {
+      block_id: {
+        default: null,
+        parseHTML: element => element.getAttribute('data-block-id'),
+        renderHTML: attributes => {
+          if (!attributes.block_id) return {};
+          return { 'data-block-id': attributes.block_id };
+        },
+      },
+    };
+  },
+
   parseHTML() {
     return [
       {
@@ -29,7 +42,7 @@ export const DirectorNoteNode = Node.create({
           return editor.commands.clearNodes() && editor.commands.setNode('action');
         }
         
-        return (editor.commands as any).splitBlock({ type: 'directorNote' });
+        return editor.commands.splitBlock();
       },
     };
   },

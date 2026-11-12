@@ -74,10 +74,19 @@ export class InferenceEngine {
       
       // Map edge type to NDSL target_node:
       let targetNodeStr = '';
-      if (heirEdges[0]?.type === 'PARENT_FEMALE') targetNodeStr = 'MOTHER';
-      if (heirEdges[0]?.type === 'PARENT_MALE') targetNodeStr = 'FATHER';
-      if (heirEdges[0]?.type === 'CHILD_MALE') targetNodeStr = 'CHILD';
-      if (heirEdges[0]?.type === 'CHILD_FEMALE') targetNodeStr = 'CHILD';
+      const edgeType = heirEdges[0]?.type;
+      if (edgeType === 'PARENT_FEMALE' || edgeType === 'MOTHER') targetNodeStr = 'MOTHER';
+      else if (edgeType === 'PARENT_MALE' || edgeType === 'FATHER') targetNodeStr = 'FATHER';
+      else if (edgeType === 'CHILD_MALE' || edgeType === 'CHILD_FEMALE' || edgeType === 'CHILD' || edgeType === 'SON' || edgeType === 'DAUGHTER') targetNodeStr = 'CHILD';
+      else if (edgeType === 'SIBLING_FULL' || edgeType === 'FULL_BROTHER' || edgeType === 'FULL_SISTER') targetNodeStr = 'SIBLING_FULL';
+      else if (edgeType === 'SIBLING_PATERNAL' || edgeType === 'PATERNAL_BROTHER' || edgeType === 'PATERNAL_SISTER') targetNodeStr = 'SIBLING_PATERNAL';
+      else if (edgeType === 'SIBLING_MATERNAL' || edgeType === 'MATERNAL_BROTHER' || edgeType === 'MATERNAL_SISTER') targetNodeStr = 'SIBLING_MATERNAL';
+      else if (edgeType === 'SPOUSE_MALE' || edgeType === 'HUSBAND') targetNodeStr = 'SPOUSE_MALE';
+      else if (edgeType === 'SPOUSE_FEMALE' || edgeType === 'WIFE') targetNodeStr = 'SPOUSE_FEMALE';
+      else if (edgeType === 'GRANDFATHER' || edgeType === 'GRANDFATHER_PATERNAL') targetNodeStr = 'GRANDFATHER_PATERNAL';
+      else if (edgeType === 'GRANDMOTHER_MATERNAL') targetNodeStr = 'GRANDMOTHER_MATERNAL';
+      else if (edgeType === 'GRANDMOTHER_PATERNAL' || edgeType === 'GRANDMOTHER') targetNodeStr = 'GRANDMOTHER_PATERNAL';
+      else if (edgeType === 'GRANDSON' || edgeType === 'GRANDDAUGHTER' || edgeType === 'GRANDCHILD_MALE_LINE') targetNodeStr = 'GRANDCHILD_MALE_LINE';
 
       // Find blocking rule group
       const blockingGroup = this.blockingRules.find(g => g.target_node === targetNodeStr);
@@ -159,9 +168,21 @@ export class InferenceEngine {
       const nodeEdges = this.graph.filter((e: any) => e.sourceId === node.id && e.targetId === deceasedId);
       for (const edge of nodeEdges) {
         let matchesRelation = false;
-        if (relationsToCheck.includes('CHILD') && (edge.type === 'CHILD_MALE' || edge.type === 'CHILD_FEMALE')) matchesRelation = true;
-        if (relationsToCheck.includes('SIBLING_FULL') && (edge.type === 'SIBLING_MATERNAL' /* just as a placeholder */)) matchesRelation = true;
-        // ... more matchers ...
+        const eType = edge.type;
+        if (relationsToCheck.includes('CHILD') && (eType === 'CHILD_MALE' || eType === 'CHILD_FEMALE' || eType === 'CHILD' || eType === 'SON' || eType === 'DAUGHTER')) matchesRelation = true;
+        if (relationsToCheck.includes('FATHER') && (eType === 'PARENT_MALE' || eType === 'FATHER')) matchesRelation = true;
+        if (relationsToCheck.includes('MOTHER') && (eType === 'PARENT_FEMALE' || eType === 'MOTHER')) matchesRelation = true;
+        if (relationsToCheck.includes('SIBLING_FULL') && (eType === 'SIBLING_FULL' || eType === 'FULL_BROTHER' || eType === 'FULL_SISTER')) matchesRelation = true;
+        if (relationsToCheck.includes('SIBLING_PATERNAL') && (eType === 'SIBLING_PATERNAL' || eType === 'PATERNAL_BROTHER' || eType === 'PATERNAL_SISTER')) matchesRelation = true;
+        if (relationsToCheck.includes('SIBLING_MATERNAL') && (eType === 'SIBLING_MATERNAL' || eType === 'MATERNAL_BROTHER' || eType === 'MATERNAL_SISTER')) matchesRelation = true;
+        if (relationsToCheck.includes('GRANDCHILD_MALE_LINE') && (eType === 'GRANDCHILD_MALE_LINE' || eType === 'GRANDSON' || eType === 'GRANDDAUGHTER')) matchesRelation = true;
+        if (relationsToCheck.includes('SPOUSE_MALE') && (eType === 'SPOUSE_MALE' || eType === 'HUSBAND')) matchesRelation = true;
+        if (relationsToCheck.includes('SPOUSE_FEMALE') && (eType === 'SPOUSE_FEMALE' || eType === 'WIFE')) matchesRelation = true;
+        if (relationsToCheck.includes('SPOUSE') && (eType === 'SPOUSE' || eType === 'SPOUSE_MALE' || eType === 'SPOUSE_FEMALE' || eType === 'HUSBAND' || eType === 'WIFE')) matchesRelation = true;
+        if (relationsToCheck.includes('GRANDFATHER_PATERNAL') && (eType === 'GRANDFATHER_PATERNAL' || eType === 'GRANDFATHER')) matchesRelation = true;
+        if (relationsToCheck.includes('GRANDMOTHER_PATERNAL') && (eType === 'GRANDMOTHER_PATERNAL' || eType === 'GRANDMOTHER')) matchesRelation = true;
+        if (relationsToCheck.includes('GRANDMOTHER_MATERNAL') && (eType === 'GRANDMOTHER_MATERNAL')) matchesRelation = true;
+        if (relationsToCheck.includes('GRANDMOTHER') && (eType === 'GRANDMOTHER' || eType === 'GRANDMOTHER_PATERNAL' || eType === 'GRANDMOTHER_MATERNAL')) matchesRelation = true;
         
         if (matchesRelation) {
           count++;
@@ -321,9 +342,9 @@ export class InferenceEngine {
       if (relationsToCheck.includes('SIBLING_PATERNAL') && (relKey === 'paternalBrothers' || relKey === 'paternalSisters')) mapped = true;
       if (relationsToCheck.includes('SIBLING_MATERNAL') && (relKey === 'maternalBrothers' || relKey === 'maternalSisters')) mapped = true;
       if (relationsToCheck.includes('GRANDCHILD_MALE_LINE') && (relKey === 'grandsons' || relKey === 'granddaughters')) mapped = true;
-      if (relationsToCheck.includes('SPOUSE') && relKey === 'spouses') mapped = true;
+      if ((relationsToCheck.includes('SPOUSE') || relationsToCheck.includes('SPOUSE_MALE') || relationsToCheck.includes('SPOUSE_FEMALE')) && relKey === 'spouses') mapped = true;
       if (relationsToCheck.includes('GRANDFATHER_PATERNAL') && relKey === 'grandfathers') mapped = true;
-      if (relationsToCheck.includes('GRANDMOTHER') && relKey === 'grandmothers') mapped = true;
+      if ((relationsToCheck.includes('GRANDMOTHER') || relationsToCheck.includes('GRANDMOTHER_PATERNAL') || relationsToCheck.includes('GRANDMOTHER_MATERNAL')) && relKey === 'grandmothers') mapped = true;
       
       if (mapped) {
         for (const person of relativesList) {

@@ -41,7 +41,7 @@ export { EstateEngine } from './engine/EstateEngine';
 export type { EstateInput, EstateResult, DeductionStep } from './engine/EstateEngine';
 export type { CalculationResult } from './engine/BaseEngine';
 export type { FinalReport, HeirReport } from './engine/ExplanationEngine';
-export type { Heir, HeirType } from './types/Kinship';
+export type { Heir, HeirType, EvidenceCitation } from './types/Kinship';
 export type { Madhab } from './types/FiqhAST';
 export type { ValidationOptions } from './core/types';
 

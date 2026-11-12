@@ -43,6 +43,8 @@ export function useCreateEpisodeMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: episodeKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['scenes'] });
+      queryClient.invalidateQueries({ queryKey: ['scenarios'] });
     },
   });
 }
@@ -59,6 +61,8 @@ export function useUpdateEpisodeMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: episodeKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['scenes'] });
+      queryClient.invalidateQueries({ queryKey: ['scenarios'] });
     },
   });
 }
@@ -75,6 +79,8 @@ export function useDeleteEpisodeMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: episodeKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['scenes'] });
+      queryClient.invalidateQueries({ queryKey: ['scenarios'] });
     },
   });
 }

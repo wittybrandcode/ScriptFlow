@@ -27,40 +27,21 @@ export default function DailyView({
     }
   }, [initialSelectedDayId]);
 
+  useEffect(() => {
+    if (shootDays.length > 0 && !shootDays.some(d => String(d.id) === String(selectedDayId))) {
+      setSelectedDayId(shootDays[0].id);
+    }
+  }, [shootDays, selectedDayId]);
+
   const handleSelectDay = (id: string | number) => {
     setSelectedDayId(id);
     if (onDayChange) onDayChange(id);
   };
 
   const selectedDay = useMemo(
-    () => shootDays.find(d => String(d.id) === String(selectedDayId)),
+    () => shootDays.find(d => String(d.id) === String(selectedDayId)) || (shootDays.length > 0 ? shootDays[0] : null),
     [shootDays, selectedDayId]
   );
-
-  // Handle case when shootDays is empty
-  if (shootDays.length === 0) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-background h-full text-center">
-        <Info size={48} className="text-muted-foreground/30 mb-4" />
-        <h2 className="text-xl font-black text-foreground mb-2">لا توجد أيام تصوير مجدولة</h2>
-        <p className="text-sm font-bold text-muted-foreground">قم بإضافة أيام تصوير من العرض الشهري أو الأسبوعي.</p>
-      </div>
-    );
-  }
-
-  // Handle case when a day is deleted and selection becomes invalid
-  if (!selectedDay && shootDays.length > 0) {
-    setSelectedDayId(shootDays[0].id);
-    return null;
-  }
-
-  const currentIndex = shootDays.findIndex(d => String(d.id) === String(selectedDayId));
-  const handlePrevDay = () => {
-    if (currentIndex > 0) handleSelectDay(shootDays[currentIndex - 1].id);
-  };
-  const handleNextDay = () => {
-    if (currentIndex < shootDays.length - 1) handleSelectDay(shootDays[currentIndex + 1].id);
-  };
 
   const scenes: any[] = selectedDay?.scenes || [];
 
@@ -88,6 +69,29 @@ export default function DailyView({
     });
     return Array.from(locSet);
   }, [scenes]);
+
+  const currentIndex = shootDays.findIndex(d => String(d.id) === String(selectedDay?.id));
+  const handlePrevDay = () => {
+    if (currentIndex > 0) handleSelectDay(shootDays[currentIndex - 1].id);
+  };
+  const handleNextDay = () => {
+    if (currentIndex < shootDays.length - 1) handleSelectDay(shootDays[currentIndex + 1].id);
+  };
+
+  // Handle case when shootDays is empty
+  if (shootDays.length === 0) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-background h-full text-center">
+        <Info size={48} className="text-muted-foreground/30 mb-4" />
+        <h2 className="text-xl font-black text-foreground mb-2">لا توجد أيام تصوير مجدولة</h2>
+        <p className="text-sm font-bold text-muted-foreground">قم بإضافة أيام تصوير من العرض الشهري أو الأسبوعي.</p>
+      </div>
+    );
+  }
+
+  if (!selectedDay) {
+    return null;
+  }
 
   return (
     <div className="flex-1 flex flex-col bg-background h-full overflow-hidden" dir="rtl">

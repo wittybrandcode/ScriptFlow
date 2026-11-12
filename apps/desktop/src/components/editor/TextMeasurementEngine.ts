@@ -52,9 +52,12 @@ const FONTS: Record<string, string> = {
   transition:    '800 14px "IBM Plex Sans Arabic", sans-serif',
   shot:          '800 14px "IBM Plex Sans Arabic", sans-serif',
   audio:         '700 14px "IBM Plex Sans Arabic", sans-serif',
-  directorNote:  '500 14px "IBM Plex Sans Arabic", sans-serif',
-  textOnScreen:  '700 14px monospace, "IBM Plex Sans Arabic"',
-  textNode:      '700 14px monospace, "IBM Plex Sans Arabic"',
+  directornote:  '500 14px "IBM Plex Sans Arabic", sans-serif',
+  director_note: '500 14px "IBM Plex Sans Arabic", sans-serif',
+  textonscreen:  '700 14px monospace, "IBM Plex Sans Arabic"',
+  text_on_screen:'700 14px monospace, "IBM Plex Sans Arabic"',
+  textnode:      '700 14px monospace, "IBM Plex Sans Arabic"',
+  text:          '700 14px monospace, "IBM Plex Sans Arabic"',
 };
 
 // Nodes that consume 1 extra grid unit for top margin
@@ -63,8 +66,8 @@ export const NODES_WITH_MARGIN = new Set<string>([
   'transition', 'TRANSITION',
   'shot', 'SHOT',
   'audio', 'AUDIO',
-  'directorNote', 'DIRECTOR_NOTE',
-  'textOnScreen', 'textNode', 'TEXT',
+  'directorNote', 'directornote', 'director_note', 'DIRECTOR_NOTE',
+  'textOnScreen', 'textonscreen', 'text_on_screen', 'textNode', 'textnode', 'text', 'TEXT',
 ]);
 
 // Nodes that use narrower width
@@ -73,28 +76,42 @@ const NARROW_WIDTH_FACTOR: Record<string, number> = {
   DIALOGUE: 0.85,
   parenthetical: 0.75,
   PARENTHETICAL: 0.75,
+  textonscreen: 0.70,
+  text_on_screen: 0.70,
+  textnode: 0.70,
+  text: 0.70,
+  TEXT: 0.70,
 };
 
 // Singleton canvas for measurement (reused across calls)
-let _canvas: HTMLCanvasElement | null = null;
-let _ctx: CanvasRenderingContext2D | null = null;
+let _canvas: any = null;
+let _ctx: any = null;
 
-function getContext(): CanvasRenderingContext2D | null {
-  if (typeof document === 'undefined') return null;
+function getContext(): any {
   if (!_ctx) {
-    _canvas = document.createElement('canvas');
-    _ctx = _canvas.getContext('2d');
+    if (typeof document !== 'undefined' && document.createElement) {
+      _canvas = document.createElement('canvas');
+      _ctx = _canvas.getContext('2d');
+    } else if (typeof OffscreenCanvas !== 'undefined') {
+      _canvas = new OffscreenCanvas(1, 1);
+      _ctx = _canvas.getContext('2d');
+    }
   }
   return _ctx;
 }
 
 /**
  * Strip HTML tags from a string to get pure text content.
- * Ensures Canvas API measures only visible characters.
+ * Converts line breaks (<br>, </p>) to explicit newlines and unescapes &nbsp;.
  */
 function stripHtml(html: string | null | undefined): string {
   if (!html) return '';
-  return html.replace(/<[^>]*>/g, '').trim();
+  return html
+    .replace(/<br\s*[\/]?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/<[^>]*>/g, '')
+    .trim();
 }
 
 /**
@@ -149,22 +166,34 @@ export function measureBlockLines(text: string | undefined | null, blockType: st
   const widthFactor = NARROW_WIDTH_FACTOR[blockType] || NARROW_WIDTH_FACTOR[normalizedType] || 1.0;
   const maxWidth = GRID.CONTENT_WIDTH * widthFactor;
 
-  // Word-wrap measurement (uses cleaned text, no HTML tags)
-  const words = cleanText.split(' ');
-  let currentLine = '';
-  let measuredLines = 1;
+  // Word-wrap measurement (uses cleaned text, handles explicit newlines and whitespace)
+  const paragraphs = cleanText.split('\n');
+  let measuredLines = 0;
 
-  for (let i = 0; i < words.length; i++) {
-    const word = words[i];
-    const testLine = currentLine ? (currentLine + ' ' + word) : word;
-    const metrics = ctx.measureText(testLine);
-    if (metrics.width > maxWidth && i > 0) {
+  for (const para of paragraphs) {
+    const trimmed = para.trim();
+    if (!trimmed) {
       measuredLines++;
-      currentLine = word;
-    } else {
-      currentLine = testLine;
+      continue;
     }
+    const words = trimmed.split(/\s+/);
+    let currentLine = '';
+    let paraLines = 1;
+
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      const testLine = currentLine ? (currentLine + ' ' + word) : word;
+      const metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && i > 0) {
+        paraLines++;
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    }
+    measuredLines += paraLines;
   }
+  if (measuredLines === 0) measuredLines = 1;
 
   // Add margin unit for nodes that have margin-top
   const finalMeasuredLines = measuredLines + (hasMargin ? 1 : 0);

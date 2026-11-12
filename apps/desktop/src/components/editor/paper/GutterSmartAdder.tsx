@@ -194,9 +194,10 @@ export default function GutterSmartAdder({ editor, scale = 1 }: GutterSmartAdder
         // Convert viewport coordinates to logical container coordinates (accounting for zoom scale)
         const logicalCharX = (endViewportX - contentRect.left) / scale;
         const logicalCharY = (endViewportY - contentRect.top) / scale;
+        const logicalLineH = (lineH / scale) || 28;
 
         // In RTL text, the sentence ends on the left; position the '+' button right at the end of the line
-        const buttonTop = logicalCharY + (lineH - 24) / 2;
+        const buttonTop = logicalCharY + (logicalLineH - 24) / 2;
         let buttonLeft = logicalCharX - 24 - 10;
         // Clamp within paper width boundaries
         buttonLeft = Math.max(10, Math.min(794 - 34, buttonLeft));

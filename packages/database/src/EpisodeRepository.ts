@@ -1,18 +1,23 @@
 import { BaseRepository } from './BaseRepository.js';
 import type { IEpisode } from '@scriptflow/core';
+import { dbSelect, TransactionContext } from './client.js';
 
 export class EpisodeRepository extends BaseRepository<IEpisode> {
   protected readonly tableName = 'episodes';
+  protected readonly allowedColumns = [
+    'id', 'scenario_id', 'episode_number', 'title', 'description', 'status', 'created_at'
+  ];
 
-  async getByScenarioId(scenarioId: string, tx?: import('./client.js').TransactionContext): Promise<IEpisode[]> {
-    return this.findAllBy('scenario_id', scenarioId, tx);
+  async getByScenarioId(scenarioId: string, tx?: TransactionContext): Promise<IEpisode[]> {
+    const query = `SELECT * FROM ${this.tableName} WHERE scenario_id = $1 ORDER BY episode_number ASC`;
+    return tx ? tx.select<IEpisode>(query, [scenarioId]) : dbSelect<IEpisode>(query, [scenarioId]);
   }
 
-  async getStats(scenarioId: string): Promise<any> {
-    const { dbSelect } = await import('./client.js');
+  async getStats(scenarioId: string, tx?: TransactionContext): Promise<any> {
+    const select = tx ? tx.select.bind(tx) : dbSelect;
     
-    const episodes = await dbSelect<any>('SELECT * FROM episodes WHERE scenario_id = $1', [scenarioId]);
-    const scenes = await dbSelect<any>('SELECT id, episode_id, estimated_duration FROM scenes WHERE scenario_id = $1 AND deleted_at IS NULL', [scenarioId]);
+    const episodes = await select<any>('SELECT * FROM episodes WHERE scenario_id = $1 ORDER BY episode_number ASC', [scenarioId]);
+    const scenes = await select<any>('SELECT id, episode_id, estimated_duration FROM scenes WHERE scenario_id = $1 AND deleted_at IS NULL', [scenarioId]);
     
     const totalEpisodes = episodes.length;
     const totalScenes = scenes.length;
@@ -23,7 +28,7 @@ export class EpisodeRepository extends BaseRepository<IEpisode> {
     const completedEpisodes = episodes.filter(e => e.status === 'COMPLETED').length;
     const completionRate = totalEpisodes > 0 ? Math.round((completedEpisodes / totalEpisodes) * 100) : 0;
     
-    const blocks = await dbSelect<any>("SELECT scene_id, character_id, type FROM script_blocks WHERE scene_id IN (SELECT id FROM scenes WHERE scenario_id = $1 AND deleted_at IS NULL) AND type IN ('DIALOGUE', 'PARENTHETICAL')", [scenarioId]);
+    const blocks = await select<any>("SELECT scene_id, character_id, type FROM script_blocks WHERE scene_id IN (SELECT id FROM scenes WHERE scenario_id = $1 AND deleted_at IS NULL) AND type IN ('DIALOGUE', 'PARENTHETICAL')", [scenarioId]);
     
     const perEpisode = episodes.map(ep => {
       const epScenes = scenes.filter(s => s.episode_id === ep.id);
@@ -58,11 +63,9 @@ export class EpisodeRepository extends BaseRepository<IEpisode> {
       assignedScenes,
       unassignedScenes,
       totalDuration,
-      avgScenesPerEpisode: totalEpisodes > 0 ? Math.round(assignedScenes / totalEpisodes) : 0,
-      avgDurationPerEpisode: totalEpisodes > 0 ? Math.round(totalDuration / totalEpisodes) : 0,
       completionRate,
-      perEpisode,
-      statusBreakdown
+      statusBreakdown,
+      perEpisode
     };
   }
 }

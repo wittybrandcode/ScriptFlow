@@ -23,9 +23,9 @@ export interface EpisodeItem {
 export interface SceneMetadataFormProps {
   scene: {
     id?: string | number;
-    episode_id?: number | null;
+    episode_id?: string | number | null;
     location_type?: string;
-    location_id?: number | null;
+    location_id?: string | number | null;
     location_name?: string;
     time_of_day?: string;
     exact_time?: string;
@@ -61,9 +61,10 @@ export default function SceneMetadataForm({
   onAddLocation
 }: SceneMetadataFormProps) {
   // Parse present_characters from stringified JSON
-  const presentCharsIds: number[] = (() => {
+  const presentCharsIds: string[] = (() => {
     try {
-      return JSON.parse(scene.present_characters || '[]');
+      const parsed = JSON.parse(scene.present_characters || '[]');
+      return Array.isArray(parsed) ? parsed.map((x: any) => String(x)) : [];
     } catch {
       return [];
     }
@@ -101,7 +102,7 @@ export default function SceneMetadataForm({
   }, [scene.time_of_day]);
 
   const toggleCharacterPresence = (charId: string | number) => {
-    const id = parseInt(String(charId), 10);
+    const id = String(charId);
     let newIds = [...presentCharsIds];
     if (newIds.includes(id)) {
       newIds = newIds.filter(i => i !== id);
@@ -123,7 +124,7 @@ export default function SceneMetadataForm({
             {scene.episode_id ? (
               <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-lg px-3 py-1.5">
                 <span className="text-xs font-bold text-primary truncate">
-                  حلقة {episodes.find(e => e.id === scene.episode_id)?.episode_number} — {episodes.find(e => e.id === scene.episode_id)?.title || 'بدون عنوان'}
+                  حلقة {episodes.find(e => String(e.id) === String(scene.episode_id))?.episode_number} — {episodes.find(e => String(e.id) === String(scene.episode_id))?.title || 'بدون عنوان'}
                 </span>
                 <button
                   type="button"
@@ -137,7 +138,7 @@ export default function SceneMetadataForm({
             ) : (
               <select
                 value={scene.episode_id || ''}
-                onChange={e => onSceneChange('episode_id', e.target.value ? parseInt(e.target.value, 10) : null)}
+                onChange={e => onSceneChange('episode_id', e.target.value ? String(e.target.value) : null)}
                 className="w-full px-2 py-1.5 bg-background border border-input rounded-lg text-foreground text-xs font-bold focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all font-sans"
               >
                 <option value="">-- اختر حلقة لإدراج المشهد فيها --</option>
@@ -171,9 +172,9 @@ export default function SceneMetadataForm({
             value={scene.location_id || ''}
             onChange={e => {
               const val = e.target.value;
-              onSceneChange('location_id', val ? parseInt(val, 10) : null);
+              onSceneChange('location_id', val ? String(val) : null);
               if (val) {
-                const loc = locations.find(l => l.id === parseInt(val, 10));
+                const loc = locations.find(l => String(l.id) === String(val));
                 if (loc) onSceneChange('location_name', loc.name);
               } else {
                 onSceneChange('location_name', '');
@@ -384,7 +385,7 @@ export default function SceneMetadataForm({
         <p className="text-[10px] text-muted-foreground mb-3 font-bold">حدد الشخصيات الموجودة في المشهد (حتى لو كانت صامتة ولا تملك حواراً).</p>
         <div className="flex flex-wrap gap-2 mb-4">
           {characters.map(char => {
-            const isPresent = presentCharsIds.includes(parseInt(String(char.id), 10));
+            const isPresent = presentCharsIds.includes(String(char.id));
             return (
               <button
                 type="button"

@@ -52,3 +52,9 @@ Thumbs.db
 
 # Legacy Quarantine Archives (Local Only)
 *_quarantine_backups*
+
+# Library build outputs & mutation testing
+packages/nasab/lib/
+lib/
+.stryker-tmp/
+

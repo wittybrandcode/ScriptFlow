@@ -5,6 +5,19 @@ export const AudioNode = Node.create({
   group: 'block',
   content: 'inline*',
 
+  addAttributes() {
+    return {
+      block_id: {
+        default: null,
+        parseHTML: element => element.getAttribute('data-block-id'),
+        renderHTML: attributes => {
+          if (!attributes.block_id) return {};
+          return { 'data-block-id': attributes.block_id };
+        },
+      },
+    };
+  },
+
   parseHTML() {
     return [
       {
@@ -20,7 +33,7 @@ export const AudioNode = Node.create({
   addKeyboardShortcuts() {
     return {
       Enter: ({ editor }) => {
-        return (editor.commands as any).splitBlock({ type: 'action' });
+        return editor.chain().splitBlock().setNode('action').run();
       },
     };
   },

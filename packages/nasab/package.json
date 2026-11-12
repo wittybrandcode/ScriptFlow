@@ -40,7 +40,7 @@
     "build": "vite build -c vite.config.lib.ts",
     "build:lib": "vite build -c vite.config.lib.ts",
     "preview": "vite preview",
-    "clean": "rm -rf dist lib docs/api coverage",
+    "clean": "node -e \"['dist','lib','docs/api','coverage','.stryker-tmp'].forEach(d=>{try{require('fs').rmSync(d,{recursive:true,force:true})}catch(e){}})\"",
     "lint": "tsc --noEmit",
     "lint:strict": "tsc --noEmit --strict",
     "lint:eslint": "eslint src/ tests/",
@@ -55,9 +55,10 @@
     "check:deps": "npx knip"
   },
   "dependencies": {
-    "fraction.js": "^5.3.4"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
+    "fraction.js": "^5.3.4",
     "@microsoft/api-documenter": "^7.30.5",
     "@microsoft/api-extractor": "^7.58.7",
     "@stryker-mutator/core": "^9.6.1",

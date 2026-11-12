@@ -118,10 +118,12 @@ export interface ILocation {
   scenario_id: ProjectID;
   parent_location_id: LocationID | null;
   name: string;
-  location_type: LocationType;
+  location_type?: LocationType;
+  type?: LocationType;
   address: string;
   description: string;
-  image_url: string;
+  image_url?: string;
+  image?: string;
   status: LocationStatus;
   map_url: string;
   latitude: number | null;
@@ -132,7 +134,7 @@ export interface ILocation {
   cost_per_day: number;
   cost_currency: CurrencyCode;
   technical_notes: string;
-  created_at: string;
+  created_at?: string;
   deleted_at: string | null;
 }
 

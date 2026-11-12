@@ -106,7 +106,17 @@ export default function CustomRelationshipEdge({
               className="text-[7.5px] font-extrabold tracking-widest text-neutral-900 font-sans"
               dir="rtl"
             >
-              {(label as string) || (relType as string)}
+              {(label as string) || ({
+                PARENT_MALE: 'أب',
+                PARENT_FEMALE: 'أم',
+                MARRIAGE: 'زوج/زوجة',
+                EX_MARRIAGE: 'سابق',
+                CHILD_MALE: 'ابن',
+                CHILD_FEMALE: 'ابنة',
+                FULL_SIBLING: 'شقيق',
+                PATERNAL_SIBLING: 'أخ لأب',
+                MATERNAL_SIBLING: 'أخ لأم'
+              }[relType as string] || '')}
             </span>
 
             {/* Inferred Badge */}

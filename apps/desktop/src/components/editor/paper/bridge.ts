@@ -49,10 +49,6 @@ let sharedParser: DOMParser | null = null;
 export function htmlToTiptapContent(html?: string | null): TiptapNode[] | undefined {
   if (!html) return undefined;
   
-  if (!html.includes('<')) {
-    return [{ type: 'text', text: html }];
-  }
-
   if (typeof DOMParser === 'undefined') {
     return [{ type: 'text', text: html.replace(/<[^>]*>/g, '').trim() }];
   }

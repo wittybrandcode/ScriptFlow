@@ -176,7 +176,7 @@ export default function RichTextEditor({
     if (editor && !editor.isFocused) {
       const currentHtml = editor.getHTML();
       if (value !== currentHtml) {
-        editor.commands.setContent(value || '');
+        editor.commands.setContent(value || '', { emitUpdate: false });
       }
     }
   }, [value, editor]);

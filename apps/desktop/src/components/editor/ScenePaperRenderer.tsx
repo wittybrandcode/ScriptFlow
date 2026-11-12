@@ -1,4 +1,5 @@
 import { memo, useMemo } from 'react';
+import DOMPurify from 'dompurify';
 import { TIME_MAP } from '../../constants/sceneConstants';
 import { GRID, expandBlocksToLayoutNodes, groupBlocksByPage } from './TextMeasurementEngine';
 import { useUIStore } from '../../store/useUIStore';
@@ -54,7 +55,7 @@ const ScenePaperRendererComponent = ({
     if (b.type === 'action') {
       return (
         <div key={b.id} className={`paper-block paper-node-action ${animClass}`}
-          dangerouslySetInnerHTML={{ __html: b.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(b.content || '') }}
         />
       );
     }
@@ -75,42 +76,42 @@ const ScenePaperRendererComponent = ({
     if (b.type === 'dialogue') {
       return (
         <div key={b.id} className={`paper-block paper-node-dialogue ${animClass}`}
-          dangerouslySetInnerHTML={{ __html: b.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(b.content || '') }}
         />
       );
     }
     if (b.type === 'transition') {
       return (
         <div key={b.id} className={`paper-block paper-node-transition ${animClass}`}
-          dangerouslySetInnerHTML={{ __html: b.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(b.content || '') }}
         />
       );
     }
     if (b.type === 'shot') {
       return (
         <div key={b.id} className={`paper-block paper-node-shot ${animClass}`}
-          dangerouslySetInnerHTML={{ __html: b.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(b.content || '') }}
         />
       );
     }
     if (b.type === 'audio') {
       return (
-        <div key={b.id} className={`paper-block paper-node-audio ${animClass}`}>
-          :: SFX - <span dangerouslySetInnerHTML={{ __html: b.content }} /> ::
-        </div>
+        <div key={b.id} className={`paper-block paper-node-audio ${animClass}`}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(b.content || '') }}
+        />
       );
     }
     if (b.type === 'directorNote') {
       return (
-        <div key={b.id} className={`paper-block paper-node-director-note ${animClass}`}>
-          (ملاحظة إخراجية: <span dangerouslySetInnerHTML={{ __html: b.content }} />)
-        </div>
+        <div key={b.id} className={`paper-block paper-node-director-note ${animClass}`}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(b.content || '') }}
+        />
       );
     }
     if (b.type === 'textOnScreen') {
       return (
         <div key={b.id} className={`paper-block paper-node-text ${animClass}`}
-          dangerouslySetInnerHTML={{ __html: b.content }}
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(b.content || '') }}
         />
       );
     }

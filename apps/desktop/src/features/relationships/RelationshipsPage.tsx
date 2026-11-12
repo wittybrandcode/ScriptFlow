@@ -33,6 +33,7 @@ import { useRelationshipGraph } from './hooks/useRelationshipGraph';
 import { useRelationshipActions } from './hooks/useRelationshipActions';
 import { dramaticTypes } from './utils/typeRegistry';
 import CustomRelationshipEdge from './components/CustomRelationshipEdge';
+import InheritanceModal from './components/modals/InheritanceModal';
 
 const nodeTypes = { customCharacter: CustomCharacterNode, union: UnionNode };
 const edgeTypes = { customRelation: CustomRelationshipEdge };
@@ -54,7 +55,43 @@ export default function RelationshipsPage(): React.JSX.Element {
   const [manualLinkPopup, setManualLinkPopup] = useState<ManualLinkPopupData | null>(null);
   const [manualLinkLabel, setManualLinkLabel] = useState<string>('');
   const [edgeToRemove, setEdgeToRemove] = useState<string | null>(null);
+  const [inheritanceResult, setInheritanceResult] = useState<any | null>(null);
+  const [inheritancePartner, setInheritancePartner] = useState<string | number | null>(null);
   const { showToast } = useToast();
+
+  const handleCalculateInheritance = useCallback(async (deceasedId: string) => {
+    try {
+      const { InheritanceEngine } = await import('nasab');
+      const deceasedChar = characters.find(c => String(c.id) === String(deceasedId));
+      if (!deceasedChar) return;
+
+      const nasabNodes = (characters || []).map(n => ({
+        id: String(n.id),
+        name: n.name,
+        gender: n.gender?.toUpperCase() === 'FEMALE' ? 'FEMALE' : 'MALE',
+        birthDate: n.birth_date,
+        deathDate: n.death_date,
+        isDeceased: Boolean(n.is_deceased)
+      }));
+
+      const { CharacterRelationshipRepository } = await import('@scriptflow/database');
+      const relRepo = new CharacterRelationshipRepository();
+      const dbEdges = await relRepo.getByScenarioId(activeScenarioId!);
+
+      const nasabEdges = dbEdges.map(e => ({
+        sourceId: String(e.character_id),
+        targetId: String(e.partner_id),
+        type: e.relationship_type as any
+      }));
+
+      const result = InheritanceEngine.calculate(String(deceasedId), nasabNodes as any, nasabEdges as any);
+      setInheritanceResult(result);
+      setInheritancePartner(deceasedId);
+    } catch (err) {
+      console.error('Inheritance calculation failed:', err);
+      showToast('تعذر حساب المواريث لهذه الشخصية', 'error');
+    }
+  }, [characters, activeScenarioId, showToast]);
 
   useEffect(() => {
     setTopBarConfig({ title: 'خريطة العلاقات المتصلة' } as any);
@@ -228,11 +265,12 @@ export default function RelationshipsPage(): React.JSX.Element {
         ...node,
         data: {
           ...node.data,
-          onToggleDeceased: handleToggleDeceased
+          onToggleDeceased: handleToggleDeceased,
+          onCalculateInheritance: (deceasedId: string) => handleCalculateInheritance(deceasedId)
         }
       };
     });
-  }, [nodes, handleToggleDeceased]);
+  }, [nodes, handleToggleDeceased, handleCalculateInheritance]);
 
   if (!activeScenarioId) {
     return (
@@ -298,11 +336,11 @@ export default function RelationshipsPage(): React.JSX.Element {
             }));
             
             const nasabEdges = (rawGraphData.current?.edges || [])
-              .filter((e: any) => e.category !== 'INFERRED')
+              .filter((e: any) => e.category !== 'INFERRED' && e.data?.category !== 'INFERRED')
               .map((e: any) => ({
                 sourceId: String(e.source),
                 targetId: String(e.target),
-                type: e.type
+                type: e.data?.relType || e.relationship_type || e.data?.relationship_type || e.type
               }));
               
             const gedcomData = GedcomEngine.generate(nasabNodes as any, nasabEdges as any);
@@ -438,9 +476,12 @@ export default function RelationshipsPage(): React.JSX.Element {
         {partner1 && (
           <div className="w-[360px] lg:w-[400px] bg-white shrink-0 h-full relative z-20 shadow-[-10px_0_20px_-5px_rgba(0,0,0,0.05)] overflow-hidden border-r border-gray-100">
             <CharacterRPGPanel 
-              character={enhancedNodes.find(n => String(n.id) === String(partner1))?.data}
-              characters={rawGraphData.current?.nodes.map((n: any) => n.data) || []}
-              edges={edges}
+              character={(() => {
+                const node = enhancedNodes.find(n => String(n.id) === String(partner1));
+                return node ? { ...node.data, id: node.id } : null;
+              })()}
+              characters={rawGraphData.current?.nodes.map((n: any) => ({ ...n.data, id: n.id })) || []}
+              edges={rawGraphData.current?.edges || edges}
               warnings={nasabMetadata?.warnings || []}
               onClose={() => { setPartner1(''); }}
               onAddRelationship={async (sourceId, targetId, rType) => {
@@ -484,6 +525,13 @@ export default function RelationshipsPage(): React.JSX.Element {
         confirmText="تأكيد الإزالة"
         cancelText="إلغاء"
         variant="danger"
+      />
+
+      <InheritanceModal
+        inheritanceResult={inheritanceResult}
+        onClose={() => setInheritanceResult(null)}
+        characters={characters}
+        partner1={inheritancePartner}
       />
     </div>
   );

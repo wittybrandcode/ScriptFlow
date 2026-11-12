@@ -56,9 +56,10 @@ class BackupService {
 
       const backupsDir = await this.getBackupsDir();
       
+      const cleanSuffix = suffix.replace(/[^a-zA-Z0-9_-]/g, '') || 'manual';
       const date = new Date();
       const timestamp = date.toISOString().replace(/[:.]/g, '-').slice(0, 19); // YYYY-MM-DDTHH-mm-ss
-      const backupFilename = `scriptflow_${suffix}_${timestamp}.bak.db`;
+      const backupFilename = `scriptflow_${cleanSuffix}_${timestamp}.bak.db`;
       const backupPath = await join(backupsDir, backupFilename);
 
       try {
@@ -122,8 +123,12 @@ class BackupService {
    */
   async deleteBackup(filename: string): Promise<boolean> {
     try {
+      const cleanFilename = filename.replace(/^.*[\\\/]/, '').replace(/[^a-zA-Z0-9_.-]/g, '');
+      if (!cleanFilename.endsWith('.bak.db')) {
+        throw new Error('Invalid backup filename');
+      }
       const backupsDir = await this.getBackupsDir();
-      const filePath = await join(backupsDir, filename);
+      const filePath = await join(backupsDir, cleanFilename);
       await remove(filePath);
       return true;
     } catch (error) {

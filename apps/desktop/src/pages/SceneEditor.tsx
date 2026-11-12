@@ -185,7 +185,9 @@ export default function SceneEditor() {
       try {
         const appWindow = getCurrentWindow();
         unlisten = await appWindow.onCloseRequested(async (event) => {
-          if (saveStatus === 'unsaved') {
+          const hasUnsaved = saveStatusRef.current === 'unsaved' || (autosaveQueueRef.current?.queue.length ?? 0) > 0 || isSavingRef.current;
+          if (hasUnsaved) {
+            event.preventDefault();
             let confirmed = false;
             try {
               const { confirm: tauriConfirm } = await import('@tauri-apps/plugin-dialog');
@@ -203,16 +205,21 @@ export default function SceneEditor() {
               confirmed = true;
             }
 
-            if (!confirmed) {
-              event.preventDefault();
-            } else {
-              if (autosaveQueueRef.current) {
-                autosaveQueueRef.current.flush().catch(() => {});
-              }
+            if (confirmed) {
               if (id && blocksRef.current.length > 0) {
-                 createSnapshotMutation.mutate({ sceneId: id, blocks: blocksRef.current, trigger: 'app_close_panic' });
+                try {
+                  await createSnapshotMutation.mutateAsync({ sceneId: id, blocks: blocksRef.current, trigger: 'app_close_panic' });
+                } catch (_) {}
               }
+              await appWindow.destroy();
             }
+          } else if (autosaveQueueRef.current) {
+            // Ensure any queued/in-flight background save finishes cleanly before destroying
+            event.preventDefault();
+            try {
+              await autosaveQueueRef.current.flush();
+            } catch (_) {}
+            await appWindow.destroy();
           }
         });
       } catch (err) {
@@ -742,11 +749,8 @@ export default function SceneEditor() {
           showToast('تم إنشاء المشهد بنجاح', 'success');
           navigate(`/scene/${created.id}`, { replace: true });
         } else {
-          await updateSceneMutation.mutateAsync({ id: id!, data: sceneToSave });
           await saveBlocksToDb(currentBlocks, id);
-          const { updateScenarioPageNumbering } = await import('../utils/paginationCalculator');
-          await updateScenarioPageNumbering(activeScenarioId || '');
-          queryClient.invalidateQueries({ queryKey: ['pageNumbering', 'scenario', activeScenarioId] });
+          await updateSceneMutation.mutateAsync({ id: id!, data: sceneToSave });
           const finalSavedScene = { ...sceneToSave, version: nextVersion };
           lastSavedSceneJsonRef.current = JSON.stringify(finalSavedScene);
           sceneRef.current = finalSavedScene;
@@ -1090,7 +1094,14 @@ export default function SceneEditor() {
   useKeyboard({
     'ctrl+s': (e: any) => { e.preventDefault(); saveScene(); },
     'ctrl+p': (e: any) => { e.preventDefault(); handleExportPDF(); },
-    'escape': () => navigate('/')
+    'escape': () => {
+      if (showCharModal) { setShowCharModal(false); return; }
+      if (showLocationModal) { setShowLocationModal(false); return; }
+      if (showRemindersModal) { setShowRemindersModal(false); return; }
+      if (showExportModal) { setShowExportModal(false); return; }
+      if (showCharMenu) { setShowCharMenu(false); return; }
+      if (showSceneMenu) { setShowSceneMenu(false); return; }
+    }
   });
 
   const quickAddCharacter = useCallback(async (name: string) => {

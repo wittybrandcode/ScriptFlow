@@ -81,6 +81,7 @@ export const KinshipOntology: Record<HeirType, KinshipWeight> = {
 export interface Heir {
   id: string;
   type: HeirType;
+  secondaryType?: HeirType;
   gender: Gender;
   isBlocked?: boolean;
   blockedBy?: string[]; // IDs of blocking heirs
@@ -91,4 +92,20 @@ export interface Heir {
   isHermaphrodite?: boolean; // الخنثى المشكل
   isMissing?: boolean; // المفقود
   isFetus?: boolean; // الحمل
+}
+
+export interface EvidenceCitation {
+  id?: string;
+  type?: "QURAN" | "HADITH" | "IJMAA" | "QAWL" | "QAEDA";
+  source: string;
+  textAr?: string; 
+  textEn?: string;
+  text?: string;
+  context?: string;
+  authenticity?: string;
+  suraName?: string;
+  ayahNumber?: number | string;
+  hadithBook?: string;
+  hadithNumber?: number | string;
+  pageNumber?: number | string;
 }

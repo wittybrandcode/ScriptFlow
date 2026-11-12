@@ -25,23 +25,53 @@
     "fs:allow-document-write-recursive",
     {
       "identifier": "fs:allow-exists",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        { "path": "$APPDATA/**/*" },
+        { "path": "$DOCUMENT/**/*" },
+        { "path": "$DESKTOP/**/*" },
+        { "path": "$DOWNLOAD/**/*" },
+        { "path": "$TEMP/**/*" }
+      ]
     },
     {
       "identifier": "fs:allow-read-file",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        { "path": "$APPDATA/**/*" },
+        { "path": "$DOCUMENT/**/*" },
+        { "path": "$DESKTOP/**/*" },
+        { "path": "$DOWNLOAD/**/*" },
+        { "path": "$TEMP/**/*" }
+      ]
     },
     {
       "identifier": "fs:allow-write-file",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        { "path": "$APPDATA/**/*" },
+        { "path": "$DOCUMENT/**/*" },
+        { "path": "$DESKTOP/**/*" },
+        { "path": "$DOWNLOAD/**/*" },
+        { "path": "$TEMP/**/*" }
+      ]
     },
     {
       "identifier": "fs:allow-copy-file",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        { "path": "$APPDATA/**/*" },
+        { "path": "$DOCUMENT/**/*" },
+        { "path": "$DESKTOP/**/*" },
+        { "path": "$DOWNLOAD/**/*" },
+        { "path": "$TEMP/**/*" }
+      ]
     },
     {
       "identifier": "fs:allow-mkdir",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        { "path": "$APPDATA/**/*" },
+        { "path": "$DOCUMENT/**/*" },
+        { "path": "$DESKTOP/**/*" },
+        { "path": "$DOWNLOAD/**/*" },
+        { "path": "$TEMP/**/*" }
+      ]
     },
     "dialog:default",
     "dialog:allow-confirm",

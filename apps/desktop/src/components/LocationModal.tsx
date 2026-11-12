@@ -17,7 +17,7 @@ export interface LocationImageItem {
 export interface LocationItem {
   id: string | number;
   name?: string;
-  type?: 'INT' | 'EXT';
+  type?: 'INT' | 'EXT' | 'MIXED' | string;
   address?: string;
   description?: string;
   status?: string;
@@ -89,7 +89,7 @@ export default function LocationModal({
     if (location) {
       setFormData({
         name: location.name || '',
-        type: location.type || 'INT',
+        type: (location.type === 'EXT' ? 'EXT' : 'INT') as 'INT' | 'EXT',
         address: location.address || '',
         description: location.description || '',
         status: location.status || 'AVAILABLE',

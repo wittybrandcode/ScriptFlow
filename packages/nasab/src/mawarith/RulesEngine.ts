@@ -115,7 +115,7 @@ export class RulesEngine {
       if (maternalSibs.length === 1) {
         ctx.addFard(maternalSibs[0], maternalSibs[0].gender === Gender.MALE ? 'أخ لأم' : 'أخت لأم', '1/6', 'لانفراده/ها');
       } else if (maternalSibs.length > 1) {
-        maternalSibs.forEach(s => ctx.addFard(s, s.gender === Gender.MALE ? 'أخ لأم' : 'أخت لأم', '1/3', 'يتقاسمون الثلث بالتساوي'));
+        maternalSibs.forEach(s => ctx.addFard(s, 'إخوة لأم', '1/3', 'يتقاسمون الثلث بالتساوي'));
       }
     } else {
       ctx.block([...r.maternalBrothers, ...r.maternalSisters], 'أخ/أخت لأم', 'محجوب بالأب/الجد أو الفرع الوارث');
@@ -165,32 +165,54 @@ export class RulesEngine {
     // 8. Other Extended Asabat
     if (!ctx.asaba) {
       if (r.nephews.length > 0) {
-        ctx.asaba = { persons: r.nephews, relation: 'أبناء الإخوة', asabaType: 'عصبة بالنفس', maleWeight: 1, femaleWeight: 1 };
+        ctx.asaba = { persons: r.nephews, relation: 'أبناء الإخوة الأشقاء أو لأب', asabaType: 'عصبة بالنفس', maleWeight: 1, femaleWeight: 1 };
         ctx.block(r.uncles, 'أعمام', 'محجوب بأبناء الإخوة');
       } else if (r.uncles.length > 0) {
-        ctx.asaba = { persons: r.uncles, relation: 'أعمام/أخوال', asabaType: 'عصبة بالنفس', maleWeight: 1, femaleWeight: 1 };
+        ctx.asaba = { persons: r.uncles, relation: 'أعمام أشقاء أو لأب', asabaType: 'عصبة بالنفس', maleWeight: 1, femaleWeight: 1 };
       }
     } else {
-      if (r.nephews.length > 0) ctx.block(r.nephews, 'ابن أخ/أخت', 'محجوب بالعصبة الأقرب الجهة');
-      if (r.uncles.length > 0) ctx.block(r.uncles, 'عم/خال', 'محجوب بالعصبة الأقرب الجهة');
+      if (r.nephews.length > 0) ctx.block(r.nephews, 'ابن أخ شقيق/لأب', 'محجوب بالعصبة الأقرب الجهة');
+      if (r.uncles.length > 0) ctx.block(r.uncles, 'عم شقيق/لأب', 'محجوب بالعصبة الأقرب الجهة');
     }
 
     // Block Zawil Arham and generic Lineage mismatchers
     ctx.block(r.aunts, 'عمة/خالة', 'من ذوي الأرحام');
     ctx.block(r.nieces, 'ابنة أخ/أخت', 'من ذوي الأرحام');
+    if (r.maternalUncles && r.maternalUncles.length > 0) {
+      ctx.block(r.maternalUncles, 'خال', 'من ذوي الأرحام');
+    }
+    if (r.maternalNephews && r.maternalNephews.length > 0) {
+      ctx.block(r.maternalNephews, 'ابن أخت', 'من ذوي الأرحام');
+    }
+    if (r.uterineGrandchildren && r.uterineGrandchildren.length > 0) {
+      ctx.block(r.uterineGrandchildren, 'ولد بنت (ابن/بنت بنت)', 'من ذوي الأرحام');
+    }
+    if (r.uterineGrandfathers && r.uterineGrandfathers.length > 0) {
+      ctx.block(r.uterineGrandfathers, 'جد لأم (أبو الأم)', 'من ذوي الأرحام (جد رحمي)');
+    }
   }
 
   static applyDynamicLineageIsolation(ctx: MawarithContext, allNodes: Person[]): void {
     if (ctx.deceased.lineageId) {
       allNodes.forEach(n => {
         if (!n.isDeceased && n.id !== ctx.deceased.id) {
-          if (!ctx.heirs.some(h => h.person.id === n.id)) {
-            const isFardOwner = ctx.relatives.spouses.some(s=>s.id===n.id) || 
-                                ctx.relatives.mothers.some(m=>m.id===n.id) || 
-                                ctx.relatives.grandmothers.some(g=>g.id===n.id) || 
-                                ctx.relatives.maternalBrothers.some(m=>m.id===n.id) || 
-                                ctx.relatives.maternalSisters.some(m=>m.id===n.id);
-            if (!isFardOwner && n.lineageId !== ctx.deceased.lineageId) {
+          const isAlreadyHeir = ctx.heirs.some(h => h.person.id === n.id) || 
+                                (ctx.asaba && ctx.asaba.persons.some(p => p.id === n.id)) ||
+                                ctx.blockedIds.has(n.id);
+          if (!isAlreadyHeir) {
+            // حماية فروع المتوفاة (الأبناء والبنات) والأزواج والأمهات ومن في حكمهم من الحجب باختلاف lineageId
+            const isProtectedRelative = 
+              ctx.relatives.spouses.some(s => s.id === n.id) || 
+              ctx.relatives.mothers.some(m => m.id === n.id) || 
+              ctx.relatives.grandmothers.some(g => g.id === n.id) || 
+              ctx.relatives.maternalBrothers.some(m => m.id === n.id) || 
+              ctx.relatives.maternalSisters.some(m => m.id === n.id) ||
+              ctx.relatives.sons.some(s => s.id === n.id) ||
+              ctx.relatives.daughters.some(d => d.id === n.id) ||
+              ctx.relatives.grandsons.some(g => g.id === n.id) ||
+              ctx.relatives.granddaughters.some(gd => gd.id === n.id);
+
+            if (!isProtectedRelative && n.lineageId !== ctx.deceased.lineageId) {
               ctx.heirs.push({
                 person: n,
                 relation: 'قريب بعيد/ذوي أرحام',

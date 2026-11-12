@@ -907,10 +907,71 @@ export const BUNDLED_INHERITANCE_RULES = [
         ]
       },
       {
+        "rule_id": "MOTHER_GETS_ONE_THIRD_OF_REMAINDER",
+        "name_ar": "نصيب الأم - ثلث الباقي (المسألتان العمريتان)",
+        "description": "ترث الأم ثلث الباقي بعد نصيب أحد الزوجين إذا اجتمع الأب والأم وأحد الزوجين فقط دون فروع.",
+        "priority": 95,
+        "conditions": [
+          {
+            "operator": "AND",
+            "criteria": [
+              {
+                "exists": {
+                  "relation": [
+                    "FATHER"
+                  ],
+                  "state": "ALIVE"
+                }
+              },
+              {
+                "exists": {
+                  "relation": [
+                    "SPOUSE_MALE",
+                    "SPOUSE_FEMALE"
+                  ],
+                  "state": "ALIVE"
+                }
+              },
+              {
+                "not_exists": {
+                  "relation": [
+                    "CHILD",
+                    "GRANDCHILD_MALE_LINE"
+                  ],
+                  "state": "ALIVE"
+                }
+              },
+              {
+                "count_strictly_less": {
+                  "relation": [
+                    "SIBLING_FULL",
+                    "SIBLING_PATERNAL",
+                    "SIBLING_MATERNAL"
+                  ],
+                  "count": 2,
+                  "state": "ALIVE"
+                }
+              }
+            ]
+          }
+        ],
+        "effect": {
+          "type": "ASSIGN_REMAINDER_FRACTIONAL_SHARE",
+          "fraction_of_remainder": "1/3",
+          "label": "ثلث الباقي"
+        },
+        "evidence": [
+          {
+            "source": "IJMA_SABAHA",
+            "text": "قضاء عمر بن الخطاب واجماع الصحابة في الغراوين"
+          }
+        ]
+      },
+      {
         "rule_id": "MOTHER_GETS_ONE_THIRD",
         "name_ar": "نصيب الأم - الثلث",
         "description": "ترث الأم الثلث عند عدم الفرع الوارث وعدم الجمع من الإخوة.",
-        "priority": 95,
+        "priority": 90,
         "conditions": [
           {
             "operator": "AND",
@@ -947,63 +1008,6 @@ export const BUNDLED_INHERITANCE_RULES = [
           {
             "source": "QURAN_4_11",
             "text": "فَإِن لَّمْ يَكُن لَّهُ وَلَدٌ وَوَرِثَهُ أَبَوَاهُ فَلِأُمِّهِ الثُّلُثُ"
-          }
-        ]
-      },
-      {
-        "rule_id": "MOTHER_GETS_ONE_THIRD_OF_REMAINDER",
-        "name_ar": "نصيب الأم - ثلث الباقي (المسألتان العمريتان)",
-        "description": "ترث الأم ثلث الباقي بعد نصيب أحد الزوجين إذا اجتمع الأب والأم وأحد الزوجين فقط دون فروع.",
-        "priority": 90,
-        "conditions": [
-          {
-            "operator": "AND",
-            "criteria": [
-              {
-                "exists": {
-                  "relation": [
-                    "FATHER"
-                  ]
-                }
-              },
-              {
-                "exists": {
-                  "relation": [
-                    "SPOUSE_MALE",
-                    "SPOUSE_FEMALE"
-                  ]
-                }
-              },
-              {
-                "not_exists": {
-                  "relation": [
-                    "CHILD",
-                    "GRANDCHILD_MALE_LINE"
-                  ]
-                }
-              },
-              {
-                "count_strictly_less": {
-                  "relation": [
-                    "SIBLING_FULL",
-                    "SIBLING_PATERNAL",
-                    "SIBLING_MATERNAL"
-                  ],
-                  "count": 2
-                }
-              }
-            ]
-          }
-        ],
-        "effect": {
-          "type": "ASSIGN_REMAINDER_FRACTIONAL_SHARE",
-          "fraction_of_remainder": "1/3",
-          "label": "ثلث الباقي"
-        },
-        "evidence": [
-          {
-            "source": "IJMA_SABAHA",
-            "text": "قضاء عمر بن الخطاب واجماع الصحابة في الغراوين"
           }
         ]
       }
@@ -1310,14 +1314,14 @@ export const BUNDLED_BLOCKING_RULES = [
     ]
   },
   {
-    "rule_group": "GRANDMOTHER_BLOCKING",
+    "rule_group": "MATERNAL_GRANDMOTHER_BLOCKING",
     "target_node": "GRANDMOTHER_MATERNAL",
     "domain": "MAWARITH",
     "rules": [
       {
         "rule_id": "MATERNAL_GRANDMOTHER_BLOCKED_BY_MOTHER",
         "name_ar": "حجب الجدة لأم بالأم",
-        "description": "الأم تحجب الجدة من جهة الأم حجب حرمان.",
+        "description": "الأم تحجب الجدة من جهة الأم حجب حرمان بالإجماع.",
         "priority": 100,
         "conditions": [
           {
@@ -1344,50 +1348,7 @@ export const BUNDLED_BLOCKING_RULES = [
         "evidence": [
           {
             "source": "FIQH_MAXIM",
-            "text": "الأم تحجب جميع الجدات (من الجهتين)."
-          }
-        ]
-      },
-      {
-        "rule_id": "PATERNAL_GRANDMOTHER_BLOCKED_BY_MOTHER_OR_FATHER",
-        "name_ar": "حجب الجدة لأب بالأم أو الأب",
-        "description": "الأم والأب يحجبان الجدة من جهة الأب حجب حرمان.",
-        "priority": 90,
-        "conditions": [
-          {
-            "operator": "OR",
-            "criteria": [
-              {
-                "exists": {
-                  "relation": [
-                    "MOTHER"
-                  ],
-                  "state": "ALIVE"
-                }
-              },
-              {
-                "exists": {
-                  "relation": [
-                    "FATHER"
-                  ],
-                  "state": "ALIVE"
-                }
-              }
-            ]
-          }
-        ],
-        "effect": {
-          "type": "TOTAL_BLOCK",
-          "blocked_by": [
-            "MOTHER",
-            "FATHER"
-          ],
-          "label": "حجب حرمان"
-        },
-        "evidence": [
-          {
-            "source": "FIQH_MAXIM",
-            "text": "كل من أدلى إلى الميت بواسطة حجبته تلك الواسطة عند وجودها."
+            "text": "الأم تحجب جميع الجدات من الجهتين بإجماع الفقهاء."
           }
         ]
       }
@@ -1442,6 +1403,56 @@ export const BUNDLED_BLOCKING_RULES = [
           {
             "source": "QURAN_4_12",
             "text": "يُورَثُ كَلَالَةً (الكلالة من لا ولد له ولا والد الذكر)"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "rule_group": "PATERNAL_GRANDMOTHER_BLOCKING",
+    "target_node": "GRANDMOTHER_PATERNAL",
+    "domain": "MAWARITH",
+    "rules": [
+      {
+        "rule_id": "PATERNAL_GRANDMOTHER_BLOCKED_BY_MOTHER_OR_FATHER",
+        "name_ar": "حجب الجدة لأب بالأم أو الأب",
+        "description": "الأم والأب يحجبان الجدة من جهة الأب حجب حرمان.",
+        "priority": 100,
+        "conditions": [
+          {
+            "operator": "OR",
+            "criteria": [
+              {
+                "exists": {
+                  "relation": [
+                    "MOTHER"
+                  ],
+                  "state": "ALIVE"
+                }
+              },
+              {
+                "exists": {
+                  "relation": [
+                    "FATHER"
+                  ],
+                  "state": "ALIVE"
+                }
+              }
+            ]
+          }
+        ],
+        "effect": {
+          "type": "TOTAL_BLOCK",
+          "blocked_by": [
+            "MOTHER",
+            "FATHER"
+          ],
+          "label": "حجب حرمان"
+        },
+        "evidence": [
+          {
+            "source": "FIQH_MAXIM",
+            "text": "كل من أدلى إلى الميت بواسطة حجبته تلك الواسطة عند وجودها، فتحجب الجدة لأب بالأب وبالأم."
           }
         ]
       }

@@ -62,7 +62,8 @@ export default function EpisodesPage() {
   const handleCreateEpisode = useCallback(async () => {
     if (!activeScenarioId) return;
     try {
-      const ep = await createEpisodeMutation.mutateAsync({ scenario_id: activeScenarioId, title: '', episode_number: episodes.length + 1 }) as any;
+      const nextEpisodeNumber = episodes.length > 0 ? Math.max(...episodes.map(e => Number(e.episode_number) || 0), 0) + 1 : 1;
+      const ep = await createEpisodeMutation.mutateAsync({ scenario_id: activeScenarioId, title: '', episode_number: nextEpisodeNumber }) as any;
       if (ep) {
         showToast('تم إنشاء حلقة جديدة', 'success');
         setEditingId(ep.id);
@@ -71,7 +72,7 @@ export default function EpisodesPage() {
     } catch (err) {
       console.error(err);
     }
-  }, [activeScenarioId, episodes.length, createEpisodeMutation, showToast]);
+  }, [activeScenarioId, episodes, createEpisodeMutation, showToast]);
 
   // Header
   const handleCreateEpisodeRef = useRef(handleCreateEpisode);

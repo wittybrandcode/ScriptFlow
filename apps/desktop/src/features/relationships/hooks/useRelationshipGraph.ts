@@ -22,7 +22,7 @@ export function useRelationshipGraph(scenarioId: string | undefined | null, view
   const processGraph = useCallback(async (rawNodes: any[], rawEdges: any[]) => {
     let filteredEdges = rawEdges;
     if (viewMode === 'BIOLOGICAL') {
-      filteredEdges = rawEdges.filter((e: any) => e.data?.category === 'BIOLOGICAL' || e.data?.category === 'INFERRED' || e.data?.category === 'INFERRED_CO_PARENT' || e.data?.category === 'DRAMATIC');
+      filteredEdges = rawEdges.filter((e: any) => e.data?.category === 'BIOLOGICAL' || e.data?.category === 'INFERRED' || e.data?.category === 'INFERRED_CO_PARENT');
     }
 
     // ═══ Transform marriages into union nodes (BIOLOGICAL mode only) ═══
@@ -103,15 +103,31 @@ export function useRelationshipGraph(scenarioId: string | undefined | null, view
   // Debounced wrapper for processGraph to avoid mid-input/frequent layout stuttering
   const debouncedProcessGraph = useMemo(() => {
     let timer: any;
+    let pendingResolvers: Array<() => void> = [];
+
     const debounced = (rawNodes: any[], rawEdges: any[]) => {
       return new Promise<void>((resolve) => {
+        pendingResolvers.push(resolve);
         clearTimeout(timer);
-        timer = setTimeout(() => {
-          processGraph(rawNodes, rawEdges).then(resolve);
+        timer = setTimeout(async () => {
+          const resolvers = pendingResolvers;
+          pendingResolvers = [];
+          try {
+            await processGraph(rawNodes, rawEdges);
+          } finally {
+            resolvers.forEach(r => r());
+          }
         }, 200);
       });
     };
-    debounced.cancel = () => clearTimeout(timer);
+
+    debounced.cancel = () => {
+      clearTimeout(timer);
+      const resolvers = pendingResolvers;
+      pendingResolvers = [];
+      resolvers.forEach(r => r());
+    };
+
     return debounced;
   }, [processGraph]);
 
@@ -131,6 +147,41 @@ export function useRelationshipGraph(scenarioId: string | undefined | null, view
       const dbNodes = await charRepo.getByScenarioId(scenarioId);
       const dbEdges = await relRepo.getByScenarioId(scenarioId);
 
+      // Synthesize parent biological edges from father_id and mother_id if not present
+      const combinedDbEdges = [...dbEdges];
+      for (const n of dbNodes) {
+        if (n.father_id) {
+          const hasEdge = combinedDbEdges.some(
+            e => String(e.character_id) === String(n.father_id) && String(e.partner_id) === String(n.id)
+          );
+          if (!hasEdge) {
+            combinedDbEdges.push({
+              id: `edge_father_${n.father_id}_${n.id}`,
+              scenario_id: scenarioId,
+              character_id: String(n.father_id),
+              partner_id: String(n.id),
+              relationship_type: 'PARENT_MALE',
+              relationship_category: 'BIOLOGICAL'
+            } as any);
+          }
+        }
+        if (n.mother_id) {
+          const hasEdge = combinedDbEdges.some(
+            e => String(e.character_id) === String(n.mother_id) && String(e.partner_id) === String(n.id)
+          );
+          if (!hasEdge) {
+            combinedDbEdges.push({
+              id: `edge_mother_${n.mother_id}_${n.id}`,
+              scenario_id: scenarioId,
+              character_id: String(n.mother_id),
+              partner_id: String(n.id),
+              relationship_type: 'PARENT_FEMALE',
+              relationship_category: 'BIOLOGICAL'
+            } as any);
+          }
+        }
+      }
+
       // Import nasab validators and engines
       const { KinshipValidator, InferenceEngine } = await import('nasab');
 
@@ -149,7 +200,7 @@ export function useRelationshipGraph(scenarioId: string | undefined | null, view
         };
       });
 
-      const nasabEdges = dbEdges.map(e => ({
+      const nasabEdges = combinedDbEdges.map(e => ({
         sourceId: String(e.character_id),
         targetId: String(e.partner_id),
         type: e.relationship_type as any
@@ -217,7 +268,7 @@ export function useRelationshipGraph(scenarioId: string | undefined | null, view
           };
         }),
         edges: [
-          ...dbEdges.map(e => ({
+          ...combinedDbEdges.map(e => ({
              id: String(e.id),
              source: String(e.character_id),
              target: String(e.partner_id),

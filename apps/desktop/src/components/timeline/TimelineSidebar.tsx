@@ -32,8 +32,9 @@ export default function TimelineSidebar({ scenes = [] }: TimelineSidebarProps): 
       if (locationTab === 'NO_LOC' && scene.location_id) return false;
 
       // Setting Filter
-      if (settingFilter === 'INT' && scene.setting !== 'INT') return false;
-      if (settingFilter === 'EXT' && scene.setting !== 'EXT') return false;
+      const locType = (scene.location_type || scene.setting || '').toUpperCase();
+      if (settingFilter === 'INT' && locType !== 'INT') return false;
+      if (settingFilter === 'EXT' && locType !== 'EXT') return false;
 
       // Search Filter
       if (searchQuery) {

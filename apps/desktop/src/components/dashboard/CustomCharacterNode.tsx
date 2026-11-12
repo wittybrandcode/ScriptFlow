@@ -30,6 +30,7 @@ export interface CustomCharacterNodeData {
   death_date?: string;
   traits?: string[];
   onToggleDeceased?: (id: string) => void;
+  onCalculateInheritance?: (id: string) => void;
   [key: string]: any;
 }
 
@@ -143,6 +144,19 @@ export default function CustomCharacterNode({ id, data, selected }: CustomCharac
                 </span>
               ))}
             </div>
+          )}
+
+          {isDeceased && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                data.onCalculateInheritance?.(id);
+              }}
+              className="mt-2 w-full py-1 px-2 text-[9px] font-black bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 rounded border border-amber-500/20 flex items-center justify-center gap-1 transition-colors"
+            >
+              <span>حساب التركة والمواريث</span>
+            </button>
           )}
         </div>
       </div>

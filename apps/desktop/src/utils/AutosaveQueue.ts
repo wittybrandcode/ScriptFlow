@@ -31,6 +31,7 @@ export class AutosaveQueue {
   public queue: AutosaveItem[];
   public timer: any;
   public isSaving: boolean;
+  private inFlightPromise: Promise<any> | null;
 
   constructor(
     saveAction: SaveActionFn, 
@@ -43,6 +44,7 @@ export class AutosaveQueue {
     this.queue = [];
     this.timer = null;
     this.isSaving = false;
+    this.inFlightPromise = null;
   }
 
   /**
@@ -62,18 +64,26 @@ export class AutosaveQueue {
 
   /**
    * Flushes entire queue immediately and cancels pending timers.
+   * Ensures any active in-flight save completes before resolving.
    */
   async flush(): Promise<void> {
     if (this.timer) {
       clearTimeout(this.timer);
       this.timer = null;
     }
+
+    // Await any in-flight save operation
+    if (this.inFlightPromise) {
+      try {
+        await this.inFlightPromise;
+      } catch (_) {}
+    }
     
     const pendingItems = [...this.queue];
     this.queue = [];
     
     if (pendingItems.length > 0) {
-      console.warn(`⚠️ AutosaveQueue: جاري إنقاذ وحفظ ${pendingItems.length} عنصر(عناصر) معلقة بسبب تبديل السيناريو`);
+      console.warn(`⚠️ AutosaveQueue: جاري إنقاذ وحفظ ${pendingItems.length} عنصر(عناصر) معلقة`);
       const results = await Promise.allSettled(
         pendingItems.map(item => Promise.resolve(this.saveAction(item.id, item.body)))
       );
@@ -100,7 +110,8 @@ export class AutosaveQueue {
 
     try {
       if (typeof this.saveAction === 'function') {
-        await this.saveAction(itemToSave.id, itemToSave.body);
+        this.inFlightPromise = Promise.resolve(this.saveAction(itemToSave.id, itemToSave.body));
+        await this.inFlightPromise;
       }
 
       console.log(`✅ تم الحفظ التلقائي بنجاح للكيان: ${itemToSave.id}`);
@@ -132,6 +143,7 @@ export class AutosaveQueue {
         return;
       }
     } finally {
+      this.inFlightPromise = null;
       this.isSaving = false;
     }
 

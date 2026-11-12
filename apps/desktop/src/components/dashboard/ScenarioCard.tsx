@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Film, Edit3, Save, X, Image as ImageIcon, FileText, FileJson, CheckCircle, Archive, Clapperboard, Tv, type LucideIcon } from 'lucide-react';
+import { Film, Edit3, Save, X, Image as ImageIcon, FileText, FileJson, CheckCircle, Archive, Clapperboard, Tv, Package, Trash2, type LucideIcon } from 'lucide-react';
 import { resolveMediaUrl, saveMediaFile } from '../../services/mediaStorage';
 import type { IScenario } from '@scriptflow/core';
 
@@ -43,12 +43,12 @@ const STATUS_MAP: Record<string, StatusItem> = {
  * مكون بطاقة السيناريو مع مراجعة التعديل والحذف والتصدير
  */
 const ScenarioCard: React.FC<ScenarioCardProps> = ({ 
-  scenario, editing, onEdit, onCancel, onSave, onOpen, onExport, onExportJSON 
+  scenario, editing, onEdit, onCancel, onSave, onDelete, onOpen, onExport, onExportJSON, onExportPackage 
 }) => {
   const [title, setTitle] = useState(scenario?.title || '');
   const [desc, setDesc] = useState(scenario?.description || '');
-  const [coverImage, setCoverImage] = useState(scenario?.cover_image ? resolveMediaUrl(scenario.cover_image) : '');
-  const [coverVideo, setCoverVideo] = useState(scenario?.cover_video ? resolveMediaUrl(scenario.cover_video) : '');
+  const [coverImage, setCoverImage] = useState(scenario?.cover_image || '');
+  const [coverVideo, setCoverVideo] = useState(scenario?.cover_video || '');
   const [status, setStatus] = useState(scenario?.status || 'DRAFT');
   const [genre, setGenre] = useState(scenario?.genre || '');
   const [notes, setNotes] = useState(scenario?.notes || '');
@@ -66,8 +66,8 @@ const ScenarioCard: React.FC<ScenarioCardProps> = ({
   useEffect(() => { 
     setTitle(scenario?.title || ''); 
     setDesc(scenario?.description || ''); 
-    if (scenario?.cover_image) setCoverImage(resolveMediaUrl(scenario.cover_image));
-    if (scenario?.cover_video) setCoverVideo(resolveMediaUrl(scenario.cover_video));
+    if (scenario?.cover_image) setCoverImage(scenario.cover_image);
+    if (scenario?.cover_video) setCoverVideo(scenario.cover_video);
     setStatus(scenario?.status || 'DRAFT');
     setGenre(scenario?.genre || '');
     setNotes(scenario?.notes || '');
@@ -103,7 +103,7 @@ const ScenarioCard: React.FC<ScenarioCardProps> = ({
         const scenarioRepo = new ScenarioRepository();
         const row = await scenarioRepo.findById(scenario.id);
         if (!cancelled && row?.cover_image) {
-          setCoverImage(resolveMediaUrl(row.cover_image));
+          setCoverImage(row.cover_image);
         }
       } catch (e) {
         console.error('Failed to load poster image', e);
@@ -190,7 +190,7 @@ const ScenarioCard: React.FC<ScenarioCardProps> = ({
           const ext = file.name.split('.').pop() || 'mp4';
           const videoUri = await saveMediaFile(targetId, `video_${Date.now()}.${ext}`, file);
 
-          setCoverImage(resolveMediaUrl(thumbUri) || thumbnailPng);
+          setCoverImage(thumbUri || thumbnailPng);
           setCoverVideo(videoUri);
           setLazyVideoSrc(resolveMediaUrl(videoUri));
           setVideoReady(false);
@@ -203,7 +203,7 @@ const ScenarioCard: React.FC<ScenarioCardProps> = ({
         try {
           const ext = file.name.split('.').pop() || 'png';
           const imageUri = await saveMediaFile(targetId, `cover_${Date.now()}.${ext}`, file);
-          setCoverImage(resolveMediaUrl(imageUri));
+          setCoverImage(imageUri);
           setCoverVideo('');
           setLazyVideoSrc('none');
         } catch (err) {
@@ -377,7 +377,7 @@ const ScenarioCard: React.FC<ScenarioCardProps> = ({
                {isExtracting ? (
                   <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                ) : coverImage ? (
-                  <img src={coverImage} alt="Cover Preview" className="w-full h-full object-cover" />
+                  <img src={resolveMediaUrl(coverImage)} alt="Cover Preview" className="w-full h-full object-cover" />
                ) : (
                   <ImageIcon size={18} className="text-muted-foreground group-hover:text-primary transition-colors" />
                )}
@@ -437,7 +437,7 @@ const ScenarioCard: React.FC<ScenarioCardProps> = ({
           <div className="absolute inset-0 bg-[#0d0d1a] z-0" />
 
           <img 
-            src={coverImage}
+            src={resolveMediaUrl(coverImage)}
             alt={scenario.title}
             className={`absolute inset-0 w-full h-full object-cover transition-transform duration-700 z-0 ${hasVideo ? '' : 'group-hover:scale-105'}`}
             onError={(e) => {
@@ -517,9 +517,18 @@ const ScenarioCard: React.FC<ScenarioCardProps> = ({
                 
                 <div className="flex items-center gap-1.5">
                   <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="w-9 h-9 rounded-lg bg-black/50 border border-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-primary hover:border-primary transition-all shadow-lg pointer-events-auto" title="تعديل"><Edit3 size={15}/></button>
+                  {onExportPackage && (
+                    <button onClick={(e) => { e.stopPropagation(); onExportPackage(); }} className="w-9 h-9 rounded-lg bg-black/50 border border-white/10 backdrop-blur-md flex items-center justify-center text-white hover:text-black hover:bg-white transition-all shadow-lg pointer-events-auto" title="تصدير حزمة SFLOW"><Package size={15}/></button>
+                  )}
                   <div className="w-[1px] h-5 bg-white/20 mx-0.5" />
                   <button onClick={(e) => { e.stopPropagation(); onExport(); }} className="w-9 h-9 rounded-lg bg-black/50 border border-white/10 backdrop-blur-md flex items-center justify-center text-white hover:text-black hover:bg-white transition-all shadow-lg pointer-events-auto" title="تصدير PDF"><FileText size={15}/></button>
                   <button onClick={(e) => { e.stopPropagation(); onExportJSON(); }} className="w-9 h-9 rounded-lg bg-black/50 border border-white/10 backdrop-blur-md flex items-center justify-center text-white hover:text-black hover:bg-white transition-all shadow-lg pointer-events-auto" title="تصدير JSON"><FileJson size={15}/></button>
+                  {onDelete && (
+                    <>
+                      <div className="w-[1px] h-5 bg-white/20 mx-0.5" />
+                      <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="w-9 h-9 rounded-lg bg-black/50 border border-red-500/30 backdrop-blur-md flex items-center justify-center text-red-400 hover:text-white hover:bg-red-600 transition-all shadow-lg pointer-events-auto" title="حذف المشروع"><Trash2 size={15}/></button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -578,9 +587,18 @@ const ScenarioCard: React.FC<ScenarioCardProps> = ({
               
               <div className="flex items-center gap-1.5">
                 <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center text-foreground hover:text-white hover:bg-primary transition-all shadow-sm" title="تعديل"><Edit3 size={15}/></button>
+                {onExportPackage && (
+                  <button onClick={(e) => { e.stopPropagation(); onExportPackage(); }} className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center text-foreground hover:text-primary transition-all shadow-sm" title="تصدير حزمة SFLOW"><Package size={15}/></button>
+                )}
                 <div className="w-[1px] h-5 bg-border mx-0.5" />
                 <button onClick={(e) => { e.stopPropagation(); onExport(); }} className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center text-foreground hover:text-black hover:bg-white transition-all shadow-sm" title="تصدير PDF"><FileText size={15}/></button>
                 <button onClick={(e) => { e.stopPropagation(); onExportJSON(); }} className="w-9 h-9 rounded-lg bg-card border border-border flex items-center justify-center text-foreground hover:text-black hover:bg-white transition-all shadow-sm" title="تصدير JSON"><FileJson size={15}/></button>
+                {onDelete && (
+                  <>
+                    <div className="w-[1px] h-5 bg-border mx-0.5" />
+                    <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="w-9 h-9 rounded-lg bg-card border border-red-500/30 flex items-center justify-center text-red-500 hover:text-white hover:bg-red-600 transition-all shadow-sm" title="حذف المشروع"><Trash2 size={15}/></button>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -594,5 +612,13 @@ export default React.memo(ScenarioCard, (prev, next) => {
   return prev.scenario?.id === next.scenario?.id && 
          prev.editing === next.editing && 
          prev.scenario?.title === next.scenario?.title &&
-         prev.scenario?.cover_image === next.scenario?.cover_image;
+         prev.scenario?.description === next.scenario?.description &&
+         prev.scenario?.status === next.scenario?.status &&
+         prev.scenario?.genre === next.scenario?.genre &&
+         prev.scenario?.notes === next.scenario?.notes &&
+         prev.scenario?.scene_count === next.scenario?.scene_count &&
+         prev.scenario?.episode_count === next.scenario?.episode_count &&
+         prev.scenario?.director_name === next.scenario?.director_name &&
+         prev.scenario?.cover_image === next.scenario?.cover_image &&
+         prev.scenario?.cover_video === next.scenario?.cover_video;
 });

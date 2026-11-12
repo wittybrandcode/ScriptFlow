@@ -17,12 +17,26 @@ export class DualKinshipResolver {
         continue;
       }
 
-      // If the same person has multiple relationships, compare weights
-      const newWeight = KinshipOntology[heir.type]?.weight || 0;
-      const existingWeight = KinshipOntology[existing.type]?.weight || 0;
+      // In Islamic jurisprudence, a person can inherit through two distinct kinships
+      // (e.g. Fard + Asaba: Husband + Cousin, Uterine Brother + Cousin)
+      const isMaritalOrUterine = existing.type === 'SPOUSE_MALE' || existing.type === 'SPOUSE_FEMALE' || existing.type === 'UTERINE_BROTHER' || existing.type === 'UTERINE_SISTER';
+      const isNewMaritalOrUterine = heir.type === 'SPOUSE_MALE' || heir.type === 'SPOUSE_FEMALE' || heir.type === 'UTERINE_BROTHER' || heir.type === 'UTERINE_SISTER';
 
-      if (newWeight > existingWeight) {
+      if (isMaritalOrUterine && !isNewMaritalOrUterine) {
+        existing.secondaryType = heir.type;
+      } else if (!isMaritalOrUterine && isNewMaritalOrUterine) {
+        heir.secondaryType = existing.type;
         heirMap.set(heir.id, heir);
+      } else {
+        const newWeight = KinshipOntology[heir.type]?.weight || 0;
+        const existingWeight = KinshipOntology[existing.type]?.weight || 0;
+
+        if (newWeight > existingWeight) {
+          heir.secondaryType = existing.type;
+          heirMap.set(heir.id, heir);
+        } else {
+          existing.secondaryType = heir.type;
+        }
       }
     }
 

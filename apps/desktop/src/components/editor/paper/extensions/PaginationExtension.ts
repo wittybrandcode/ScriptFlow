@@ -8,6 +8,15 @@ export interface PaginationOptions {
   scenarioName?: string;
 }
 
+function escapeHtml(str: string): string {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export const PaginationExtension = Extension.create<PaginationOptions>({
   name: 'pagination',
   
@@ -100,13 +109,13 @@ export const PaginationExtension = Extension.create<PaginationOptions>({
                       
                       <div class="w-full select-none flex flex-col relative z-10" style="height: ${GRID.SCENE_HEADER_UNITS * GRID.GRID_UNIT}px; box-sizing: border-box;">
                         <div class="flex items-center justify-between text-black border-b-[2px] border-black" style="font-size: 18px; height: 28px; line-height: 28px; box-sizing: border-box;">
-                          <div class="font-bold">مشهد ${options.scene?.scene_number || 1} ( ص ${currentPageNumber} ) <span style="font-size: 12px;">(تابع)</span></div>
-                          <div class="font-bold">( ${options.scene?.title || 'بدون عنوان'} )</div>
+                          <div class="font-bold">مشهد ${escapeHtml(String(options.scene?.scene_number || 1))} ( ص ${currentPageNumber} ) <span style="font-size: 12px;">(تابع)</span></div>
+                          <div class="font-bold">( ${escapeHtml(options.scene?.title || 'بدون عنوان')} )</div>
                         </div>
                         
                         <div class="flex items-center justify-between font-bold text-black" style="font-size: 14px; height: 28px; line-height: 28px; box-sizing: border-box;">
-                          <span>${locType} / ${options.scene?.location_name || '...'}</span>
-                          <span>${timeOfDay}</span>
+                          <span>${escapeHtml(locType)} / ${escapeHtml(options.scene?.location_name || '...')}</span>
+                          <span>${escapeHtml(timeOfDay)}</span>
                         </div>
                       </div>
                       

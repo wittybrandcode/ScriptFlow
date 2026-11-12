@@ -88,7 +88,7 @@ export default function InheritanceModal({
                     ) : (
                       <div className="flex flex-col items-end">
                         <span className="text-lg font-black text-primary">{share.share} <span className="text-xs font-normal text-muted-foreground">سهم</span></span>
-                        <span className="text-[10px] text-muted-foreground font-bold">بنسبة {((share.share / inheritanceResult.base) * 100).toFixed(1)}%</span>
+                        <span className="text-[10px] text-muted-foreground font-bold">بنسبة {inheritanceResult.base > 0 ? ((share.share / inheritanceResult.base) * 100).toFixed(1) : '0.0'}%</span>
                       </div>
                     )}
                   </div>

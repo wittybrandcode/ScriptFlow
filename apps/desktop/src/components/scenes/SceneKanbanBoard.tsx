@@ -145,7 +145,7 @@ export default function SceneKanbanBoard({
                                   scene.location_type === 'INT' ? 'bg-blue-100 text-blue-700' : 
                                   scene.location_type === 'EXT' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'
                                 }`}>
-                                  {scene.location_type === 'INT' ? 'داخلي' : 'خارجي'}
+                                  {scene.location_type === 'INT' ? 'داخلي' : scene.location_type === 'EXT' ? 'خارجي' : 'داخلي/خارجي'}
                                 </span>
                               </div>
                               <div className="w-16 shrink-0 text-center text-[10px] font-black text-muted-foreground uppercase bg-secondary/40 rounded py-0.5">

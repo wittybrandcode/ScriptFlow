@@ -5,6 +5,15 @@ import CallSheetPage from '../components/pdf/CallSheetPage';
 import { groupBlocksByPage, expandBlocksToLayoutNodes } from '../components/editor/TextMeasurementEngine';
 import { useToastStore } from '../hooks/useToast';
 
+function escapeHtml(str: string): string {
+  return String(str || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 let cachedFontFacesCss = '';
 let fontsPromise: Promise<string> | null = null;
 
@@ -14,16 +23,15 @@ async function getEmbeddedFontsCSS(): Promise<string> {
   
   const timeoutPromise = new Promise<string>((resolve) => {
     setTimeout(() => {
-      console.warn('[ExportPDF] Font embedding timed out (1000ms limit reached), falling back to @import');
       cachedFontFacesCss = '@import url("/fonts/font_faces.css");';
       resolve(cachedFontFacesCss);
-    }, 1000);
+    }, 4000);
   });
 
   const loadFontsPromise = (async () => {
     try {
       const controller = new AbortController();
-      const fetchTimer = setTimeout(() => controller.abort(), 900);
+      const fetchTimer = setTimeout(() => controller.abort(), 3500);
       const fontFacesRes = await fetch('/fonts/font_faces.css', { signal: controller.signal });
       clearTimeout(fetchTimer);
       if (!fontFacesRes.ok) throw new Error('Could not load font_faces.css');
@@ -41,7 +49,7 @@ async function getEmbeddedFontsCSS(): Promise<string> {
         urls.map(async (url) => {
           try {
             const fontCtrl = new AbortController();
-            const fontTimer = setTimeout(() => fontCtrl.abort(), 700);
+            const fontTimer = setTimeout(() => fontCtrl.abort(), 3000);
             const res = await fetch(url, { signal: fontCtrl.signal });
             clearTimeout(fontTimer);
             if (!res.ok) return;
@@ -49,7 +57,7 @@ async function getEmbeddedFontsCSS(): Promise<string> {
             
             const dataUri = await new Promise<string>((resolveUri, rejectUri) => {
               const reader = new FileReader();
-              const readerTimer = setTimeout(() => rejectUri(new Error('FileReader timeout')), 500);
+              const readerTimer = setTimeout(() => rejectUri(new Error('FileReader timeout')), 2500);
               reader.onload = () => {
                 clearTimeout(readerTimer);
                 resolveUri(reader.result as string);
@@ -178,7 +186,7 @@ async function exportViaPrintEngine(
         const numB = epB ? epB.episode_number : 9999;
         if (numA !== numB) return numA - numB;
       }
-      return (a.scene_number || 0) - (b.scene_number || 0);
+      return String(a.scene_number || '').localeCompare(String(b.scene_number || ''), undefined, { numeric: true });
     });
 
     // Grouping Logic
@@ -188,7 +196,7 @@ async function exportViaPrintEngine(
       sortedEpisodes.forEach(ep => {
         const epScenes = filteredScenes
           .filter(s => s.episode_id === ep.id)
-          .sort((a, b) => (a.scene_number || 0) - (b.scene_number || 0));
+          .sort((a, b) => String(a.scene_number || '').localeCompare(String(b.scene_number || ''), undefined, { numeric: true, sensitivity: 'base' }));
         renderGroups.push({ episode: ep, scenes: epScenes });
       });
       
@@ -196,7 +204,7 @@ async function exportViaPrintEngine(
         const assignedSceneIds = new Set(renderGroups.flatMap(g => g.scenes.map(s => s.id)));
         const unassignedScenes = filteredScenes
           .filter(s => !assignedSceneIds.has(s.id))
-          .sort((a, b) => (a.scene_number || 0) - (b.scene_number || 0));
+          .sort((a, b) => String(a.scene_number || '').localeCompare(String(b.scene_number || ''), undefined, { numeric: true, sensitivity: 'base' }));
         if (unassignedScenes.length > 0) {
           renderGroups.push({ episode: { episode_number: '—', title: 'مشاهد غير مصنفة' }, scenes: unassignedScenes });
         }
@@ -389,7 +397,7 @@ async function exportViaPrintEngine(
         text-transform: uppercase;
         letter-spacing: 0.2em;
       ">
-        ${exportSettings.watermarkText}
+        ${escapeHtml(exportSettings.watermarkText || '')}
       </div>
     ` : '';
 
@@ -400,7 +408,7 @@ async function exportViaPrintEngine(
       <html dir="rtl" lang="ar">
         <head>
           <meta charset="utf-8" />
-          <title>${scenarioTitleVal} - PDF Export</title>
+          <title>${escapeHtml(scenarioTitleVal)} - PDF Export</title>
           ${styleElements}
           <style>
             ${embeddedFontsHtml}
@@ -457,6 +465,28 @@ async function exportViaPrintEngine(
                 justify-content: center !important;
               }
 
+              .callsheet-page {
+                width: 794px !important;
+                min-height: 1123px !important;
+                box-sizing: border-box !important;
+                margin: 0 !important;
+                padding: 40px 48px !important;
+                background-color: #FAFAFA !important;
+                page-break-after: always !important;
+                break-after: page !important;
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+                position: relative !important;
+              }
+              .callsheet-page table {
+                page-break-inside: auto !important;
+                break-inside: auto !important;
+              }
+              .callsheet-page tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+              }
+
               body::before, body::after,
               .print-page-individual::before, .print-page-individual::after {
                 display: none !important;
@@ -506,6 +536,21 @@ async function exportViaPrintEngine(
               justify-content: center;
               position: relative;
               box-sizing: border-box;
+              page-break-after: always;
+              break-after: page;
+            }
+
+            .callsheet-page {
+              width: 794px;
+              min-height: 1123px;
+              background-color: #FAFAFA;
+              display: flex;
+              flex-direction: column;
+              align-items: stretch;
+              justify-content: flex-start;
+              position: relative;
+              box-sizing: border-box;
+              padding: 40px 48px;
               page-break-after: always;
               break-after: page;
             }

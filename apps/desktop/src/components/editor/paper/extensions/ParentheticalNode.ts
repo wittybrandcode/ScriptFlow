@@ -5,6 +5,19 @@ export const ParentheticalNode = Node.create({
   group: 'block',
   content: 'inline*',
 
+  addAttributes() {
+    return {
+      block_id: {
+        default: null,
+        parseHTML: element => element.getAttribute('data-block-id'),
+        renderHTML: attributes => {
+          if (!attributes.block_id) return {};
+          return { 'data-block-id': attributes.block_id };
+        },
+      },
+    };
+  },
+
   parseHTML() {
     return [
       {
@@ -21,7 +34,7 @@ export const ParentheticalNode = Node.create({
     return {
       Enter: ({ editor }) => {
         // Pressing Enter in a Parenthetical creates Dialogue
-        return (editor.commands as any).splitBlock({ type: 'dialogue' });
+        return editor.chain().splitBlock().setNode('dialogue').run();
       },
       Backspace: ({ editor }) => {
         const { state } = editor;

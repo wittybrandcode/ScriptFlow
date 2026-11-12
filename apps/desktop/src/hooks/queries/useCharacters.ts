@@ -77,6 +77,8 @@ export function useCreateCharacterMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: characterKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['scenarios'] });
+      queryClient.invalidateQueries({ queryKey: ['trash'] });
     },
   });
 }
@@ -122,6 +124,8 @@ export function useDeleteCharacterMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: characterKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['scenarios'] });
+      queryClient.invalidateQueries({ queryKey: ['trash'] });
     },
   });
 }
@@ -136,6 +140,8 @@ export function useAssignActorMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: characterKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['scenarios'] });
+      queryClient.invalidateQueries({ queryKey: ['trash'] });
     },
   });
 }

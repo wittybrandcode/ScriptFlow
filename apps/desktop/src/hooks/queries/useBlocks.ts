@@ -46,6 +46,8 @@ export function useCreateBlockMutation() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: blockKeys.byScene(variables.sceneId) });
       queryClient.invalidateQueries({ queryKey: blockKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['scenes', 'detail'] });
+      queryClient.invalidateQueries({ queryKey: ['scenarios', 'stats'] });
     },
   });
 }
@@ -59,6 +61,8 @@ export function useUpdateBlockMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: blockKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['scenes', 'detail'] });
+      queryClient.invalidateQueries({ queryKey: ['scenarios', 'stats'] });
     },
   });
 }
@@ -72,6 +76,8 @@ export function useDeleteBlockMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: blockKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['scenes', 'detail'] });
+      queryClient.invalidateQueries({ queryKey: ['scenarios', 'stats'] });
     },
   });
 }
@@ -85,6 +91,8 @@ export function useReorderBlocksMutation() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: blockKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['scenes', 'detail'] });
+      queryClient.invalidateQueries({ queryKey: ['scenarios', 'stats'] });
     },
   });
 }

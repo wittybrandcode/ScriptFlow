@@ -1,11 +1,11 @@
-rule_group: GRANDMOTHER_BLOCKING
-target_node: "GRANDMOTHER_MATERNAL" # سنطبق نفس المبدأ لـ PATERNAL
+rule_group: MATERNAL_GRANDMOTHER_BLOCKING
+target_node: "GRANDMOTHER_MATERNAL"
 domain: "MAWARITH"
 
 rules:
   - rule_id: "MATERNAL_GRANDMOTHER_BLOCKED_BY_MOTHER"
     name_ar: "حجب الجدة لأم بالأم"
-    description: "الأم تحجب الجدة من جهة الأم حجب حرمان."
+    description: "الأم تحجب الجدة من جهة الأم حجب حرمان بالإجماع."
     priority: 100
     conditions:
       - operator: "AND"
@@ -19,25 +19,4 @@ rules:
       label: "حجب حرمان"
     evidence:
       - source: "FIQH_MAXIM"
-        text: "الأم تحجب جميع الجدات (من الجهتين)."
-
-  - rule_id: "PATERNAL_GRANDMOTHER_BLOCKED_BY_MOTHER_OR_FATHER"
-    name_ar: "حجب الجدة لأب بالأم أو الأب"
-    description: "الأم والأب يحجبان الجدة من جهة الأب حجب حرمان."
-    priority: 90
-    conditions:
-      - operator: "OR"
-        criteria:
-          - exists:
-              relation: ["MOTHER"]
-              state: "ALIVE"
-          - exists:
-              relation: ["FATHER"]
-              state: "ALIVE"
-    effect:
-      type: "TOTAL_BLOCK"
-      blocked_by: ["MOTHER", "FATHER"]
-      label: "حجب حرمان"
-    evidence:
-      - source: "FIQH_MAXIM"
-        text: "كل من أدلى إلى الميت بواسطة حجبته تلك الواسطة عند وجودها."
+        text: "الأم تحجب جميع الجدات من الجهتين بإجماع الفقهاء."

@@ -20,18 +20,19 @@ export type { RPGTrait, RPGCharacterData, SuccessionLaw } from './rpg/types';
 export * from './medical';
 export * from './animal';
 export * from './importers/GedcomEngine';
-export * from './importers/JsonLDEngine';
 
 // Then Auto-register core plugins here so they are always available when plugins are loaded
 import { ShafiiPlugin as _SP } from './madhabs/ShafiiPlugin';
 import { HanafiPlugin as _HP } from './madhabs/HanafiPlugin';
 import { MalikiPlugin as _MP } from './madhabs/MalikiPlugin';
 import { HanbaliPlugin as _HBP } from './madhabs/HanbaliPlugin';
+import { JafariPlugin as _JP } from './madhabs/JafariPlugin';
 import { EvidencePlugin as _EP } from './evidence/EvidencePlugin';
 
 _PM.register(new _SP());
 _PM.register(new _HP());
 _PM.register(new _MP());
 _PM.register(new _HBP());
+_PM.register(new _JP());
 _PM.register(new _EP());
 

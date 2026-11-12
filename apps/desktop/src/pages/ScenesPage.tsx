@@ -4,7 +4,7 @@ import { FileDown, FileJson } from 'lucide-react';
 import { useToast } from '../hooks/useToast'
 import { ToastContainer } from '../components/Toast'
 import { useUIStore } from '../store/useUIStore';
-import { useScenarioQuery } from '../hooks/queries/useScenarios';
+import { useScenarioQuery, scenarioKeys } from '../hooks/queries/useScenarios';
 import ExportWizardModal from '../components/export/ExportWizardModal';
 import { useExportProjectMutation } from '../hooks/queries/useExport';
 import { PDFExportStrategy } from '../services/exportStrategies';
@@ -70,7 +70,22 @@ export default function ScenesPage() {
   const { data: rawEpisodes = [] } = useEpisodesQuery(scenarioId);
   const episodes = (rawEpisodes as IEpisode[]) || [];
   const createEpisodeMutation = useCreateEpisodeMutation();
-  const [filterEpisode, setFilterEpisode] = useState<string>('ALL')
+  const [filterEpisode, setFilterEpisode] = useState<string>(searchParams.get('episode') || 'ALL');
+
+  useEffect(() => {
+    const ep = searchParams.get('episode');
+    if (ep) setFilterEpisode(ep);
+  }, [searchParams]);
+
+  const sortScenesByEpisodeAndNumber = useCallback((scenesToSort: IScene[]) => {
+    const epMap = new Map(episodes.map(e => [e.id, e.episode_number]));
+    return [...scenesToSort].sort((a, b) => {
+      const epA = a.episode_id ? (epMap.get(a.episode_id) ?? 999999) : 0;
+      const epB = b.episode_id ? (epMap.get(b.episode_id) ?? 999999) : 0;
+      if (epA !== epB) return epA - epB;
+      return a.scene_number - b.scene_number;
+    });
+  }, [episodes]);
   
   // Modals State
   const [cloneModalScene, setCloneModalScene] = useState<IScene | null>(null)
@@ -87,8 +102,10 @@ export default function ScenesPage() {
 
   const fetchStats = useCallback(() => {
     if (scenarioId) {
-      queryClient.invalidateQueries({ queryKey: ['scenario-stats', scenarioId] });
-      queryClient.invalidateQueries({ queryKey: ['scenario', scenarioId] });
+      queryClient.invalidateQueries({ queryKey: scenarioKeys.detail(scenarioId) });
+      queryClient.invalidateQueries({ queryKey: scenarioKeys.stats(scenarioId) });
+      queryClient.invalidateQueries({ queryKey: scenarioKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['pageNumbering'] });
     }
   }, [scenarioId, queryClient]);
 
@@ -267,13 +284,10 @@ export default function ScenesPage() {
              fetchStats();
           });
 
-          return [...otherScenes, ...updatedContextScenes].sort((a: any, b: any) => {
-             if (a.episode_id !== b.episode_id) return (a.episode_id || 0) - (b.episode_id || 0);
-             return a.scene_number - b.scene_number;
-          });
+          return sortScenesByEpisodeAndNumber([...otherScenes, ...updatedContextScenes]);
         }
 
-        return workingScenes;
+        return [...otherScenes, ...workingScenes];
       });
 
       showToast('تم التحديث بنجاح', 'success');
@@ -394,10 +408,7 @@ export default function ScenesPage() {
           fetchScenes() // Revert to backend state on error
         });
 
-        return [...otherScenes, ...updatedContextScenes].sort((a: any, b: any) => {
-           if (a.episode_id !== b.episode_id) return (a.episode_id || 0) - (b.episode_id || 0);
-           return a.scene_number - b.scene_number;
-        });
+        return sortScenesByEpisodeAndNumber([...otherScenes, ...updatedContextScenes]);
       });
     }
   }
@@ -440,10 +451,7 @@ export default function ScenesPage() {
 
       reorderScenesMutation.mutateAsync(updatedContextScenes.map(s => s.id)).then(() => fetchStats());
 
-      return [...otherScenes, ...updatedContextScenes].sort((a: any, b: any) => {
-         if (a.episode_id !== b.episode_id) return (a.episode_id || 0) - (b.episode_id || 0);
-         return a.scene_number - b.scene_number;
-      });
+      return sortScenesByEpisodeAndNumber([...otherScenes, ...updatedContextScenes]);
     });
   };
 

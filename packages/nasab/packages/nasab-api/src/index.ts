@@ -1,9 +1,25 @@
 import { InferenceEngine } from '../../nasab-inference/src/engine';
 import { RulesRegistry } from '../../nasab-rule-engine/src/registry';
 import * as path from 'path';
+import { fileURLToPath } from 'url';
 import { Person, Relation } from '../../../src/core/types';
 import { Gender } from '../../../src/core/enums';
 import { Madhab } from '../../../src/types/FiqhAST';
+
+const getRulesDir = () => {
+  try {
+    if (typeof __dirname !== 'undefined' && __dirname) {
+      return path.join(__dirname, '../../nasab-rule-engine/rules');
+    }
+  } catch {}
+  try {
+    if (typeof import.meta !== 'undefined' && import.meta.url) {
+      const filename = fileURLToPath(import.meta.url);
+      return path.join(path.dirname(filename), '../../nasab-rule-engine/rules');
+    }
+  } catch {}
+  return path.resolve('packages/nasab/packages/nasab-rule-engine/rules');
+};
 
 
 export class NasabAPI {
@@ -28,7 +44,9 @@ export class EstateBuilder {
     relation: string,
     options: { gender?: Gender; count?: number; isAlive?: boolean } = {}
   ): this {
-    const { gender = Gender.MALE, count = 1, isAlive = true } = options;
+    const isFemaleRelation = ['MOTHER', 'DAUGHTER', 'WIFE', 'FULL_SISTER', 'PATERNAL_SISTER', 'MATERNAL_SISTER', 'GRANDMOTHER', 'GRANDMOTHER_PATERNAL', 'GRANDMOTHER_MATERNAL'].includes(relation.toUpperCase());
+    const gender = options.gender ?? (isFemaleRelation ? Gender.FEMALE : Gender.MALE);
+    const { count = 1, isAlive = true } = options;
     for (let i = 0; i < count; i++) {
       const id = `${relation}_${this.nodes.length}`;
       this.nodes.push({ id, name: id, gender, isDeceased: !isAlive });
@@ -52,7 +70,7 @@ export class EstateBuilder {
 
   public evaluate() {
     const registry = new RulesRegistry();
-    const rulesDir = path.join(__dirname, '../../nasab-rule-engine/rules');
+    const rulesDir = getRulesDir();
     registry.loadRulesFromDirectory(rulesDir);
     
     // For simplicity, we just pass the edges list as the graph

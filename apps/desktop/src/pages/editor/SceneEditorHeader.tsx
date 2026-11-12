@@ -108,8 +108,12 @@ const SceneEditorHeader: React.FC<SceneEditorHeaderProps> = ({
                           key={s.id} 
                           onClick={async () => {
                               setShowSceneMenu(false);
-                              await saveScene();
-                              navigate(`/scene/${s.id}`);
+                              try {
+                                await saveScene();
+                                navigate(`/scene/${s.id}`);
+                              } catch (e) {
+                                console.error('Failed to save scene before navigation', e);
+                              }
                           }}
                           className={`w-full text-right px-3 py-2 text-xs font-bold transition-colors flex items-center justify-between ${String(s.id) === String(id) ? 'bg-secondary text-primary' : 'hover:bg-secondary text-foreground'}`}
                         >

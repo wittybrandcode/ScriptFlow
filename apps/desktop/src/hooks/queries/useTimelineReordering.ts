@@ -104,45 +104,74 @@ export function useTimelineReordering({
     const activeContainer = findContainer(active.id as string | number);
     const overContainer = findContainer(overId as string | number);
 
-    if (!activeContainer || !overContainer || activeContainer === overContainer) {
+    if (!activeContainer || !overContainer) {
       return;
     }
 
-    if (activeContainer === 'bank') {
-      const sceneIndex = localUnscheduled.findIndex(s => s.id.toString() === active.id.toString());
-      const scene = localUnscheduled[sceneIndex];
-      if (!scene) return;
-      
-      setLocalUnscheduled(prev => prev.filter(s => s.id.toString() !== active.id.toString()));
-      setLocalShootDays(prev => prev.map(day => {
-        if (day.id === overContainer) {
-          return { ...day, scenes: [...(day.scenes || []), scene] };
-        }
-        return day;
-      }));
-    } else {
-      let sceneToMove: TimelineSceneItem | undefined;
-      setLocalShootDays(prev => prev.map(day => {
-        if (day.id === activeContainer && day.scenes) {
-          const sIndex = day.scenes.findIndex(s => s.id.toString() === active.id.toString());
-          sceneToMove = day.scenes[sIndex];
-          return { ...day, scenes: day.scenes.filter(s => s.id.toString() !== active.id.toString()) };
-        }
-        return day;
-      }));
-
-      if (!sceneToMove) return;
-
-      if (overContainer === 'bank') {
-        setLocalUnscheduled(prev => [...prev, sceneToMove!]);
-      } else {
+    // Intra-container reordering (e.g. within the same shoot day)
+    if (activeContainer === overContainer) {
+      if (activeContainer !== 'bank' && active.id !== overId) {
         setLocalShootDays(prev => prev.map(day => {
-          if (day.id === overContainer) {
-            return { ...day, scenes: [...(day.scenes || []), sceneToMove!] };
+          if (day.id === activeContainer && day.scenes) {
+            const oldIndex = day.scenes.findIndex(s => s.id.toString() === active.id.toString());
+            const newIndex = day.scenes.findIndex(s => s.id.toString() === overId.toString());
+            if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+              const newScenes = [...day.scenes];
+              const [moved] = newScenes.splice(oldIndex, 1);
+              newScenes.splice(newIndex, 0, moved);
+              return { ...day, scenes: newScenes };
+            }
           }
           return day;
         }));
       }
+      return;
+    }
+
+    // Cross-container moves
+    const draggedScene = activeScene || 
+      (activeContainer === 'bank' 
+        ? localUnscheduled.find(s => s.id.toString() === active.id.toString())
+        : localShootDays.find(d => d.id === activeContainer)?.scenes?.find(s => s.id.toString() === active.id.toString())
+      );
+    if (!draggedScene) return;
+
+    if (activeContainer === 'bank') {
+      setLocalUnscheduled(prev => prev.filter(s => s.id.toString() !== active.id.toString()));
+      setLocalShootDays(prev => prev.map(day => {
+        if (day.id === overContainer) {
+          const exists = day.scenes?.some(s => s.id.toString() === active.id.toString());
+          if (!exists) {
+            return { ...day, scenes: [...(day.scenes || []), draggedScene] };
+          }
+        }
+        return day;
+      }));
+    } else if (overContainer === 'bank') {
+      setLocalShootDays(prev => prev.map(day => {
+        if (day.id === activeContainer && day.scenes) {
+          return { ...day, scenes: day.scenes.filter(s => s.id.toString() !== active.id.toString()) };
+        }
+        return day;
+      }));
+      setLocalUnscheduled(prev => {
+        if (prev.some(s => s.id.toString() === active.id.toString())) return prev;
+        return [...prev, draggedScene];
+      });
+    } else {
+      // Between shoot days
+      setLocalShootDays(prev => prev.map(day => {
+        if (day.id === activeContainer && day.scenes) {
+          return { ...day, scenes: day.scenes.filter(s => s.id.toString() !== active.id.toString()) };
+        }
+        if (day.id === overContainer) {
+          const exists = day.scenes?.some(s => s.id.toString() === active.id.toString());
+          if (!exists) {
+            return { ...day, scenes: [...(day.scenes || []), draggedScene] };
+          }
+        }
+        return day;
+      }));
     }
   };
 
@@ -153,8 +182,8 @@ export function useTimelineReordering({
 
     if (!over) {
       // Revert if dropped outside
-      setLocalShootDays(shootDays);
-      setLocalUnscheduled(unscheduledScenes);
+      setLocalShootDays(timelineData?.shootDays || shootDays);
+      setLocalUnscheduled(timelineData?.unscheduledScenes || unscheduledScenes);
       return;
     }
 
@@ -162,8 +191,8 @@ export function useTimelineReordering({
     const overContainer = findContainer(over.id as string | number);
 
     if (!activeContainer || !overContainer) {
-      setLocalShootDays(shootDays);
-      setLocalUnscheduled(unscheduledScenes);
+      setLocalShootDays(timelineData?.shootDays || shootDays);
+      setLocalUnscheduled(timelineData?.unscheduledScenes || unscheduledScenes);
       return;
     }
 

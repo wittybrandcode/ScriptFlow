@@ -93,8 +93,18 @@ export const useUIStore = create<UIState>()(
         showDebugGrid: state.showDebugGrid,
         showDebugMargins: state.showDebugMargins,
       }),
-      onRehydrateStorage: () => (state) => {
-        if (state) state.setHasHydrated(true);
+      onRehydrateStorage: () => (_state, error) => {
+        if (error) {
+          console.warn('UI store rehydration error:', error);
+        }
+        if (_state) {
+          _state.hasHydrated = true;
+        }
+        setTimeout(() => {
+          if (typeof useUIStore !== 'undefined' && useUIStore?.setState) {
+            useUIStore.setState({ hasHydrated: true });
+          }
+        }, 0);
       },
     }
   )

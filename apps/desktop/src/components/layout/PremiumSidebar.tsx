@@ -150,7 +150,7 @@ export const PremiumSidebar: React.FC = () => {
           <button 
             type="button"
             onClick={() => {
-              localStorage.removeItem('scriptflow_auth_token');
+              sessionStorage.removeItem('scriptflow_session_unlocked');
               localStorage.removeItem('scriptflow_unlocked');
               window.location.reload();
             }}

@@ -45,14 +45,17 @@ export class FosterEngine {
       const errors = this.validateFosterConditions(record);
       if (errors.length > 0) continue;
 
+      const childPerson = idMap.get(record.childId);
+      const childFosterType = childPerson?.gender === 'FEMALE' ? RelationType.FOSTER_DAUGHTER : RelationType.FOSTER_SON;
+
       // 1. Foster mother ↔ child
       relations.push({ type: RelationType.FOSTER_MOTHER, sourceId: record.nurseId, targetId: record.childId });
-      relations.push({ type: RelationType.FOSTER_SON, sourceId: record.childId, targetId: record.nurseId });
+      relations.push({ type: childFosterType, sourceId: record.childId, targetId: record.nurseId });
 
       // 2. Foster father (husband of nurse) ↔ child
       if (record.husbandId) {
         relations.push({ type: RelationType.FOSTER_FATHER, sourceId: record.husbandId, targetId: record.childId });
-        relations.push({ type: RelationType.FOSTER_SON, sourceId: record.childId, targetId: record.husbandId });
+        relations.push({ type: childFosterType, sourceId: record.childId, targetId: record.husbandId });
       }
 
       // 3. Foster siblings — children of the same nurse (biological + other foster)

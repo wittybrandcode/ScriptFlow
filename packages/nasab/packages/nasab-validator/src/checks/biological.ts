@@ -15,7 +15,7 @@ export function checkBiologicalConsistency(graph: KinshipGraph): { errors: Valid
     let biologicalMothers = 0;
 
     for (const edge of incomingEdges) {
-      if (edge.relationCategory === RelationCategory.BIOLOGICAL) {
+      if ((edge.relationCategory as string) === RelationCategory.BLOOD_LINEAGE || (edge.relationCategory as string) === 'BIOLOGICAL') {
         const parent = graph.getNode(edge.sourceId);
         if (parent) {
            if (parent.biometrics.gender === Gender.MALE) {

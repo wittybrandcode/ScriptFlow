@@ -26,8 +26,8 @@ const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 export default function App() {
   return (
     <GlobalErrorBoundary>
-      <AutoBackupProvider intervalMinutes={30}>
-        <LockScreen>
+      <LockScreen>
+        <AutoBackupProvider intervalMinutes={30}>
           <AppLayout>
             <Suspense fallback={<FallbackLoader />}>
               <Routes>
@@ -51,8 +51,8 @@ export default function App() {
               </Routes>
             </Suspense>
           </AppLayout>
-        </LockScreen>
-      </AutoBackupProvider>
+        </AutoBackupProvider>
+      </LockScreen>
     </GlobalErrorBoundary>
   );
 }

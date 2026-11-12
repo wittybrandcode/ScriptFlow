@@ -125,9 +125,9 @@ export default function SceneToolbar({
       </div>
 
       {/* Professional Multi-Row Toolbar */}
-      {filterEpisode === 'ALL' && episodes.length > 0 && (
-        <div className="mb-[10px]">
-          <div className="flex items-center gap-2 mb-2">
+      <div className="mb-[10px]">
+        <div className="flex items-center gap-2 mb-2">
+          {filterEpisode === 'ALL' && episodes.length > 0 && (
             <button
               type="button"
               onClick={handleToggleAll}
@@ -136,10 +136,11 @@ export default function SceneToolbar({
             >
               {episodes.every(e => collapsedEpisodes.includes(e.id)) ? <Maximize2 size={16} /> : <Minimize2 size={16} />}
             </button>
-            <div className="flex-1">
-              <AdvancedFilterBar 
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
+          )}
+          <div className="flex-1">
+            <AdvancedFilterBar 
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
                 searchPlaceholder="بحث عن مشهد..."
                 hasActiveFilters={filterLocation !== 'ALL' || filterRealLocation !== 'ALL' || filterTimes.length > 0 || searchQuery !== ''}
                 onClearFilters={() => {
@@ -220,7 +221,6 @@ export default function SceneToolbar({
             </div>
           </div>
         </div>
-      )}
     </>
   );
 }

@@ -84,16 +84,17 @@ export default function CrewAssignmentModal({ member, onClose }: CrewAssignmentM
 
   const handleSave = async () => {
     setSaving(true);
-    const resultList: Array<{ episode_id: number | null; scene_id: number | null }> = [];
+    const resultList: Array<{ episode_id: string | null; scene_id: string | null }> = [];
     selected.forEach(val => {
       if (val.startsWith('ep:')) {
-        resultList.push({ episode_id: parseInt(val.split(':')[1], 10), scene_id: null });
+        const epId = val.slice(3);
+        resultList.push({ episode_id: epId, scene_id: null });
       } else if (val.startsWith('sc:')) {
         // Find which episode this scene belongs to, if any
-        const scId = parseInt(val.split(':')[1], 10);
+        const scId = val.slice(3);
         const sceneObj = (scenes as any[]).find(s => String(s.id) === String(scId));
         resultList.push({ 
-          episode_id: sceneObj?.episode_id || null, 
+          episode_id: sceneObj?.episode_id ? String(sceneObj.episode_id) : null, 
           scene_id: scId 
         });
       }

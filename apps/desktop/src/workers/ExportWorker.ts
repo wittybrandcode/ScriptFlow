@@ -26,9 +26,12 @@ const FONTS: Record<string, string> = {
   transition:    '800 14px "IBM Plex Sans Arabic", sans-serif',
   shot:          '800 14px "IBM Plex Sans Arabic", sans-serif',
   audio:         '700 14px "IBM Plex Sans Arabic", sans-serif',
-  directorNote:  '500 14px "IBM Plex Sans Arabic", sans-serif',
-  textOnScreen:  '700 14px monospace, "IBM Plex Sans Arabic"',
-  textNode:      '700 14px monospace, "IBM Plex Sans Arabic"',
+  directornote:  '500 14px "IBM Plex Sans Arabic", sans-serif',
+  director_note: '500 14px "IBM Plex Sans Arabic", sans-serif',
+  textonscreen:  '700 14px monospace, "IBM Plex Sans Arabic"',
+  text_on_screen:'700 14px monospace, "IBM Plex Sans Arabic"',
+  textnode:      '700 14px monospace, "IBM Plex Sans Arabic"',
+  text:          '700 14px monospace, "IBM Plex Sans Arabic"',
 };
 
 const NODES_WITH_MARGIN = new Set([
@@ -36,8 +39,8 @@ const NODES_WITH_MARGIN = new Set([
   'transition', 'TRANSITION',
   'shot', 'SHOT',
   'audio', 'AUDIO',
-  'directorNote', 'DIRECTOR_NOTE',
-  'textOnScreen', 'textNode', 'TEXT',
+  'directorNote', 'directornote', 'director_note', 'DIRECTOR_NOTE',
+  'textOnScreen', 'textonscreen', 'text_on_screen', 'textNode', 'textnode', 'text', 'TEXT',
 ]);
 
 const NARROW_WIDTH_FACTOR: Record<string, number> = {
@@ -45,6 +48,11 @@ const NARROW_WIDTH_FACTOR: Record<string, number> = {
   DIALOGUE: 0.85,
   parenthetical: 0.75,
   PARENTHETICAL: 0.75,
+  textonscreen: 0.70,
+  text_on_screen: 0.70,
+  textnode: 0.70,
+  text: 0.70,
+  TEXT: 0.70,
 };
 
 let _ctx: OffscreenCanvasRenderingContext2D | { font: string; measureText: (txt: string) => { width: number } } | null = null;

@@ -2,6 +2,7 @@ import { UUID } from '../entities/person';
 
 export enum RelationCategory {
   BLOOD_LINEAGE = 'BLOOD_LINEAGE', // نسب حقيقي
+  BIOLOGICAL = 'BLOOD_LINEAGE', // اسم بديل متوافق مع المدقق
   AFFINITY_MARRIAGE = 'AFFINITY_MARRIAGE', // مصاهرة
   FOSTER_MILK = 'FOSTER_MILK', // رضاع
   WALAA_EMANCIPATION = 'WALAA_EMANCIPATION', // ولاء العتق

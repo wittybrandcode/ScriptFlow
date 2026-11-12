@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { StatsWorker, StatsPayload, StatsResult } from '../workers/StatsWorker';
+import { workerFactory } from '../workers/WorkerFactory';
 
 /**
  * useStatsWorker
@@ -19,7 +20,14 @@ export function useStatsWorker() {
     setError(null);
 
     try {
-      const result = await StatsWorker.calculateGlobalStats(payload);
+      let result: StatsResult | null = null;
+      try {
+        const worker = workerFactory.getStatsWorker();
+        result = await worker.calculateGlobalStats(payload);
+      } catch (workerErr) {
+        console.warn('[useStatsWorker] Worker execution failed, falling back to main thread:', workerErr);
+        result = await StatsWorker.calculateGlobalStats(payload);
+      }
       setStats(result);
       return result;
     } catch (err: any) {

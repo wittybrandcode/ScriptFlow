@@ -9,6 +9,14 @@ export const CharacterNode = Node.create({
 
   addAttributes() {
     return {
+      block_id: {
+        default: null,
+        parseHTML: element => element.getAttribute('data-block-id'),
+        renderHTML: attributes => {
+          if (!attributes.block_id) return {};
+          return { 'data-block-id': attributes.block_id };
+        },
+      },
       character_id: {
         default: null,
       },
@@ -38,7 +46,7 @@ export const CharacterNode = Node.create({
     return {
       Enter: ({ editor }) => {
         // Pressing Enter in a Character node creates a Dialogue node
-        return (editor.commands as any).splitBlock({ type: 'dialogue' });
+        return editor.chain().splitBlock().setNode('dialogue').run();
       },
       Backspace: ({ editor }) => {
         const { state } = editor;

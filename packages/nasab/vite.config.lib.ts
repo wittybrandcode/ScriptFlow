@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     dts({
       insertTypesEntry: true,
-      include: ['src/core', 'src/kinship', 'src/mawarith', 'src/engine', 'src/types', 'src/i18n', 'src/plugins', 'src/index.ts'],
+      include: ['src/core', 'src/kinship', 'src/mawarith', 'src/engine', 'src/types', 'src/i18n', 'src/plugins', 'src/adapters', 'src/index.ts'],
       exclude: ['**/__tests__/**', '**/*.test.ts'],
     }),
   ],
@@ -17,12 +17,11 @@ export default defineConfig({
       fileName: (format) => `nasab.${format}.js`
     },
     rollupOptions: {
-      external: ['fraction.js', 'fs', 'path', 'node:fs', 'node:path'],
+      external: ['zod', 'fraction.js'],
       output: {
         globals: {
-          'fraction.js': 'Fraction',
-          'fs': 'fs',
-          'path': 'path'
+          'zod': 'z',
+          'fraction.js': 'Fraction'
         }
       }
     },

@@ -4,10 +4,13 @@ import {
   ChevronLeft, 
   CheckCircle2,
   Save,
-  AlertCircle
+  AlertCircle,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useUIStore } from '../../store/useUIStore';
 import { useScenarioQuery } from '../../hooks/queries/useScenarios';
+import { useTheme } from '../../hooks/useTheme';
 
 export interface TopBarAction {
   id?: string | number;
@@ -27,7 +30,7 @@ interface TopBarButtonProps {
 const TopBarButton: React.FC<TopBarButtonProps> = ({ action }) => {
   const { label, icon: Icon, onClick, variant = 'ghost', disabled, title } = action;
   
-  const baseClasses = "flex items-center justify-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+  const baseClasses = "flex items-center justify-center gap-1.5 px-2.5 py-1.5 text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed";
   
   const variants: Record<string, string> = {
     primary: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
@@ -71,6 +74,7 @@ export interface BreadcrumbItem {
 
 export default function Topbar(): React.JSX.Element {
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
   const topBarConfig = useUIStore(s => s.topBarConfig);
   const saveStatus = useUIStore(s => s.saveStatus);
   const activeScenarioId = useUIStore(s => s.activeScenarioId);
@@ -167,12 +171,22 @@ export default function Topbar(): React.JSX.Element {
 
         {/* Save Status Indicator */}
         {saveStatus && saveStatus !== 'idle' && (
-           <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-secondary/30 border border-border/50 text-[10px] font-bold shrink-0">
+           <div className="flex items-center gap-1.5 px-2 py-1 bg-secondary/30 border border-border/50 text-[10px] font-bold shrink-0">
               {saveStatus === 'saving' && <><Save size={12} className="animate-pulse text-amber-500" /><span className="text-muted-foreground hidden sm:inline">جاري الحفظ...</span></>}
               {saveStatus === 'saved' && <><CheckCircle2 size={12} className="text-emerald-500/80" /></>}
               {saveStatus === 'error' && <><AlertCircle size={12} className="text-destructive" /><span className="text-destructive hidden sm:inline">خطأ بالحفظ</span></>}
            </div>
         )}
+
+        {/* Studio Theme Switcher */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="flex items-center justify-center p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary border border-border/40 transition-colors"
+          title={theme === 'dark' ? 'التحويل إلى الوضع الفاتح' : 'التحويل إلى الوضع الداكن'}
+        >
+          {theme === 'dark' ? <Sun size={13} className="text-amber-400" /> : <Moon size={13} />}
+        </button>
       </div>
     </header>
   );

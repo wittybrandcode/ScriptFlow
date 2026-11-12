@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { ExportWorker, PaginationResult, SingleScenePaginationResult } from '../workers/ExportWorker';
+import { workerFactory } from '../workers/WorkerFactory';
 
 /**
  * useExportWorker
@@ -21,7 +22,14 @@ export function useExportWorker() {
     setError(null);
 
     try {
-      const workerResult = await ExportWorker.precalculatePagination(scenes, characters);
+      let workerResult: PaginationResult;
+      try {
+        const worker = workerFactory.getExportWorker();
+        workerResult = await worker.precalculatePagination(scenes, characters);
+      } catch (workerErr) {
+        console.warn('[useExportWorker] Worker execution failed, falling back to main thread:', workerErr);
+        workerResult = await ExportWorker.precalculatePagination(scenes, characters);
+      }
 
       setProgress(100);
       setResult(workerResult);
@@ -37,7 +45,14 @@ export function useExportWorker() {
 
   const paginateSingleScene = useCallback(async (blocks: any[], characters: any[] = []): Promise<SingleScenePaginationResult> => {
     try {
-      const result = await ExportWorker.paginateSingleScene(blocks, characters);
+      let result: SingleScenePaginationResult;
+      try {
+        const worker = workerFactory.getExportWorker();
+        result = await worker.paginateSingleScene(blocks, characters);
+      } catch (workerErr) {
+        console.warn('[useExportWorker] Worker execution failed, falling back to main thread:', workerErr);
+        result = await ExportWorker.paginateSingleScene(blocks, characters);
+      }
       return result;
     } catch (err: any) {
       console.error('[useExportWorker] paginateSingleScene failed:', err);

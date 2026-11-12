@@ -7,8 +7,8 @@ export class AsabaEngine {
    */
   public static assignAsaba(heirs: Heir[], result: CalculationResult): CalculationResult {
     const activeHeirs = heirs.filter(h => !h.isBlocked);
-    const hasType = (type: string) => activeHeirs.some(h => h.type === type);
-    const getByType = (type: string) => activeHeirs.filter(h => h.type === type);
+    const hasType = (type: string) => activeHeirs.some(h => h.type === type || h.secondaryType === type);
+    const getByType = (type: string) => activeHeirs.filter(h => h.type === type || h.secondaryType === type);
 
     const markAsaba = (heirsToMark: Heir[], asabaType: string, maleWeight: number, femaleWeight: number) => {
       for (const h of heirsToMark) {
@@ -16,6 +16,9 @@ export class AsabaEngine {
           result.shares[h.id] = { fraction: '0/1', type: 'ASABA' };
         } else if (result.shares[h.id].type === 'FARD_PLUS_ASABA') {
            // Father/Grandfather with female descendant
+        } else if (result.shares[h.id].type === 'FARD' || result.shares[h.id].type === 'FARD_SHARED') {
+           // Dual kinship (اجتماع القرابتين: يرث بالفرض والعصوبة معاً)
+           result.shares[h.id].type = 'FARD_PLUS_ASABA';
         } else {
            result.shares[h.id].type = 'ASABA';
         }
@@ -58,16 +61,31 @@ export class AsabaEngine {
     }
 
     const grandfathers = getByType('GRANDFATHER');
+    const fullBrothers = getByType('FULL_BROTHER');
+    const fullSisters = getByType('FULL_SISTER');
+    const paternalBrothers = getByType('AGNATIC_BROTHER');
+    const paternalSisters = getByType('AGNATIC_SISTER');
+    const hasBrothers = fullBrothers.length > 0 || fullSisters.length > 0 || paternalBrothers.length > 0 || paternalSisters.length > 0;
+
     if (grandfathers.length > 0 && fathers.length === 0) {
       if (!hasType('SON') && !hasType('SON_OF_SON')) {
-        markAsaba(grandfathers, 'ASABA_BIN_NAFS', 1, 0);
-        return result;
+        if (!hasBrothers) {
+          markAsaba(grandfathers, 'ASABA_BIN_NAFS', 1, 0);
+          return result;
+        } else {
+          // الجد مع الإخوة: المقاسمة كأخ شقيق أو لأب
+          if (fullBrothers.length > 0 || fullSisters.length > 0) {
+            markAsaba([...grandfathers, ...fullBrothers, ...fullSisters], 'ASABA_BIL_GHAYR', 2, 1);
+            return result;
+          } else if (paternalBrothers.length > 0 || paternalSisters.length > 0) {
+            markAsaba([...grandfathers, ...paternalBrothers, ...paternalSisters], 'ASABA_BIL_GHAYR', 2, 1);
+            return result;
+          }
+        }
       }
     }
 
     // 3. Siblings (Ukhuwwa)
-    const fullBrothers = getByType('FULL_BROTHER');
-    const fullSisters = getByType('FULL_SISTER');
     if (fullBrothers.length > 0) {
       if (fullSisters.length > 0) {
         markAsaba([...fullBrothers, ...fullSisters], 'ASABA_BIL_GHAYR', 2, 1);
@@ -83,8 +101,6 @@ export class AsabaEngine {
       return result;
     }
 
-    const paternalBrothers = getByType('AGNATIC_BROTHER');
-    const paternalSisters = getByType('AGNATIC_SISTER');
     if (paternalBrothers.length > 0) {
       if (paternalSisters.length > 0) {
         markAsaba([...paternalBrothers, ...paternalSisters], 'ASABA_BIL_GHAYR', 2, 1);

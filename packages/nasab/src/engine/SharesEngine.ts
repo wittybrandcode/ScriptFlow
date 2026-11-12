@@ -12,7 +12,12 @@ export class SharesEngine {
     // Helper conditions
     const hasDescendant = activeHeirs.some(h => ['SON', 'DAUGHTER', 'SON_OF_SON', 'DAUGHTER_OF_SON'].includes(h.type));
     const hasMaleDescendant = activeHeirs.some(h => ['SON', 'SON_OF_SON'].includes(h.type));
-    const siblingsCount = activeHeirs.filter(h => ['FULL_BROTHER', 'FULL_SISTER', 'AGNATIC_BROTHER', 'AGNATIC_SISTER', 'UTERINE_BROTHER', 'UTERINE_SISTER'].includes(h.type)).length;
+    const fathers = heirs.filter(h => h.type === 'FATHER');
+    // In Islamic jurisprudence, siblings reduce mother's share from 1/3 to 1/6 even if they are blocked by father
+    const siblingsCountForMother = heirs.filter(h => 
+      ['FULL_BROTHER', 'FULL_SISTER', 'AGNATIC_BROTHER', 'AGNATIC_SISTER', 'UTERINE_BROTHER', 'UTERINE_SISTER'].includes(h.type) &&
+      (!h.blockedBy || h.blockedBy.length === 0 || fathers.some(f => h.blockedBy?.includes(f.id)))
+    ).length;
     const hasFather = activeHeirs.some(h => h.type === 'FATHER');
 
     for (const heir of activeHeirs) {
@@ -26,7 +31,7 @@ export class SharesEngine {
           result.shares[heir.id] = { fraction: baseFrac.div(wives.length).toFraction(true), type: 'FARD_SHARED' };
           break;
         case 'MOTHER':
-          if (hasDescendant || siblingsCount >= 2) {
+          if (hasDescendant || siblingsCountForMother >= 2) {
             result.shares[heir.id] = { fraction: '1/6', type: 'FARD' };
           } else if (hasFather && activeHeirs.some(h => ['SPOUSE_MALE', 'SPOUSE_FEMALE'].includes(h.type))) {
             // Al-Umariya (Gharawain): Mother gets 1/3 of the remainder after spouse.

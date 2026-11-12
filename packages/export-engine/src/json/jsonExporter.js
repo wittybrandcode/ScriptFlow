@@ -28,7 +28,7 @@ export function parseJSON(jsonString) {
     throw new Error('ملف JSON غير صالح: ' + e.message);
   }
 
-  if (!data.scenario) {
+  if (!data || typeof data !== 'object' || !data.scenario) {
     throw new Error('ملف JSON لا يحتوي على بيانات سيناريو (scenario).');
   }
 

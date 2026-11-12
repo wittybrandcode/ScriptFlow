@@ -1,5 +1,5 @@
 import { Person } from '../core/types';
-import { EvidenceCitation } from '../../packages/nasab-rule-engine/src/types';
+import { EvidenceCitation } from '../types/Kinship';
 
 export interface HeirShare {
   person: Person;
@@ -55,6 +55,10 @@ export interface MawarithContext {
     aunts: Person[];
     nephews: Person[];
     nieces: Person[];
+    maternalUncles?: Person[];
+    maternalNephews?: Person[];
+    uterineGrandchildren?: Person[];
+    uterineGrandfathers?: Person[];
   };
 
   // State
