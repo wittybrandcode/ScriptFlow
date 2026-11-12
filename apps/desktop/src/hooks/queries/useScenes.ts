@@ -69,8 +69,9 @@ export function useCreateSceneMutation() {
       }
       await sceneRepo.insert(record as any);
       if (record.scenario_id) {
-        const { updateScenarioPageNumbering } = await import('../../utils/paginationCalculator');
-        await updateScenarioPageNumbering(record.scenario_id);
+        import('../../utils/paginationCalculator')
+          .then(({ updateScenarioPageNumbering }) => updateScenarioPageNumbering(record.scenario_id))
+          .catch((e) => console.warn('[useCreateSceneMutation] Background pagination update warning:', e));
       }
       return record;
     },
@@ -93,8 +94,9 @@ export function useUpdateSceneMutation() {
       await sceneRepo.update(id, data as any);
       const updated = await sceneRepo.findById(id);
       if (updated && updated.scenario_id) {
-        const { updateScenarioPageNumbering } = await import('../../utils/paginationCalculator');
-        await updateScenarioPageNumbering(updated.scenario_id);
+        import('../../utils/paginationCalculator')
+          .then(({ updateScenarioPageNumbering }) => updateScenarioPageNumbering(updated.scenario_id))
+          .catch((e) => console.warn('[useUpdateSceneMutation] Background pagination update warning:', e));
       }
       return { id, data };
     },
@@ -119,8 +121,9 @@ export function useDeleteSceneMutation() {
       const scene = await sceneRepo.findById(sceneId);
       await sceneRepo.softDelete(sceneId);
       if (scene && scene.scenario_id) {
-        const { updateScenarioPageNumbering } = await import('../../utils/paginationCalculator');
-        await updateScenarioPageNumbering(scene.scenario_id);
+        import('../../utils/paginationCalculator')
+          .then(({ updateScenarioPageNumbering }) => updateScenarioPageNumbering(scene.scenario_id))
+          .catch((e) => console.warn('[useDeleteSceneMutation] Background pagination update warning:', e));
       }
       return sceneId;
     },

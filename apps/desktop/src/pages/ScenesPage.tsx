@@ -203,17 +203,21 @@ export default function ScenesPage() {
   }
 
   async function handleConfirmDeleteScene() {
-    if (!sceneToDelete) return
+    if (!sceneToDelete) return;
+    const sceneId = typeof sceneToDelete === 'object' ? sceneToDelete.id : sceneToDelete;
+    
+    // Close modal and optimistically update UI immediately
+    setSceneToDelete(null);
+    setScenes(prev => prev.filter(s => s.id !== sceneId));
+    showToast('تم حذف المشهد بنجاح', 'info');
+
     try {
-      const sceneId = typeof sceneToDelete === 'object' ? sceneToDelete.id : sceneToDelete
-      await deleteSceneMutation.mutateAsync(sceneId)
-      showToast('تم حذف المشهد بنجاح', 'info')
-      fetchScenes()
-      fetchStats()
-      setSceneToDelete(null)
+      await deleteSceneMutation.mutateAsync(sceneId);
+      fetchStats();
     } catch (err) {
       console.error(err);
       showToast('حدث خطأ أثناء الحذف', 'error');
+      fetchScenes();
     }
   }
 
